@@ -1,1 +1,2 @@
-docker container stop eventcore.eventstore && docker container rm eventcore.eventstore
+docker container stop eventcore.eventstore
+docker container rm eventcore.eventstore

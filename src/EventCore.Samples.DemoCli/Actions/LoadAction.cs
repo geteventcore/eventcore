@@ -19,7 +19,7 @@ namespace EventCore.Samples.DemoCli.Actions
 
 		public async Task RunAsync()
 		{
-			var streamId = "$allNonSystemEvents";
+			var streamId = Constants.STREAM_ID_ALL;
 
 			Console.WriteLine($"Loading events from {streamId} stream.");
 
@@ -27,7 +27,7 @@ namespace EventCore.Samples.DemoCli.Actions
 			var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
 			var streamClient = new EventStoreStreamClient(NullGenericLogger.Instance, Helpers.EventStoreConnectionFactory, options);
 
-			Console.WriteLine("Current end of stream: " + (await streamClient.FindLastPositionInStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId)));
+			Console.WriteLine("Current end of stream: " + (await streamClient.FindLastPositionInStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId)).GetValueOrDefault(streamClient.FirstPositionInStream - 1));
 
 			await streamClient.LoadStreamEventsAsync(
 				Constants.EVENTSTORE_DEFAULT_REGION, streamId, _options.FromPosition,

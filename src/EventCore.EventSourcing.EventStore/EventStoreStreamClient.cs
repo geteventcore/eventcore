@@ -148,6 +148,7 @@ namespace EventCore.EventSourcing.EventStore
 					 streamId, fromPosition, subSettings,
 					 async (_, resolvedEvent) =>
 					 {
+						 Console.WriteLine("Received...");
 						 if (!cancellationToken.IsCancellationRequested)
 						 {
 							 var e = resolvedEvent.Event; // The base event that this event links to or is.
@@ -156,6 +157,12 @@ namespace EventCore.EventSourcing.EventStore
 							 // Send the assembled stream event to the receiver.
 							 await receiverAsync(streamEvent, cancellationToken);
 						 }
+					 },
+					 null,
+					 (_, reason, ex) =>
+					 {
+						 Console.WriteLine($"Subscription dropped: {reason}");
+						 Console.WriteLine("Exception: " + ex.Message);
 					 });
 
 					await cancellationToken.WaitHandle.AsTask();
