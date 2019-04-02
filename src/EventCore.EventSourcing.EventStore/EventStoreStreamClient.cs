@@ -148,7 +148,6 @@ namespace EventCore.EventSourcing.EventStore
 					 streamId, fromPosition, subSettings,
 					 async (_, resolvedEvent) =>
 					 {
-						 Console.WriteLine("Received...");
 						 if (!cancellationToken.IsCancellationRequested)
 						 {
 							 var e = resolvedEvent.Event; // The base event that this event links to or is.

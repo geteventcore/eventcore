@@ -2,5 +2,5 @@ fromAll().
    when({
         $any : function(s,e) {
             if (e.eventType && !e.eventType.startsWith('$'))
-                linkTo('allNonSystemEvents', e);
+                linkTo('$allNonSystemEvents', e);
    }});

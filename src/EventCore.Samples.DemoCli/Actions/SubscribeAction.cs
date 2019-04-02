@@ -32,7 +32,7 @@ namespace EventCore.Samples.DemoCli.Actions
 			var cancelSource = new CancellationTokenSource();
 
 			var _ = streamClient.SubscribeToStreamAsync(
-				Constants.EVENTSTORE_DEFAULT_REGION, "$all", _options.FromPosition,
+				Constants.EVENTSTORE_DEFAULT_REGION, streamId, _options.FromPosition,
 				(se, ct) =>
 				{
 					Console.WriteLine($"Event {se.EventType} received from stream {se.StreamId} ({se.Position}).");
