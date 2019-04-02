@@ -10,4 +10,10 @@
     <PackageReference Include="CommandLineParser" Version="2.4.3" />
   </ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
+		<ProjectReference Include="..\EventCore.EventSourcing.EventStore\EventCore.EventSourcing.EventStore.csproj" />
+    <ProjectReference Include="..\EventCore.Utilities\EventCore.Utilities.csproj" />
+  </ItemGroup>
+
 </Project>
