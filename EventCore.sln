@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6240FDEA-B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.EventSourcing.Tests", "test\EventCore.EventSourcing.Tests\EventCore.EventSourcing.Tests.csproj", "{04156CE5-2297-4C91-9D1F-F39EBDB87C9F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.DemoCli", "src\EventCore.DemoCli\EventCore.DemoCli.csproj", "{21530563-A6ED-4691-A5BF-B6D186128088}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.DemoCli", "src\EventCore.Samples.DemoCli\EventCore.Samples.DemoCli.csproj", "{21530563-A6ED-4691-A5BF-B6D186128088}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.EventSourcing.EventStore", "src\EventCore.EventSourcing.EventStore\EventCore.EventSourcing.EventStore.csproj", "{17ED52AA-B216-47F2-90CD-4E29120C2F9A}"
 EndProject

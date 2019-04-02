@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 
-namespace EventCore.DemoCli
+namespace EventCore.Samples.DemoCli
 {
 	public interface IAction
 	{
-		void Run();
+		Task RunAsync();
 	}
 }

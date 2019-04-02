@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace EventCore.DemoCli.Actions
+namespace EventCore.Samples.DemoCli.Actions
 {
 	public class LoadAction : IAction
 	{
@@ -9,9 +9,10 @@ namespace EventCore.DemoCli.Actions
 		{
 		}
 
-		public void Run()
+		public Task RunAsync()
 		{
-			Console.WriteLine("Running fake...");
+			Console.WriteLine("Running load...");
+			return Task.CompletedTask;
 		}
 	}
 }

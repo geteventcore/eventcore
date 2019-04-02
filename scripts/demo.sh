@@ -1,0 +1,1 @@
+dotnet run -p ../src/EventCore.Samples.DemoCli -- ${1}

@@ -1,6 +1,6 @@
 ﻿using CommandLine;
 
-namespace EventCore.DemoCli
+namespace EventCore.Samples.DemoCli
 {
 	public static class Options
 	{
