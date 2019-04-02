@@ -11,13 +11,14 @@ using EventStore.ClientAPI.Exceptions;
 using Moq;
 using EventCore.Utilities;
 using Xunit;
+using EventStore.ClientAPI.SystemData;
 
 namespace EventCore.EventSourcing.EventStore.Tests
 {
 
 	public class EventStoreStreamClientTests
 	{
-		private byte[] EmptyJsonPayload { get => Encoding.UTF8.GetBytes("{}"); }
+		private byte[] EmptyJsonPayload { get => Encoding.Unicode.GetBytes("{}"); }
 		private EventStoreStreamClientOptions ClientOptions { get => new EventStoreStreamClientOptions(100); }
 
 		private class TestException : Exception { }
@@ -44,32 +45,38 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			// Create object without constructor.
 			// SetValue for struct must be boxed.
-			var e = (ResolvedEvent)FormatterServices.GetUninitializedObject(typeof(ResolvedEvent));
-			var f = typeof(ResolvedEvent).GetField("Event", BindingFlags.Instance | BindingFlags.Public);
-			object boxed = e;
-			f.SetValue(boxed, recordedEvent);
-			e = (ResolvedEvent)boxed;
-			return e;
+			var x = (ResolvedEvent)FormatterServices.GetUninitializedObject(typeof(ResolvedEvent));
+			object boxed = x;
+			typeof(ResolvedEvent).GetField("Event", BindingFlags.Instance | BindingFlags.Public).SetValue(boxed, recordedEvent);
+			x = (ResolvedEvent)boxed;
+			return x;
 		}
 
 		private RecordedEvent ForceCreateRecordedEvent(string eventStreamId, long eventNumber, string eventType, byte[] data)
 		{
 			// Create object without constructor.
-			var e = (RecordedEvent)FormatterServices.GetUninitializedObject(typeof(RecordedEvent));
-			typeof(RecordedEvent).GetField("EventStreamId", BindingFlags.Instance | BindingFlags.Public).SetValue(e, eventStreamId);
-			typeof(RecordedEvent).GetField("EventNumber", BindingFlags.Instance | BindingFlags.Public).SetValue(e, eventNumber);
-			typeof(RecordedEvent).GetField("EventType", BindingFlags.Instance | BindingFlags.Public).SetValue(e, eventType);
-			typeof(RecordedEvent).GetField("Data", BindingFlags.Instance | BindingFlags.Public).SetValue(e, data);
-			return e;
+			var x = (RecordedEvent)FormatterServices.GetUninitializedObject(typeof(RecordedEvent));
+			typeof(RecordedEvent).GetField("EventStreamId", BindingFlags.Instance | BindingFlags.Public).SetValue(x, eventStreamId);
+			typeof(RecordedEvent).GetField("EventNumber", BindingFlags.Instance | BindingFlags.Public).SetValue(x, eventNumber);
+			typeof(RecordedEvent).GetField("EventType", BindingFlags.Instance | BindingFlags.Public).SetValue(x, eventType);
+			typeof(RecordedEvent).GetField("Data", BindingFlags.Instance | BindingFlags.Public).SetValue(x, data);
+			return x;
 		}
 
 		private EventReadResult ForceCreateEventReadResult(EventReadStatus status, long eventNumber)
 		{
 			// Create object without constructor.
-			var r = (EventReadResult)FormatterServices.GetUninitializedObject(typeof(EventReadResult));
-			typeof(EventReadResult).GetField("Status", BindingFlags.Instance | BindingFlags.Public).SetValue(r, status);
-			typeof(EventReadResult).GetField("EventNumber", BindingFlags.Instance | BindingFlags.Public).SetValue(r, eventNumber);
-			return r;
+			var x = (EventReadResult)FormatterServices.GetUninitializedObject(typeof(EventReadResult));
+			typeof(EventReadResult).GetField("Status", BindingFlags.Instance | BindingFlags.Public).SetValue(x, status);
+			typeof(EventReadResult).GetField("EventNumber", BindingFlags.Instance | BindingFlags.Public).SetValue(x, eventNumber);
+			return x;
+		}
+
+		private EventStoreStreamCatchUpSubscription ForceCreateEventStoreStreamCatchUpSubscription()
+		{
+			// Create object without constructor.
+			var x = (EventStoreStreamCatchUpSubscription)FormatterServices.GetUninitializedObject(typeof(EventStoreStreamCatchUpSubscription));
+			return x;
 		}
 
 
@@ -160,8 +167,8 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var eventType2 = "a2";
 			var json1 = "{'prop':'val1'}";
 			var json2 = "{'prop':'val2'}";
-			var e1 = new CommitEvent(eventType1, Encoding.UTF8.GetBytes(json1));
-			var e2 = new CommitEvent(eventType2, Encoding.UTF8.GetBytes(json2));
+			var e1 = new CommitEvent(eventType1, Encoding.Unicode.GetBytes(json1));
+			var e2 = new CommitEvent(eventType2, Encoding.Unicode.GetBytes(json2));
 
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
 
@@ -170,8 +177,8 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			mockConn.Verify(x => x.AppendToStreamAsync(
 				It.IsAny<string>(), It.IsAny<long>(),
 				It.Is<IEnumerable<EventData>>(events =>
-					events.ToList().First().Type == eventType1 && Encoding.UTF8.GetString(events.ToList().First().Data) == json1
-					&& events.ToList().Last().Type == eventType2 && Encoding.UTF8.GetString(events.ToList().Last().Data) == json2
+					events.ToList().First().Type == eventType1 && Encoding.Unicode.GetString(events.ToList().First().Data) == json1
+					&& events.ToList().Last().Type == eventType2 && Encoding.Unicode.GetString(events.ToList().Last().Data) == json2
 				),
 				null));
 		}
@@ -258,7 +265,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var streamId = "s";
 			var eventType = "a";
 			var json = "{'prop':'val1'}";
-			var data = Encoding.UTF8.GetBytes(json);
+			var data = Encoding.Unicode.GetBytes(json);
 			var mockEvent = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType, data));
 			var mockSlice = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent }, 0, true);
 
@@ -327,8 +334,8 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var eventType2 = "a2";
 			var json1 = "{'prop':'val1'}";
 			var json2 = "{'prop':'val2'}";
-			var data1 = Encoding.UTF8.GetBytes(json1);
-			var data2 = Encoding.UTF8.GetBytes(json2);
+			var data1 = Encoding.Unicode.GetBytes(json1);
+			var data2 = Encoding.Unicode.GetBytes(json2);
 			var mockEvent1 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType1, data1));
 			var mockEvent2 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream + 1, eventType2, data2));
 
@@ -357,7 +364,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 					if (se.Position == client.FirstPositionInStream)
 					{
-						if (se.StreamId != streamId || se.EventType != eventType1 || Encoding.UTF8.GetString(se.Payload) != json1)
+						if (se.StreamId != streamId || se.EventType != eventType1 || Encoding.Unicode.GetString(se.Payload) != json1)
 						{
 							throw new Exception("Invalid event 1.");
 						}
@@ -365,7 +372,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 					if (se.Position == client.FirstPositionInStream + 1)
 					{
-						if (se.StreamId != streamId || se.EventType != eventType2 || Encoding.UTF8.GetString(se.Payload) != json2)
+						if (se.StreamId != streamId || se.EventType != eventType2 || Encoding.Unicode.GetString(se.Payload) != json2)
 						{
 							throw new Exception("Invalid event 2.");
 						}
@@ -374,6 +381,168 @@ namespace EventCore.EventSourcing.EventStore.Tests
 					return Task.CompletedTask;
 				},
 				CancellationToken.None);
+
+			Assert.Equal(2, calledCount);
+		}
+
+		[Fact]
+		public async Task subscribe_should_throw_when_invalid_from_position()
+		{
+			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var streamId = "s";
+			var invalidPosition = client.FirstPositionInStream - 1;
+
+			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(new Mock<IEventStoreConnection>().Object);
+
+			await Assert.ThrowsAsync<ArgumentException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION, streamId, invalidPosition, (se, ct) => Task.CompletedTask, CancellationToken.None));
+		}
+
+		[Fact]
+		public async Task subscribe_should_rethrow_when_reader_exception()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var streamId = "s";
+			var ex = new TestException();
+
+			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
+
+			mockConn
+				.Setup(x => x.SubscribeToStreamFrom(
+					It.IsAny<string>(), It.IsAny<long>(),
+					It.IsAny<CatchUpSubscriptionSettings>(),
+					It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null, null, null))
+				.Throws(ex);
+
+			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION, streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, CancellationToken.None));
+		}
+
+		[Fact]
+		public async Task subscribe_should_rethrow_when_receiver_exception()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var streamId = "s";
+			var eventType = "a";
+			var json = "{'prop':'val1'}";
+			var data = Encoding.Unicode.GetBytes(json);
+			var mockEvent = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType, data));
+			var mockSlice = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent }, 0, true);
+
+			var ex = new TestException();
+
+			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
+
+			mockConn
+				.Setup(x => x.SubscribeToStreamFrom(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<CatchUpSubscriptionSettings>(), It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null, null, null))
+				// Callback is to simulate call to receiver.
+				.Callback<string, long?, CatchUpSubscriptionSettings, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>, Action<EventStoreCatchUpSubscription>, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>, UserCredentials>(
+					(_1, _2, _3, receiverAsync, _5, _6, _7) =>
+					{
+						try
+						{
+							receiverAsync(null, ForceCreateResolvedEvent(ForceCreateRecordedEvent(null, 0, null, null))).Wait();
+						}
+						catch (AggregateException aggEx)
+						{
+							// For some reason this method doesn't unwrap the aggregate exception despite the use of Wait().
+							throw aggEx.InnerException;
+						}
+					})
+				.Returns(ForceCreateEventStoreStreamCatchUpSubscription());
+
+			var cancelSource = new CancellationTokenSource();
+			cancelSource.CancelAfter(5000); // Make sure the subscriber is cancelled after timeout.
+
+			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(
+				DEFAULT_REGION, streamId, client.FirstPositionInStream,
+				(se, ct) => throw new TestException(),
+				cancelSource.Token));
+
+			if (cancelSource.IsCancellationRequested)
+				throw new TimeoutException();
+		}
+
+		[Fact]
+		public async Task subscribe_should_call_receiver()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, new EventStoreStreamClientOptions(1));
+			var streamId = "s";
+			var eventType1 = "a1";
+			var eventType2 = "a2";
+			var json1 = "{'prop':'val1'}";
+			var json2 = "{'prop':'val2'}";
+			var data1 = Encoding.Unicode.GetBytes(json1);
+			var data2 = Encoding.Unicode.GetBytes(json2);
+			var mockEvent1 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType1, data1));
+			var mockEvent2 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream + 1, eventType2, data2));
+
+			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
+
+			var calledCount = 0;
+
+			// First round of events returned.
+			mockConn
+				.Setup(x => x.SubscribeToStreamFrom(streamId, It.Is<long>(pos => pos == client.FirstPositionInStream), It.IsAny<CatchUpSubscriptionSettings>(), It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null, null, null))
+				// Callback is to simulate call to receiver.
+				.Callback<string, long?, CatchUpSubscriptionSettings, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>, Action<EventStoreCatchUpSubscription>, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>, UserCredentials>(
+					(_1, _2, _3, receiverAsync, _5, _6, _7) =>
+					{
+						try
+						{
+							receiverAsync(null, mockEvent1).Wait();
+							receiverAsync(null, mockEvent2).Wait();
+						}
+						catch (AggregateException aggEx)
+						{
+							// For some reason this method doesn't unwrap the aggregate exception despite the use of Wait().
+							throw aggEx.InnerException;
+						}
+					})
+				.Returns(ForceCreateEventStoreStreamCatchUpSubscription());
+
+			var cancelSource = new CancellationTokenSource();
+			cancelSource.CancelAfter(5000); // Make sure the subscriber is cancelled after timeout.
+
+			var mutex = new ManualResetEventSlim(false);
+
+			await client.SubscribeToStreamAsync(
+				DEFAULT_REGION, streamId, client.FirstPositionInStream,
+				(se, ct) =>
+				{
+					calledCount++;
+
+					if (se.Position == client.FirstPositionInStream)
+					{
+						if (se.StreamId != streamId || se.EventType != eventType1 || Encoding.Unicode.GetString(se.Payload) != json1)
+						{
+							throw new Exception("Invalid event 1.");
+						}
+					}
+
+					if (se.Position == client.FirstPositionInStream + 1)
+					{
+						if (se.StreamId != streamId || se.EventType != eventType2 || Encoding.Unicode.GetString(se.Payload) != json2)
+						{
+							throw new Exception("Invalid event 2.");
+						}
+					}
+
+					if (calledCount == 2) mutex.Set();
+
+					return Task.CompletedTask;
+				},
+				cancelSource.Token);
+
+			await Task.WhenAny(new[] { cancelSource.Token.WaitHandle.AsTask(), mutex.WaitHandle.AsTask() });
+
+			if (!mutex.IsSet && cancelSource.IsCancellationRequested)
+				throw new TimeoutException();
 
 			Assert.Equal(2, calledCount);
 		}

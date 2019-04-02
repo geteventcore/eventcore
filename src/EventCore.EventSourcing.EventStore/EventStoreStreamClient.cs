@@ -106,7 +106,7 @@ namespace EventCore.EventSourcing.EventStore
 						{
 							if (!cancellationToken.IsCancellationRequested)
 							{
-								var e = resolvedEvent.Event; // The base event that this event links to or represents.
+								var e = resolvedEvent.Event; // The base event that this event links to or is.
 								var streamEvent = new StreamEvent(e.EventStreamId, e.EventNumber, e.EventType, e.Data);
 
 								// Send the assembled stream event to the receiver.
@@ -122,34 +122,6 @@ namespace EventCore.EventSourcing.EventStore
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Exception while loading stream.");
-				throw;
-			}
-		}
-
-		public async Task<long?> FindLastPositionInStreamAsync(string region, string streamId)
-		{
-			try
-			{
-				long? lastPosition = null;
-
-				using (var conn = _connectionFactory.Create(region))
-				{
-					await conn.ConnectAsync();
-					var result = await conn.ReadEventAsync(streamId, StreamPosition.End, false);
-
-					if (result.Status == EventReadStatus.Success)
-					{
-						lastPosition = result.EventNumber;
-					}
-
-					conn.Close();
-				}
-
-				return lastPosition;
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Exception while finding end of stream.");
 				throw;
 			}
 		}
@@ -178,15 +150,24 @@ namespace EventCore.EventSourcing.EventStore
 					 {
 						 if (!cancellationToken.IsCancellationRequested)
 						 {
-							 var e = resolvedEvent.Event; // The base event that this event links to or represents.
-								var streamEvent = new StreamEvent(e.EventStreamId, e.EventNumber, e.EventType, e.Data);
+							 var e = resolvedEvent.Event; // The base event that this event links to or is.
+							 var streamEvent = new StreamEvent(e.EventStreamId, e.EventNumber, e.EventType, e.Data);
 
-								// Send the assembled stream event to the receiver.
-								await receiverAsync(streamEvent, cancellationToken);
+							 // Send the assembled stream event to the receiver.
+							 await receiverAsync(streamEvent, cancellationToken);
 						 }
 					 });
 
 					await cancellationToken.WaitHandle.AsTask();
+
+					try
+					{
+						sub.Stop(); // Does not block.
+					}
+					catch (Exception)
+					{
+						// Ignore errors.
+					}
 
 					conn.Close();
 				}
@@ -194,6 +175,34 @@ namespace EventCore.EventSourcing.EventStore
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Exception while subscribing to stream.");
+				throw;
+			}
+		}
+
+		public async Task<long?> FindLastPositionInStreamAsync(string region, string streamId)
+		{
+			try
+			{
+				long? lastPosition = null;
+
+				using (var conn = _connectionFactory.Create(region))
+				{
+					await conn.ConnectAsync();
+					var result = await conn.ReadEventAsync(streamId, StreamPosition.End, false);
+
+					if (result.Status == EventReadStatus.Success)
+					{
+						lastPosition = result.EventNumber;
+					}
+
+					conn.Close();
+				}
+
+				return lastPosition;
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Exception while finding end of stream.");
 				throw;
 			}
 		}
