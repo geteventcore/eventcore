@@ -15,19 +15,19 @@ namespace EventCore.EventSourcing.EventStore
 		private const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9._-]";
 
 		private readonly IGenericLogger _logger;
-		private readonly Func<IEventStoreConnection> _connectionFactory;
+		private readonly IEventStoreConnectionFactory _connectionFactory;
 		private readonly EventStoreStreamClientOptions _options;
 
 		public long FirstPositionInStream => 0; // EventStore is 0-based.
 
-		public EventStoreStreamClient(IGenericLogger logger, Func<IEventStoreConnection> connectionFactory, EventStoreStreamClientOptions options)
+		public EventStoreStreamClient(IGenericLogger logger, IEventStoreConnectionFactory connectionFactory, EventStoreStreamClientOptions options)
 		{
 			_logger = logger;
 			_connectionFactory = connectionFactory;
 			_options = options;
 		}
 
-		public async Task<CommitResult> CommitEventsToStreamAsync(string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events)
+		public async Task<CommitResult> CommitEventsToStreamAsync(string region, string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events)
 		{
 			if (Regex.IsMatch(streamId, INVALID_STREAM_ID_REGEX))
 			{
@@ -46,10 +46,10 @@ namespace EventCore.EventSourcing.EventStore
 
 				if (events.Count() == 0) return CommitResult.Success;
 
-				using (var conn = _connectionFactory())
+				using (var conn = _connectionFactory.Create(region))
 				{
 					await conn.ConnectAsync();
-					await conn.AppendToStreamAsync(streamId, expectedVersion, EnumerateCommitEvents(events));
+					await conn.AppendToStreamAsync(streamId, expectedVersion, MapCommitEvents(events));
 					conn.Close();
 				}
 
@@ -66,7 +66,7 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		private IEnumerable<EventData> EnumerateCommitEvents(IEnumerable<CommitEvent> events)
+		private IEnumerable<EventData> MapCommitEvents(IEnumerable<CommitEvent> events)
 		{
 			foreach (var e in events)
 			{
@@ -74,7 +74,7 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		public async Task LoadStreamEventsAsync(string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
+		public async Task LoadStreamEventsAsync(string region, string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
 		{
 			if (fromPosition < FirstPositionInStream)
 			{
@@ -86,7 +86,7 @@ namespace EventCore.EventSourcing.EventStore
 				StreamEventsSlice currentSlice;
 				long nextSliceStart = StreamPosition.Start;
 
-				using (var conn = _connectionFactory())
+				using (var conn = _connectionFactory.Create(region))
 				{
 					await conn.ConnectAsync();
 
@@ -95,7 +95,7 @@ namespace EventCore.EventSourcing.EventStore
 						// Read stream with to-links resolution.
 						currentSlice = await conn.ReadStreamEventsForwardAsync(streamId, nextSliceStart, _options.StreamReadBatchSize, true);
 
-						if(currentSlice.Status != SliceReadStatus.Success)
+						if (currentSlice.Status != SliceReadStatus.Success)
 						{
 							break;
 						}
@@ -126,13 +126,13 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		public async Task<long?> FindLastPositionInStreamAsync(string streamId)
+		public async Task<long?> FindLastPositionInStreamAsync(string region, string streamId)
 		{
 			try
 			{
 				long? lastPosition = null;
 
-				using (var conn = _connectionFactory())
+				using (var conn = _connectionFactory.Create(region))
 				{
 					await conn.ConnectAsync();
 					var result = await conn.ReadEventAsync(streamId, StreamPosition.End, false);
@@ -150,6 +150,50 @@ namespace EventCore.EventSourcing.EventStore
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Exception while finding end of stream.");
+				throw;
+			}
+		}
+
+		public async Task SubscribeToStreamAsync(string region, string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
+		{
+			if (fromPosition < FirstPositionInStream)
+			{
+				throw new ArgumentException("Invalid position.");
+			}
+
+			try
+			{
+				var subSettings = new CatchUpSubscriptionSettings(
+					CatchUpSubscriptionSettings.Default.MaxLiveQueueSize,
+					CatchUpSubscriptionSettings.Default.ReadBatchSize,
+					false, true);
+
+				using (var conn = _connectionFactory.Create(region))
+				{
+					await conn.ConnectAsync();
+
+					var sub = conn.SubscribeToStreamFrom(
+					 streamId, fromPosition, subSettings,
+					 async (_, resolvedEvent) =>
+					 {
+						 if (!cancellationToken.IsCancellationRequested)
+						 {
+							 var e = resolvedEvent.Event; // The base event that this event links to or represents.
+								var streamEvent = new StreamEvent(e.EventStreamId, e.EventNumber, e.EventType, e.Data);
+
+								// Send the assembled stream event to the receiver.
+								await receiverAsync(streamEvent, cancellationToken);
+						 }
+					 });
+
+					await cancellationToken.WaitHandle.AsTask();
+
+					conn.Close();
+				}
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Exception while subscribing to stream.");
 				throw;
 			}
 		}

@@ -29,10 +29,6 @@ namespace EventCore.Samples.DemoCli.Actions
 				await CommitEventsForAggregateType('D', startPosition);
 				await CommitEventsForAggregateType('E', startPosition);
 				await CommitEventsForAggregateType('F', startPosition);
-				await CommitEventsForAggregateType('G', startPosition);
-				await CommitEventsForAggregateType('H', startPosition);
-				await CommitEventsForAggregateType('I', startPosition);
-				await CommitEventsForAggregateType('J', startPosition);
 			}
 		}
 
@@ -48,8 +44,7 @@ namespace EventCore.Samples.DemoCli.Actions
 		{
 			var serializer = new JsonBusinessEventSerializer();
 			var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
-			var conn = EventStore.ClientAPI.EventStoreConnection.Create(Constants.EVENTSTORE_URI_CONN_STR);
-			var streamClient = new EventStoreStreamClient(NullGenericLogger.Instance, () => conn, options);
+			var streamClient = new EventStoreStreamClient(NullGenericLogger.Instance, Helpers.EventStoreConnectionFactory, options);
 			long position;
 
 
@@ -81,8 +76,7 @@ namespace EventCore.Samples.DemoCli.Actions
 				expectedLastPosition = startPosition.Value - 1;
 			}
 
-			await streamClient.CommitEventsToStreamAsync(streamId, expectedLastPosition, commitEvents);
-			// await Task.Delay(10);
+			await streamClient.CommitEventsToStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId, expectedLastPosition, commitEvents);
 
 			Console.WriteLine("Events committed.");
 		}
