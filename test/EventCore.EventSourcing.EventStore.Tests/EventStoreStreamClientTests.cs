@@ -63,12 +63,12 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			return x;
 		}
 
-		private EventReadResult ForceCreateEventReadResult(EventReadStatus status, long eventNumber)
+		private EventReadResult ForceCreateEventReadResult(EventReadStatus status, ResolvedEvent resolvedEvent)
 		{
 			// Create object without constructor.
 			var x = (EventReadResult)FormatterServices.GetUninitializedObject(typeof(EventReadResult));
 			typeof(EventReadResult).GetField("Status", BindingFlags.Instance | BindingFlags.Public).SetValue(x, status);
-			typeof(EventReadResult).GetField("EventNumber", BindingFlags.Instance | BindingFlags.Public).SetValue(x, eventNumber);
+			typeof(EventReadResult).GetField("Event", BindingFlags.Instance | BindingFlags.Public).SetValue(x, resolvedEvent);
 			return x;
 		}
 
@@ -413,7 +413,8 @@ namespace EventCore.EventSourcing.EventStore.Tests
 				.Setup(x => x.SubscribeToStreamFrom(
 					It.IsAny<string>(), It.IsAny<long>(),
 					It.IsAny<CatchUpSubscriptionSettings>(),
-					It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null, null, null))
+					It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null,
+					It.IsAny<Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>>(), null))
 				.Throws(ex);
 
 			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION, streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, new CancellationTokenSource(5000).Token));
@@ -437,7 +438,10 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
 
 			mockConn
-				.Setup(x => x.SubscribeToStreamFrom(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<CatchUpSubscriptionSettings>(), It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null, null, null))
+				.Setup(x => x.SubscribeToStreamFrom(
+					It.IsAny<string>(), It.IsAny<long>(), It.IsAny<CatchUpSubscriptionSettings>(),
+					It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(),
+					null, It.IsAny<Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>>(), null))
 				// Callback is to simulate call to receiver.
 				.Callback<string, long?, CatchUpSubscriptionSettings, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>, Action<EventStoreCatchUpSubscription>, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>, UserCredentials>(
 					(_1, _2, _3, receiverAsync, _5, _6, _7) =>
@@ -487,7 +491,10 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			// First round of events returned.
 			mockConn
-				.Setup(x => x.SubscribeToStreamFrom(streamId, It.Is<long>(pos => pos == client.FirstPositionInStream), It.IsAny<CatchUpSubscriptionSettings>(), It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null, null, null))
+				.Setup(x => x.SubscribeToStreamFrom(
+					streamId, It.Is<long>(pos => pos == client.FirstPositionInStream),
+					It.IsAny<CatchUpSubscriptionSettings>(), It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(),
+					null, It.IsAny<Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>>(), null))
 				// Callback is to simulate call to receiver.
 				.Callback<string, long?, CatchUpSubscriptionSettings, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>, Action<EventStoreCatchUpSubscription>, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>, UserCredentials>(
 					(_1, _2, _3, receiverAsync, _5, _6, _7) =>
@@ -552,7 +559,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 
-			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.NotFound, 0);
+			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.NotFound, ForceCreateResolvedEvent(ForceCreateRecordedEvent(null, 0, null, null)));
 
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
 
@@ -574,7 +581,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var streamId = "s";
 			var expectedPosition = 143; // Made up number.
 
-			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.Success, 143);
+			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.Success, ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, expectedPosition, null, null)));
 
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
 
