@@ -4,13 +4,11 @@ namespace EventCore.EventSourcing
 {
 	public class BusinessEvent
 	{
-		public string CausalId { get; }
-		public string CorrelationId { get; }
+		public BusinessMetadata Metadata { get; }
 
-		public BusinessEvent(string causalId, string correlationId)
+		public BusinessEvent(BusinessMetadata metadata)
 		{
-			CausalId = causalId;
-			CorrelationId = correlationId;
+			Metadata = metadata;
 		}
 	}
 }
