@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.DemoCli.Actions
 {
-	public class LoadAction : IAction
+	public class SubscribeAction : IAction
 	{
-		private readonly Options.LoadOptions _options;
+		private readonly Options.SubscribeOptions _options;
 
-		public LoadAction(Options.LoadOptions options)
+		public SubscribeAction(Options.SubscribeOptions options)
 		{
 			_options = options;
 		}
@@ -21,7 +21,7 @@ namespace EventCore.Samples.DemoCli.Actions
 		{
 			var streamId = "$allNonSystemEvents";
 
-			Console.WriteLine($"Loading events from {streamId} stream.");
+			Console.WriteLine($"Subscribing to events on {streamId} stream.");
 
 			var serializer = new JsonBusinessEventSerializer();
 			var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
@@ -29,14 +29,19 @@ namespace EventCore.Samples.DemoCli.Actions
 
 			Console.WriteLine("Current end of stream: " + (await streamClient.FindLastPositionInStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId)));
 
-			await streamClient.LoadStreamEventsAsync(
-				Constants.EVENTSTORE_DEFAULT_REGION, streamId, _options.FromPosition,
+			var cancelSource = new CancellationTokenSource();
+
+			var _ = streamClient.SubscribeToStreamAsync(
+				Constants.EVENTSTORE_DEFAULT_REGION, "$all", _options.FromPosition,
 				(se, ct) =>
 				{
 					Console.WriteLine($"Event {se.EventType} received from stream {se.StreamId} ({se.Position}).");
 					return Task.CompletedTask;
 				},
-				CancellationToken.None);
+				cancelSource.Token);
+
+			Console.WriteLine("Press ENTER to stop.");
+			Console.ReadLine();
 		}
 
 		private Type MapEventType(string eventType)

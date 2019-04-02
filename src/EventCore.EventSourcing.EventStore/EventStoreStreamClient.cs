@@ -18,7 +18,7 @@ namespace EventCore.EventSourcing.EventStore
 		private readonly IEventStoreConnectionFactory _connectionFactory;
 		private readonly EventStoreStreamClientOptions _options;
 
-		public long FirstPositionInStream => 0; // EventStore is 0-based.
+		public long FirstPositionInStream => Constants.FIRST_POSITION_IN_STREAM;
 
 		public EventStoreStreamClient(IGenericLogger logger, IEventStoreConnectionFactory connectionFactory, EventStoreStreamClientOptions options)
 		{
@@ -192,7 +192,10 @@ namespace EventCore.EventSourcing.EventStore
 
 					if (result.Status == EventReadStatus.Success)
 					{
-						lastPosition = result.EventNumber;
+						if (result.Event.HasValue)
+						{
+							lastPosition = result.Event.Value.OriginalEventNumber;
+						}
 					}
 
 					conn.Close();

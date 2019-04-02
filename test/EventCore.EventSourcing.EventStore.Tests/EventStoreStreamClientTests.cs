@@ -416,7 +416,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 					It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null, null, null))
 				.Throws(ex);
 
-			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION, streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, CancellationToken.None));
+			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION, streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, new CancellationTokenSource(5000).Token));
 		}
 
 		[Fact]
@@ -454,8 +454,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 					})
 				.Returns(ForceCreateEventStoreStreamCatchUpSubscription());
 
-			var cancelSource = new CancellationTokenSource();
-			cancelSource.CancelAfter(5000); // Make sure the subscriber is cancelled after timeout.
+			var cancelSource = new CancellationTokenSource(5000); // Make sure the subscriber is cancelled after timeout.
 
 			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(
 				DEFAULT_REGION, streamId, client.FirstPositionInStream,
@@ -506,9 +505,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 					})
 				.Returns(ForceCreateEventStoreStreamCatchUpSubscription());
 
-			var cancelSource = new CancellationTokenSource();
-			cancelSource.CancelAfter(5000); // Make sure the subscriber is cancelled after timeout.
-
+			var cancelSource = new CancellationTokenSource(5000);// Make sure the subscriber is cancelled after timeout.
 			var mutex = new ManualResetEventSlim(false);
 
 			await client.SubscribeToStreamAsync(

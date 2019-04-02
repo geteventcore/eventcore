@@ -17,6 +17,15 @@ namespace EventCore.Samples.DemoCli
 		[Verb("load", HelpText = "Loads events from demo streams.")]
 		public class LoadOptions
 		{
+			[Value(0, MetaName = "fromPosition", HelpText = "Starting position to load events.")]
+			public int FromPosition { get; set; } = 0;
+		}
+
+		[Verb("subscribe", HelpText = "Subscribes to events from demo streams.")]
+		public class SubscribeOptions
+		{
+			[Value(0, MetaName = "fromPosition", HelpText = "Starting position to subscribe events.")]
+			public int FromPosition { get; set; } = 0;
 		}
 	}
 }
