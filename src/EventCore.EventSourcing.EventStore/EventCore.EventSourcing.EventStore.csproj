@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="EventStore.Client" Version="5.0.1" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
+    <ProjectReference Include="..\EventCore.Utilities\EventCore.Utilities.csproj" />
+  </ItemGroup>
+
+</Project>

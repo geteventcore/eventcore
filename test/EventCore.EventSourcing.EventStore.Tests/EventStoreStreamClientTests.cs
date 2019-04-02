@@ -1,0 +1,391 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Serialization;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using EventStore.ClientAPI;
+using EventStore.ClientAPI.Exceptions;
+using Moq;
+using EventCore.Utilities;
+using Xunit;
+
+namespace EventCore.EventSourcing.EventStore.Tests
+{
+
+	public class EventStoreStreamClientTests
+	{
+		private byte[] EmptyJsonPayload { get => Encoding.UTF8.GetBytes("{}"); }
+		private EventStoreStreamClientOptions ClientOptions { get => new EventStoreStreamClientOptions(100); }
+
+		private class TestException : Exception { }
+
+		// Use reflection to force build of class with internal constructor.
+		private StreamEventsSlice ForceCreateStreamEventsSlice(
+			SliceReadStatus status, string streamId, ResolvedEvent[] events,
+			long nextEventNumber,
+			bool isEndOfStream
+		)
+		{
+			var slice = (StreamEventsSlice)FormatterServices.GetUninitializedObject(typeof(StreamEventsSlice));
+			typeof(StreamEventsSlice).GetField("Status", BindingFlags.Instance | BindingFlags.Public).SetValue(slice, status);
+			typeof(StreamEventsSlice).GetField("Stream", BindingFlags.Instance | BindingFlags.Public).SetValue(slice, streamId);
+			typeof(StreamEventsSlice).GetField("Events", BindingFlags.Instance | BindingFlags.Public).SetValue(slice, events);
+			typeof(StreamEventsSlice).GetField("NextEventNumber", BindingFlags.Instance | BindingFlags.Public).SetValue(slice, nextEventNumber);
+			typeof(StreamEventsSlice).GetField("IsEndOfStream", BindingFlags.Instance | BindingFlags.Public).SetValue(slice, isEndOfStream);
+			return slice;
+		}
+
+		private ResolvedEvent ForceCreateResolvedEvent(RecordedEvent recordedEvent)
+		{
+			// Create object without constructor.
+			// SetValue for struct must be boxed.
+			var e = (ResolvedEvent)FormatterServices.GetUninitializedObject(typeof(ResolvedEvent));
+			var f = typeof(ResolvedEvent).GetField("Event", BindingFlags.Instance | BindingFlags.Public);
+			object boxed = e;
+			f.SetValue(boxed, recordedEvent);
+			e = (ResolvedEvent)boxed;
+			return e;
+		}
+
+		private RecordedEvent ForceCreateRecordedEvent(string eventStreamId, long eventNumber, string eventType, byte[] data)
+		{
+			// Create object without constructor.
+			var e = (RecordedEvent)FormatterServices.GetUninitializedObject(typeof(RecordedEvent));
+			typeof(RecordedEvent).GetField("EventStreamId", BindingFlags.Instance | BindingFlags.Public).SetValue(e, eventStreamId);
+			typeof(RecordedEvent).GetField("EventNumber", BindingFlags.Instance | BindingFlags.Public).SetValue(e, eventNumber);
+			typeof(RecordedEvent).GetField("EventType", BindingFlags.Instance | BindingFlags.Public).SetValue(e, eventType);
+			typeof(RecordedEvent).GetField("Data", BindingFlags.Instance | BindingFlags.Public).SetValue(e, data);
+			return e;
+		}
+
+		private EventReadResult ForceCreateEventReadResult(EventReadStatus status, long eventNumber)
+		{
+			// Create object without constructor.
+			var r = (EventReadResult)FormatterServices.GetUninitializedObject(typeof(EventReadResult));
+			typeof(EventReadResult).GetField("Status", BindingFlags.Instance | BindingFlags.Public).SetValue(r, status);
+			typeof(EventReadResult).GetField("EventNumber", BindingFlags.Instance | BindingFlags.Public).SetValue(r, eventNumber);
+			return r;
+		}
+
+
+		[Fact]
+		public async Task commit_should_detect_invalid_stream_id()
+		{
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => new Mock<IEventStoreConnection>().Object, ClientOptions);
+			var invalidStreamId = "s!"; // Contains invalid char.
+
+			await Assert.ThrowsAsync<ArgumentException>(() => client.CommitEventsToStreamAsync(invalidStreamId, null, new CommitEvent[] { }));
+		}
+
+		[Fact]
+		public async Task commit_should_throw_when_invalid_expected_position()
+		{
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => new Mock<IEventStoreConnection>().Object, ClientOptions);
+			var streamId = "s";
+			var invalidPosition = client.FirstPositionInStream - 1;
+
+			await Assert.ThrowsAsync<ArgumentException>(() => client.CommitEventsToStreamAsync(streamId, invalidPosition, new CommitEvent[] { }));
+		}
+
+		[Fact]
+		public async Task commit_should_detect_concurrency_conflict()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var eventType = "a";
+			var e = new CommitEvent(eventType, EmptyJsonPayload);
+
+			mockConn
+				.Setup(x => x.AppendToStreamAsync(streamId, client.FirstPositionInStream, It.IsAny<IEnumerable<EventData>>(), null))
+				.ThrowsAsync(new WrongExpectedVersionException(""));
+
+			var result = await client.CommitEventsToStreamAsync(streamId, client.FirstPositionInStream, new CommitEvent[] { e });
+
+			Assert.Equal(CommitResult.ConcurrencyConflict, result);
+		}
+
+		[Fact]
+		public async Task commit_should_set_expected_version_when_new_stream()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var eventType = "a";
+			var e = new CommitEvent(eventType, EmptyJsonPayload);
+
+			await client.CommitEventsToStreamAsync(streamId, null, new CommitEvent[] { e });
+
+			mockConn.Verify(x => x.AppendToStreamAsync(It.IsAny<string>(), ExpectedVersion.NoStream, It.IsAny<IEnumerable<EventData>>(), null));
+		}
+
+		[Fact]
+		public async Task commit_should_set_expected_version_when_existing_stream()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var eventType = "a";
+			var e = new CommitEvent(eventType, EmptyJsonPayload);
+
+			await client.CommitEventsToStreamAsync(streamId, client.FirstPositionInStream, new CommitEvent[] { e });
+
+			mockConn.Verify(x => x.AppendToStreamAsync(It.IsAny<string>(), client.FirstPositionInStream, It.IsAny<IEnumerable<EventData>>(), null));
+		}
+
+		[Fact]
+		public async Task commit_should_build_event_data_from_commit_events()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var eventType1 = "a1";
+			var eventType2 = "a2";
+			var json1 = "{'prop':'val1'}";
+			var json2 = "{'prop':'val2'}";
+			var e1 = new CommitEvent(eventType1, Encoding.UTF8.GetBytes(json1));
+			var e2 = new CommitEvent(eventType2, Encoding.UTF8.GetBytes(json2));
+
+			await client.CommitEventsToStreamAsync(streamId, null, new CommitEvent[] { e1, e2 });
+
+			mockConn.Verify(x => x.AppendToStreamAsync(
+				It.IsAny<string>(), It.IsAny<long>(),
+				It.Is<IEnumerable<EventData>>(events =>
+					events.ToList().First().Type == eventType1 && Encoding.UTF8.GetString(events.ToList().First().Data) == json1
+					&& events.ToList().Last().Type == eventType2 && Encoding.UTF8.GetString(events.ToList().Last().Data) == json2
+				),
+				null));
+		}
+
+		[Fact]
+		public async Task commit_should_succeed_when_events_appended_to_specific_stream()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var eventType = "a";
+			var e = new CommitEvent(eventType, EmptyJsonPayload);
+
+			mockConn
+				.Setup(x => x.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, It.IsAny<IEnumerable<EventData>>(), null))
+				.ReturnsAsync(new WriteResult(0, new Position(0, 0))); // Write result can be anything.
+
+			var result = await client.CommitEventsToStreamAsync(streamId, null, new CommitEvent[] { e });
+
+			Assert.Equal(CommitResult.Success, result);
+		}
+
+		[Fact]
+		public async Task commit_should_error_when_exception_thrown()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var eventType = "a";
+			var e = new CommitEvent(eventType, EmptyJsonPayload);
+
+			mockConn
+				.Setup(x => x.AppendToStreamAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<IEnumerable<EventData>>(), null))
+				.ThrowsAsync(new Exception(""));
+
+			var result = await client.CommitEventsToStreamAsync(streamId, null, new CommitEvent[] { e });
+
+			Assert.Equal(CommitResult.Error, result);
+		}
+
+		[Fact]
+		public async Task load_should_throw_when_invalid_from_position()
+		{
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => new Mock<IEventStoreConnection>().Object, ClientOptions);
+			var streamId = "s";
+			var invalidPosition = client.FirstPositionInStream - 1;
+
+			await Assert.ThrowsAsync<ArgumentException>(() => client.LoadStreamEventsAsync(streamId, invalidPosition, (se, ct) => Task.CompletedTask, CancellationToken.None));
+		}
+
+		[Fact]
+		public async Task load_should_rethrow_when_reader_exception()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var ex = new TestException();
+
+			mockConn
+				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<bool>(), null))
+				.ThrowsAsync(ex);
+
+			await Assert.ThrowsAsync<TestException>(() => client.LoadStreamEventsAsync(streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, CancellationToken.None));
+		}
+
+		[Fact]
+		public async Task load_should_rethrow_when_receiver_exception()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var eventType = "a";
+			var json = "{'prop':'val1'}";
+			var data = Encoding.UTF8.GetBytes(json);
+			var mockEvent = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType, data));
+			var mockSlice = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent }, 0, true);
+
+			var ex = new TestException();
+
+			mockConn
+				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<bool>(), null))
+				.ReturnsAsync(mockSlice);
+
+			await Assert.ThrowsAsync<TestException>(() => client.LoadStreamEventsAsync(
+				streamId, client.FirstPositionInStream,
+				(se, ct) => throw new TestException(),
+				CancellationToken.None));
+		}
+
+		[Fact]
+		public async Task load_should_not_throw_when_read_result_not_success()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+
+			// Status is the only value that matters here.
+			var mockSlice = ForceCreateStreamEventsSlice(SliceReadStatus.StreamNotFound, streamId, new ResolvedEvent[] { }, 0, true);
+
+			mockConn
+				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<bool>(), null))
+				.ReturnsAsync(mockSlice);
+
+			await client.LoadStreamEventsAsync(streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, CancellationToken.None);
+		}
+
+		[Fact]
+		public async Task load_should_call_read_stream_forward()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var mockSlice = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { }, 0, true);
+
+			mockConn
+				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<bool>(), null))
+				.ReturnsAsync(mockSlice);
+
+			await client.LoadStreamEventsAsync(streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, CancellationToken.None);
+
+			mockConn.Verify(x => x.ReadStreamEventsForwardAsync(streamId, client.FirstPositionInStream, It.IsAny<int>(), It.IsAny<bool>(), null));
+		}
+
+		[Fact]
+		public async Task load_should_call_receiver()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, new EventStoreStreamClientOptions(1));
+			var streamId = "s";
+			var eventType1 = "a1";
+			var eventType2 = "a2";
+			var json1 = "{'prop':'val1'}";
+			var json2 = "{'prop':'val2'}";
+			var data1 = Encoding.UTF8.GetBytes(json1);
+			var data2 = Encoding.UTF8.GetBytes(json2);
+			var mockEvent1 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType1, data1));
+			var mockEvent2 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream + 1, eventType2, data2));
+
+			var mockSlice1 = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent1 }, client.FirstPositionInStream + 1, false);
+			var mockSlice2 = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent2 }, 0, true);
+
+			var calledCount = 0;
+
+			// First round of events returned.
+			mockConn
+				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.Is<long>(pos => pos == client.FirstPositionInStream), It.IsAny<int>(), It.IsAny<bool>(), null))
+				.ReturnsAsync(mockSlice1);
+
+			// Second round of events returned.
+			mockConn
+				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.Is<long>(pos => pos == client.FirstPositionInStream + 1), It.IsAny<int>(), It.IsAny<bool>(), null))
+				.ReturnsAsync(mockSlice2);
+
+			await client.LoadStreamEventsAsync(
+				streamId, client.FirstPositionInStream,
+				(se, ct) =>
+				{
+					calledCount++;
+
+					if (se.Position == client.FirstPositionInStream)
+					{
+						if (se.StreamId != streamId || se.EventType != eventType1 || Encoding.UTF8.GetString(se.Payload) != json1)
+						{
+							throw new Exception("Invalid event 1.");
+						}
+					}
+
+					if (se.Position == client.FirstPositionInStream + 1)
+					{
+						if (se.StreamId != streamId || se.EventType != eventType2 || Encoding.UTF8.GetString(se.Payload) != json2)
+						{
+							throw new Exception("Invalid event 2.");
+						}
+					}
+
+					return Task.CompletedTask;
+				},
+				CancellationToken.None);
+
+			Assert.Equal(2, calledCount);
+		}
+
+		[Fact]
+		public async Task find_last_position_in_stream_should_null_when_no_stream()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+
+			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.NotFound, 0);
+
+			mockConn
+				.Setup(x => x.ReadEventAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<bool>(), null))
+				.ReturnsAsync(mockReadResult);
+
+			var position = await client.FindLastPositionInStreamAsync(streamId);
+
+			Assert.Null(position);
+		}
+
+		[Fact]
+		public async Task find_last_position_in_stream_should_correct_value()
+		{
+			var mockConn = new Mock<IEventStoreConnection>();
+			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
+			var client = new EventStoreStreamClient(NullGenericLogger.Instance, () => mockConn.Object, ClientOptions);
+			var streamId = "s";
+			var expectedPosition = 143; // Made up number.
+
+			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.Success, 143);
+
+			mockConn
+				.Setup(x => x.ReadEventAsync(streamId, StreamPosition.End, false, null)) // Check all values.
+				.ReturnsAsync(mockReadResult);
+
+			var actualPosition = await client.FindLastPositionInStreamAsync(streamId);
+
+			Assert.Equal(expectedPosition, actualPosition);
+		}
+	}
+}
