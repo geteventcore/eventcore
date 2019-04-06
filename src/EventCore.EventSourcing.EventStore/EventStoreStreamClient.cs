@@ -133,7 +133,10 @@ namespace EventCore.EventSourcing.EventStore
 					await conn.ConnectAsync();
 
 					var sub = conn.SubscribeToStreamFrom(
-					 streamId, fromPosition, subSettings,
+					 streamId,
+					 // Client api expects last checkpoint or null if none.
+					 fromPosition == FirstPositionInStream ? (long?)null : fromPosition - 1,
+					 subSettings,
 					 async (_, resolvedEvent) =>
 					 {
 						 await ReceiveResolvedEventAsync(receiverAsync, resolvedEvent, cancellationToken);
@@ -172,7 +175,7 @@ namespace EventCore.EventSourcing.EventStore
 				var streamId = resolvedEvent.Event.EventStreamId;
 				var position = resolvedEvent.Event.EventNumber;
 				StreamEventLink link = null;
-			
+
 				if (resolvedEvent.Link != null)
 				{
 					link = new StreamEventLink(resolvedEvent.Event.EventStreamId, resolvedEvent.Event.EventNumber);

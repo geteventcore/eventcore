@@ -49,7 +49,7 @@ namespace EventCore.Samples.DemoCli.Actions
 
 
 			position = startPosition.GetValueOrDefault(streamClient.FirstPositionInStream);
-			var e1 = new BusinessEventT01($"{typeof(BusinessEventT01).Name} committing to {streamId} at {position}.");
+			var e1 = new BusinessEventT01($"{typeof(BusinessEventT01).Name} committing to {streamId} at {position++}.");
 			var e2 = new BusinessEventT02($"{typeof(BusinessEventT02).Name} committing to {streamId} at {position++}.");
 			var e3 = new BusinessEventT03($"{typeof(BusinessEventT03).Name} committing to {streamId} at {position++}.");
 			var e4 = new BusinessEventT04($"{typeof(BusinessEventT04).Name} committing to {streamId} at {position++}.");

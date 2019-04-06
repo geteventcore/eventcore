@@ -13,4 +13,6 @@ namespace EventCore.Utilities
 		void LogWarning(string message, params object[] args);
 		void LogWarning(Exception ex, string message, params object[] args);
 	}
+
+	public interface IGenericLogger<T> : IGenericLogger { }
 }
