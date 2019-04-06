@@ -11,12 +11,12 @@ namespace EventCore.EventSourcing.Tests
 		public void construct()
 		{
 			var eventType = "a";
-			var payload = Encoding.UTF8.GetBytes("{}");
+			var data = Encoding.UTF8.GetBytes("{}");
 
-			var e = new CommitEvent(eventType, payload);
+			var e = new CommitEvent(eventType, data);
 
-			Assert.Equal(e.EventType, eventType);
-			Assert.Equal(e.Payload, payload); // Note this is reference equality, not value eq.
+			Assert.Equal(eventType, e.EventType);
+			Assert.Equal(data, e.Data); // Note this is reference equality, not value eq.
 		}
 	}
 }

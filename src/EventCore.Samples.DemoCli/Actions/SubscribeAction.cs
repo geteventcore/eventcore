@@ -35,7 +35,11 @@ namespace EventCore.Samples.DemoCli.Actions
 				Constants.EVENTSTORE_DEFAULT_REGION, streamId, _options.FromPosition,
 				(se, ct) =>
 				{
-					Console.WriteLine($"Event {se.EventType} received from stream {se.StreamId} ({se.Position}).");
+					var linkMsg = se.IsLink ? $" [Linked to {se.Link.StreamId} ({se.Link.Position}).]" : "";
+					var type = MapEventType(se.EventType);
+
+					Console.WriteLine($"Received event type {type.Name} from {se.StreamId} ({se.Position})." + linkMsg);
+					
 					return Task.CompletedTask;
 				},
 				cancelSource.Token);

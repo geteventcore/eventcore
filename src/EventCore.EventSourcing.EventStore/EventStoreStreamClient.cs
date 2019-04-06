@@ -59,18 +59,13 @@ namespace EventCore.EventSourcing.EventStore
 			{
 				return CommitResult.ConcurrencyConflict;
 			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Exception while committing events.");
-				return CommitResult.Error;
-			}
 		}
 
 		private IEnumerable<EventData> MapCommitEvents(IEnumerable<CommitEvent> events)
 		{
 			foreach (var e in events)
 			{
-				yield return new EventData(Guid.NewGuid(), e.EventType, true, e.Payload, null);
+				yield return new EventData(Guid.NewGuid(), e.EventType, true, e.Data, null);
 			}
 		}
 
@@ -104,14 +99,7 @@ namespace EventCore.EventSourcing.EventStore
 
 						foreach (var resolvedEvent in currentSlice.Events)
 						{
-							if (!cancellationToken.IsCancellationRequested)
-							{
-								var e = resolvedEvent.Event; // The base event that this event links to or is.
-								var streamEvent = new StreamEvent(e.EventStreamId, e.EventNumber, e.EventType, e.Data);
-
-								// Send the assembled stream event to the receiver.
-								await receiverAsync(streamEvent, cancellationToken);
-							}
+							await ReceiveResolvedEventAsync(receiverAsync, resolvedEvent, cancellationToken);
 						}
 
 					} while (!currentSlice.IsEndOfStream && !cancellationToken.IsCancellationRequested);
@@ -148,20 +136,12 @@ namespace EventCore.EventSourcing.EventStore
 					 streamId, fromPosition, subSettings,
 					 async (_, resolvedEvent) =>
 					 {
-						 if (!cancellationToken.IsCancellationRequested)
-						 {
-							 var e = resolvedEvent.Event; // The base event that this event links to or is.
-							 var streamEvent = new StreamEvent(e.EventStreamId, e.EventNumber, e.EventType, e.Data);
-
-							 // Send the assembled stream event to the receiver.
-							 await receiverAsync(streamEvent, cancellationToken);
-						 }
+						 await ReceiveResolvedEventAsync(receiverAsync, resolvedEvent, cancellationToken);
 					 },
 					 null,
 					 (_, reason, ex) =>
 					 {
-						 Console.WriteLine($"Subscription dropped: {reason}");
-						 Console.WriteLine("Exception: " + ex.Message);
+						 _logger.LogError(ex, $"Subscription dropped. ({reason})");
 					 });
 
 					await cancellationToken.WaitHandle.AsTask();
@@ -182,6 +162,28 @@ namespace EventCore.EventSourcing.EventStore
 			{
 				_logger.LogError(ex, "Exception while subscribing to stream.");
 				throw;
+			}
+		}
+
+		private async Task ReceiveResolvedEventAsync(Func<StreamEvent, CancellationToken, Task> receiverAsync, ResolvedEvent resolvedEvent, CancellationToken cancellationToken)
+		{
+			if (!cancellationToken.IsCancellationRequested)
+			{
+				var streamId = resolvedEvent.Event.EventStreamId;
+				var position = resolvedEvent.Event.EventNumber;
+				StreamEventLink link = null;
+			
+				if (resolvedEvent.Link != null)
+				{
+					link = new StreamEventLink(resolvedEvent.Event.EventStreamId, resolvedEvent.Event.EventNumber);
+					streamId = resolvedEvent.Link.EventStreamId;
+					position = resolvedEvent.Link.EventNumber;
+				}
+
+				var streamEvent = new StreamEvent(resolvedEvent.OriginalStreamId, resolvedEvent.OriginalEventNumber, link, resolvedEvent.Event.EventType, resolvedEvent.Event.Data);
+
+				// Send the assembled stream event to the receiver.
+				await receiverAsync(streamEvent, cancellationToken);
 			}
 		}
 

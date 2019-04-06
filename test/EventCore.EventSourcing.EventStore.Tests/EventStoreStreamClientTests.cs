@@ -1,3 +1,8 @@
+using EventCore.Utilities;
+using EventStore.ClientAPI;
+using EventStore.ClientAPI.Exceptions;
+using EventStore.ClientAPI.SystemData;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,12 +11,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Exceptions;
-using Moq;
-using EventCore.Utilities;
 using Xunit;
-using EventStore.ClientAPI.SystemData;
 
 namespace EventCore.EventSourcing.EventStore.Tests
 {
@@ -41,13 +41,14 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			return slice;
 		}
 
-		private ResolvedEvent ForceCreateResolvedEvent(RecordedEvent recordedEvent)
+		private ResolvedEvent ForceCreateResolvedEvent(RecordedEvent recordedEvent, RecordedEvent linkEvent = null)
 		{
 			// Create object without constructor.
 			// SetValue for struct must be boxed.
 			var x = (ResolvedEvent)FormatterServices.GetUninitializedObject(typeof(ResolvedEvent));
 			object boxed = x;
 			typeof(ResolvedEvent).GetField("Event", BindingFlags.Instance | BindingFlags.Public).SetValue(boxed, recordedEvent);
+			typeof(ResolvedEvent).GetField("Link", BindingFlags.Instance | BindingFlags.Public).SetValue(boxed, linkEvent);
 			x = (ResolvedEvent)boxed;
 			return x;
 		}
@@ -218,11 +219,9 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			mockConn
 				.Setup(x => x.AppendToStreamAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<IEnumerable<EventData>>(), null))
-				.ThrowsAsync(new Exception(""));
+				.ThrowsAsync(new TestException());
 
-			var result = await client.CommitEventsToStreamAsync(DEFAULT_REGION, streamId, null, new CommitEvent[] { e });
-
-			Assert.Equal(CommitResult.Error, result);
+			await Assert.ThrowsAsync<TestException>(() => client.CommitEventsToStreamAsync(DEFAULT_REGION, streamId, null, new CommitEvent[] { e }));
 		}
 
 		[Fact]
@@ -266,7 +265,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var eventType = "a";
 			var json = "{'prop':'val1'}";
 			var data = Encoding.Unicode.GetBytes(json);
-			var mockEvent = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType, data));
+			var mockEvent = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType, data), null);
 			var mockSlice = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent }, 0, true);
 
 			var ex = new TestException();
@@ -324,20 +323,24 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		}
 
 		[Fact]
-		public async Task load_should_call_receiver()
+		public async Task load_should_call_receiver_with_correct_event_properties()
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
 			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, new EventStoreStreamClientOptions(1));
 			var streamId = "s";
+			var linkStreamId = "l";
+			var linkPosition = 20; // This can be whatever.
 			var eventType1 = "a1";
 			var eventType2 = "a2";
 			var json1 = "{'prop':'val1'}";
 			var json2 = "{'prop':'val2'}";
 			var data1 = Encoding.Unicode.GetBytes(json1);
 			var data2 = Encoding.Unicode.GetBytes(json2);
-			var mockEvent1 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType1, data1));
-			var mockEvent2 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream + 1, eventType2, data2));
+			var mockEvent1 = ForceCreateResolvedEvent(
+				ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType1, data1),
+				ForceCreateRecordedEvent(linkStreamId, linkPosition, null, null));
+			var mockEvent2 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream + 1, eventType2, data2), null);
 
 			var mockSlice1 = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent1 }, client.FirstPositionInStream + 1, false);
 			var mockSlice2 = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent2 }, 0, true);
@@ -364,7 +367,10 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 					if (se.Position == client.FirstPositionInStream)
 					{
-						if (se.StreamId != streamId || se.EventType != eventType1 || Encoding.Unicode.GetString(se.Payload) != json1)
+						if (
+							se.StreamId != streamId || se.EventType != eventType1 || Encoding.Unicode.GetString(se.Data) != json1
+							|| !se.IsLink || se.Link == null || se.Link.StreamId != linkStreamId || se.Link.Position != linkPosition
+							)
 						{
 							throw new Exception("Invalid event 1.");
 						}
@@ -372,7 +378,10 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 					if (se.Position == client.FirstPositionInStream + 1)
 					{
-						if (se.StreamId != streamId || se.EventType != eventType2 || Encoding.Unicode.GetString(se.Payload) != json2)
+						if (
+							se.StreamId != streamId || se.EventType != eventType2 || Encoding.Unicode.GetString(se.Data) != json2
+							|| se.IsLink || se.Link != null
+							)
 						{
 							throw new Exception("Invalid event 2.");
 						}
@@ -430,7 +439,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var eventType = "a";
 			var json = "{'prop':'val1'}";
 			var data = Encoding.Unicode.GetBytes(json);
-			var mockEvent = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType, data));
+			var mockEvent = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType, data), null);
 			var mockSlice = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { mockEvent }, 0, true);
 
 			var ex = new TestException();
@@ -448,7 +457,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 					{
 						try
 						{
-							receiverAsync(null, ForceCreateResolvedEvent(ForceCreateRecordedEvent(null, 0, null, null))).Wait();
+							receiverAsync(null, ForceCreateResolvedEvent(ForceCreateRecordedEvent(null, 0, null, null), null)).Wait();
 						}
 						catch (AggregateException aggEx)
 						{
@@ -470,20 +479,24 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		}
 
 		[Fact]
-		public async Task subscribe_should_call_receiver()
+		public async Task subscribe_should_call_receiver_with_correct_event_properties()
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
 			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, new EventStoreStreamClientOptions(1));
 			var streamId = "s";
+			var linkStreamId = "l";
+			var linkPosition = 20; // This can be whatever.
 			var eventType1 = "a1";
 			var eventType2 = "a2";
 			var json1 = "{'prop':'val1'}";
 			var json2 = "{'prop':'val2'}";
 			var data1 = Encoding.Unicode.GetBytes(json1);
 			var data2 = Encoding.Unicode.GetBytes(json2);
-			var mockEvent1 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType1, data1));
-			var mockEvent2 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream + 1, eventType2, data2));
+			var mockEvent1 = ForceCreateResolvedEvent(
+				ForceCreateRecordedEvent(streamId, client.FirstPositionInStream, eventType1, data1),
+				ForceCreateRecordedEvent(linkStreamId, linkPosition, null, null));
+			var mockEvent2 = ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, client.FirstPositionInStream + 1, eventType2, data2), null);
 
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
 
@@ -523,7 +536,10 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 					if (se.Position == client.FirstPositionInStream)
 					{
-						if (se.StreamId != streamId || se.EventType != eventType1 || Encoding.Unicode.GetString(se.Payload) != json1)
+						if (
+							se.StreamId != streamId || se.EventType != eventType1 || Encoding.Unicode.GetString(se.Data) != json1
+							|| !se.IsLink || se.Link == null || se.Link.StreamId != linkStreamId || se.Link.Position != linkPosition
+							)
 						{
 							throw new Exception("Invalid event 1.");
 						}
@@ -531,7 +547,10 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 					if (se.Position == client.FirstPositionInStream + 1)
 					{
-						if (se.StreamId != streamId || se.EventType != eventType2 || Encoding.Unicode.GetString(se.Payload) != json2)
+						if (
+							se.StreamId != streamId || se.EventType != eventType2 || Encoding.Unicode.GetString(se.Data) != json2
+							|| se.IsLink || se.Link != null
+							)
 						{
 							throw new Exception("Invalid event 2.");
 						}
@@ -552,14 +571,14 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		}
 
 		[Fact]
-		public async Task find_last_position_in_stream_should_null_when_no_stream()
+		public async Task find_last_position_in_stream_should_be_null_when_no_stream()
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
 			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 
-			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.NotFound, ForceCreateResolvedEvent(ForceCreateRecordedEvent(null, 0, null, null)));
+			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.NotFound, ForceCreateResolvedEvent(ForceCreateRecordedEvent(null, 0, null, null), null));
 
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
 
@@ -573,7 +592,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		}
 
 		[Fact]
-		public async Task find_last_position_in_stream_should_correct_value()
+		public async Task find_last_position_in_stream_should_be_correct_value()
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
@@ -581,7 +600,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var streamId = "s";
 			var expectedPosition = 143; // Made up number.
 
-			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.Success, ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, expectedPosition, null, null)));
+			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.Success, ForceCreateResolvedEvent(ForceCreateRecordedEvent(streamId, expectedPosition, null, null), null));
 
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION)).Returns(mockConn.Object);
 

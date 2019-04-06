@@ -76,7 +76,13 @@ namespace EventCore.Samples.DemoCli.Actions
 				expectedLastPosition = startPosition.Value - 1;
 			}
 
-			await streamClient.CommitEventsToStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId, expectedLastPosition, commitEvents);
+			var result = await streamClient.CommitEventsToStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId, expectedLastPosition, commitEvents);
+
+			switch(result)
+			{
+				case CommitResult.Success: break;
+				case CommitResult.ConcurrencyConflict: throw new Exception("Concurrency conflict.");
+			}
 
 			Console.WriteLine("Events committed.");
 		}

@@ -5,12 +5,12 @@ namespace EventCore.EventSourcing
 	public class CommitEvent
 	{
 		public string EventType { get; }
-		public byte[] Payload { get; }
+		public byte[] Data { get; }
 
-		public CommitEvent(string eventType, byte[] payload)
+		public CommitEvent(string eventType, byte[] data)
 		{
 			EventType = eventType;
-			Payload = payload;
+			Data = data;
 		}
 	}
 }

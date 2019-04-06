@@ -4,6 +4,6 @@ namespace EventCore.EventSourcing
 {
 	public enum CommitResult
 	{
-		Success, ConcurrencyConflict, Error
+		Success, ConcurrencyConflict
 	}
 }
