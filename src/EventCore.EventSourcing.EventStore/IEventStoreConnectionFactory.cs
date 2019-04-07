@@ -4,6 +4,6 @@ namespace EventCore.EventSourcing.EventStore
 {
 	public interface IEventStoreConnectionFactory
 	{
-		IEventStoreConnection Create(string region);
+		IEventStoreConnection Create(string regionId);
 	}
 }

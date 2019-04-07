@@ -4,8 +4,8 @@ namespace EventCore.EventSourcing
 {
 	public class BusinessMetadata
 	{
-		public string CausalId { get; }
-		public string CorrelationId { get; }
+		public readonly string CausalId;
+		public readonly string CorrelationId;
 
 		public BusinessMetadata(string causalId, string correlationId)
 		{

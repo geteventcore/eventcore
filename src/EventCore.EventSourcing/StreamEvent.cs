@@ -4,17 +4,18 @@ namespace EventCore.EventSourcing
 {
 	public class StreamEvent
 	{
-		public string StreamId { get; }
-		public long Position { get; }
-		public bool IsLink { get => Link != null; }
-		public StreamEventLink Link { get; }
-		public string EventType { get; }
-		public byte[] Data { get; }
+		public readonly string StreamId;
+		public readonly long Position;
+		public readonly bool IsLink;
+		public readonly StreamEventLink Link;
+		public readonly string EventType;
+		public readonly byte[] Data;
 
 		public StreamEvent(string streamId, long position, StreamEventLink link, string eventType, byte[] data)
 		{
 			StreamId = streamId;
 			Position = position;
+			IsLink = link != null;
 			Link = link;
 			EventType = eventType;
 			Data = data;

@@ -4,8 +4,8 @@ namespace EventCore.EventSourcing
 {
 	public class CommitEvent
 	{
-		public string EventType { get; }
-		public byte[] Data { get; }
+		public readonly string EventType;
+		public readonly byte[] Data;
 
 		public CommitEvent(string eventType, byte[] data)
 		{

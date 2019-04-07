@@ -13,12 +13,12 @@ namespace EventCore.EventSourcing.EventStore
 			_connectionBuilders = connectionBuilders;
 		}
 
-		public IEventStoreConnection Create(string region)
+		public IEventStoreConnection Create(string regionId)
 		{
-			if (!_connectionBuilders.ContainsKey(region))
-				throw new ArgumentException("No connection for given region key.");
+			if (!_connectionBuilders.ContainsKey(regionId))
+				throw new ArgumentException("No connection for given region id.");
 
-			return _connectionBuilders[region]();
+			return _connectionBuilders[regionId]();
 		}
 	}
 }

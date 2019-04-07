@@ -4,8 +4,8 @@ namespace EventCore.EventSourcing
 {
 	public class StreamEventLink
 	{
-		public string StreamId { get; }
-		public long Position { get; }
+		public readonly string StreamId;
+		public readonly long Position;
 
 		public StreamEventLink(string streamId, long position)
 		{

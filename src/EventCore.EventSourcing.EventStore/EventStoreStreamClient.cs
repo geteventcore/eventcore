@@ -4,7 +4,6 @@ using EventStore.ClientAPI.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +11,8 @@ namespace EventCore.EventSourcing.EventStore
 {
 	public class EventStoreStreamClient : IStreamClient
 	{
-		private const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9._-]";
+		// NOTE: Stream ids are case SENSITIVE in GY's Event Store.
+		// Haven't figured out how to disable this yet.
 
 		private readonly IGenericLogger _logger;
 		private readonly IEventStoreConnectionFactory _connectionFactory;
@@ -27,9 +27,9 @@ namespace EventCore.EventSourcing.EventStore
 			_options = options;
 		}
 
-		public async Task<CommitResult> CommitEventsToStreamAsync(string region, string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events)
+		public async Task<CommitResult> CommitEventsToStreamAsync(string regionId, string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events)
 		{
-			if (Regex.IsMatch(streamId, INVALID_STREAM_ID_REGEX))
+			if (!StreamIdBuilder.ValidateStreamIdFragment(streamId))
 			{
 				throw new ArgumentException("Invalid character(s) in stream id.");
 			}
@@ -46,7 +46,7 @@ namespace EventCore.EventSourcing.EventStore
 
 				if (events.Count() == 0) return CommitResult.Success;
 
-				using (var conn = _connectionFactory.Create(region))
+				using (var conn = _connectionFactory.Create(regionId))
 				{
 					await conn.ConnectAsync();
 					await conn.AppendToStreamAsync(streamId, expectedVersion, MapCommitEvents(events));
@@ -69,7 +69,7 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		public async Task LoadStreamEventsAsync(string region, string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
+		public async Task LoadStreamEventsAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
 		{
 			if (fromPosition < FirstPositionInStream)
 			{
@@ -81,7 +81,7 @@ namespace EventCore.EventSourcing.EventStore
 				StreamEventsSlice currentSlice;
 				long nextSliceStart = StreamPosition.Start;
 
-				using (var conn = _connectionFactory.Create(region))
+				using (var conn = _connectionFactory.Create(regionId))
 				{
 					await conn.ConnectAsync();
 
@@ -114,7 +114,7 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		public async Task SubscribeToStreamAsync(string region, string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
+		public async Task SubscribeToStreamAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
 		{
 			if (fromPosition < FirstPositionInStream)
 			{
@@ -128,7 +128,7 @@ namespace EventCore.EventSourcing.EventStore
 					CatchUpSubscriptionSettings.Default.ReadBatchSize,
 					false, true);
 
-				using (var conn = _connectionFactory.Create(region))
+				using (var conn = _connectionFactory.Create(regionId))
 				{
 					await conn.ConnectAsync();
 
@@ -190,13 +190,13 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		public async Task<long?> FindLastPositionInStreamAsync(string region, string streamId)
+		public async Task<long?> FindLastPositionInStreamAsync(string regionId, string streamId)
 		{
 			try
 			{
 				long? lastPosition = null;
 
-				using (var conn = _connectionFactory.Create(region))
+				using (var conn = _connectionFactory.Create(regionId))
 				{
 					await conn.ConnectAsync();
 					var result = await conn.ReadEventAsync(streamId, StreamPosition.End, false);

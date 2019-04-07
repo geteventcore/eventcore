@@ -4,7 +4,7 @@ namespace EventCore.EventSourcing
 {
 	public class BusinessEvent
 	{
-		public BusinessMetadata Metadata { get; }
+		public readonly BusinessMetadata Metadata;
 
 		public BusinessEvent(BusinessMetadata metadata)
 		{
