@@ -22,6 +22,10 @@ namespace EventCore.StatefulSubscriber
 		private readonly SemaphoreSlim _throttle; // Used to throttle parallel executions.
 		private readonly ManualResetEventSlim _handlerCompletionTrigger = new ManualResetEventSlim(false);
 
+		public Dictionary<string, Task> HandlerTasks { get => _handlerTasks; }
+		public SemaphoreSlim Throttle { get => _throttle; }
+		public ManualResetEventSlim HandlerCompletionTrigger { get => _handlerCompletionTrigger; }
+
 		public HandlingManager(
 			IStandardLogger logger, IBusinessEventResolver resolver, IStreamStateRepo streamStateRepo,
 			IHandlingQueue handlingQueue, ISubscriberEventHandler handler,
@@ -53,7 +57,10 @@ namespace EventCore.StatefulSubscriber
 						_handlerCompletionTrigger.Reset();
 
 						// Clean up finished tasks.
-						PurgeFinishedTasks(parallelTasks);
+						foreach (var key in _handlerTasks.Where(kvp => kvp.Value.IsCanceled || kvp.Value.IsCompleted || kvp.Value.IsFaulted).Select(kvp => kvp.Key).ToList())
+						{
+							_handlerTasks.Remove(key);
+						}
 
 						var item = _handlingQueue.TryDequeue(parallelTasks.Keys.ToList());
 						if (item != null)
@@ -82,14 +89,6 @@ namespace EventCore.StatefulSubscriber
 			{
 				_logger.LogError(ex, "Exception while managing handler execution.");
 				throw;
-			}
-		}
-
-		public static void PurgeFinishedTasks(Dictionary<string, Task> tasks)
-		{
-			foreach (var key in tasks.Where(kvp => kvp.Value.IsCanceled || kvp.Value.IsCompleted || kvp.Value.IsFaulted).Select(kvp => kvp.Key).ToList())
-			{
-				tasks.Remove(key);
 			}
 		}
 
