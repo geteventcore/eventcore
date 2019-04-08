@@ -12,7 +12,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		[Fact]
 		public async Task enqueue_and_dequeue_single_item()
 		{
-			var cts = new CancellationTokenSource(3000);
+			var cts = new CancellationTokenSource(10000);
 			var queue = new SortingQueue(1);
 			var subscriberEvent = new SubscriberEvent("s", 1, new BusinessEvent(BusinessMetadata.Empty));
 
@@ -25,7 +25,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		[Fact]
 		public async Task honor_max_queue_size()
 		{
-			var cts = new CancellationTokenSource(3000);
+			var cts = new CancellationTokenSource(10000);
 			var maxQueueSize = 2;
 			var queue = new SortingQueue(maxQueueSize);
 			var subscriberEvent1 = new SubscriberEvent("s", 1, new BusinessEvent(BusinessMetadata.Empty));

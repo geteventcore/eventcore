@@ -11,6 +11,52 @@ namespace EventCore.StatefulEventSubscriber.Tests
 	public class ResolutionManagerTests
 	{
 		[Fact]
+		public async Task rethrow_exception_when_managing()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var manager = new ResolutionManager(NullStandardLogger.Instance, null, null, null, null);
+		}
+
+		[Fact]
+		public async Task resolve_stream_event_and_send_to_sorting_manager()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var manager = new ResolutionManager(NullStandardLogger.Instance, null, null, null, null);
+		}
+
+		[Fact]
+		public async Task wait_for_enqueue_when_managing_and_no_events_in_queue()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var manager = new ResolutionManager(NullStandardLogger.Instance, null, null, null, null);
+		}
+
+		[Fact]
+		public async Task enqueue_stream_event()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
+			var mockResolver = new Mock<IBusinessEventResolver>();
+			var mockQueue = new Mock<IResolutionQueue>();
+			var streamId = "s";
+			var newPosition = 1;
+			var eventType = "x";
+			var lastAttemptedPosition = 0;
+			var firstPositionInStream = 0;
+			var streamState = new StreamState(lastAttemptedPosition, false);
+			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, mockStreamStateRepo.Object, mockQueue.Object, null);
+			var streamEvent = new StreamEvent(streamId, newPosition, null, eventType, new byte[] { });
+
+			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(streamId)).ReturnsAsync(streamState);
+			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(true);
+
+			await manager.ReceiveStreamEventAsync(streamEvent, firstPositionInStream, cts.Token);
+			if (cts.IsCancellationRequested) throw new TimeoutException();
+
+			mockQueue.Verify(x => x.EnqueueWithWaitAsync(streamEvent, cts.Token));
+		}
+
+		[Fact]
 		public async Task stream_eligible_for_resolution_when_stream_state_exists()
 		{
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();

@@ -13,17 +13,21 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		[Fact]
 		public async Task enqueue_and_dequeue_items()
 		{
-			var cts = new CancellationTokenSource(3000);
+			var cts = new CancellationTokenSource(10000);
 			var queue = new HandlingQueue(2);
 			var parallelKey1 = "pk1";
 			var parallelKey2 = "pk2";
 			var subscriberEvent1 = new SubscriberEvent("s", 1, new BusinessEvent(BusinessMetadata.Empty));
 			var subscriberEvent2 = new SubscriberEvent("s", 2, new BusinessEvent(BusinessMetadata.Empty));
 
+			Assert.False(queue.IsEventsAvailable);
+
 			await queue.EnqueueWithWaitAsync(parallelKey1, subscriberEvent1, cts.Token);
 			await queue.EnqueueWithWaitAsync(parallelKey2, subscriberEvent2, cts.Token);
 
-			if(cts.IsCancellationRequested) throw new TimeoutException();
+			if (cts.IsCancellationRequested) throw new TimeoutException();
+
+			Assert.True(queue.IsEventsAvailable);
 
 			var dequeuedItem1 = queue.TryDequeue(new string[] { parallelKey2 });
 			var dequeuedItem2 = queue.TryDequeue(new string[] { parallelKey1 });
@@ -38,7 +42,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		[Fact]
 		public async Task enqueue_and_not_dequeue_with_matching_parallel_key()
 		{
-			var cts = new CancellationTokenSource(3000);
+			var cts = new CancellationTokenSource(10000);
 			var queue = new HandlingQueue(1);
 			var subscriberEvent = new SubscriberEvent("s", 1, new BusinessEvent(BusinessMetadata.Empty));
 			var parallelKey = "pk";
@@ -53,7 +57,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		[Fact]
 		public async Task honor_max_queue_size()
 		{
-			var cts = new CancellationTokenSource(3000);
+			var cts = new CancellationTokenSource(10000);
 			var maxQueueSize = 2;
 			var queue = new HandlingQueue(maxQueueSize);
 			var parallelKey1 = "pk1";
