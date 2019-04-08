@@ -145,7 +145,8 @@ namespace EventCore.EventSourcing.EventStore
 					 (_, reason, ex) =>
 					 {
 						 _logger.LogError(ex, $"Subscription dropped. ({reason})");
-					 });
+					 },
+					 null);
 
 					await cancellationToken.WaitHandle.AsTask();
 

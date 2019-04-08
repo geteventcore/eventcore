@@ -10,6 +10,8 @@ namespace EventCore.StatefulEventSubscriber
 		private readonly IStandardLogger _logger;
 		private readonly string _basePath;
 
+		public string BasePath { get => _basePath; }
+
 		public StreamStateRepo(IStandardLogger logger, string basePath)
 		{
 			_logger = logger;

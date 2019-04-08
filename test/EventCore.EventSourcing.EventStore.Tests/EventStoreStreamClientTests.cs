@@ -420,7 +420,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			mockConn
 				.Setup(x => x.SubscribeToStreamFrom(
-					It.IsAny<string>(), It.IsAny<long>(),
+					It.IsAny<string>(), It.IsAny<long?>(),
 					It.IsAny<CatchUpSubscriptionSettings>(),
 					It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(), null,
 					It.IsAny<Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>>(), null))
@@ -448,7 +448,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			mockConn
 				.Setup(x => x.SubscribeToStreamFrom(
-					It.IsAny<string>(), It.IsAny<long>(), It.IsAny<CatchUpSubscriptionSettings>(),
+					It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<CatchUpSubscriptionSettings>(),
 					It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(),
 					null, It.IsAny<Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>>(), null))
 				// Callback is to simulate call to receiver.
@@ -505,7 +505,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			// First round of events returned.
 			mockConn
 				.Setup(x => x.SubscribeToStreamFrom(
-					streamId, It.Is<long>(pos => pos == client.FirstPositionInStream),
+					streamId, It.Is<long?>(checkpoint => !checkpoint.HasValue),
 					It.IsAny<CatchUpSubscriptionSettings>(), It.IsAny<Func<EventStoreCatchUpSubscription, ResolvedEvent, Task>>(),
 					null, It.IsAny<Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>>(), null))
 				// Callback is to simulate call to receiver.
