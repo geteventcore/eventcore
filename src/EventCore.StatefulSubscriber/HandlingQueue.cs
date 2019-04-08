@@ -33,16 +33,16 @@ namespace EventCore.StatefulSubscriber
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
+				// Clean up empty queues.
+				foreach (var key in _queues.Where(kvp => kvp.Value.Count == 0).Select(kvp => kvp.Key).ToList())
+				{
+					Queue<SubscriberEvent> _;
+					_queues.TryRemove(key, out _);
+				}
+
 				// Is there room for at least one more among the total of all queue counts?
 				if (_queues.Sum(x => x.Value.Count) < _maxSharedQueueSize)
 				{
-					// Clean up empty queues.
-					foreach (var key in _queues.Where(kvp => kvp.Value.Count == 0).Select(kvp => kvp.Key).ToList())
-					{
-						Queue<SubscriberEvent> _;
-						_queues.TryRemove(key, out _);
-					}
-
 					Queue<SubscriberEvent> queue;
 					if (!_queues.TryGetValue(parallelKey, out queue))
 					{

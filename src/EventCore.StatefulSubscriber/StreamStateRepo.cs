@@ -1,5 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
+using EventCore.Utilities;
 
 namespace EventCore.StatefulSubscriber
 {
@@ -16,50 +18,94 @@ namespace EventCore.StatefulSubscriber
 		// since stream ids are controlled internally by development team, not subject to external input.
 		private string BuildStreamStateFilePath(string streamId) => Path.Combine(_basePath, streamId.ToLower());
 
-		public Task<StreamState> LoadStreamStateAsync(string streamId)
+		public async Task<StreamState> LoadStreamStateAsync(IGenericLogger logger, string streamId)
 		{
-			var stateFilePath = BuildStreamStateFilePath(streamId);
+			var retry = true;
+			var tryCount = 1;
 
-			if (File.Exists(stateFilePath))
+			while (retry)
 			{
-				bool lastProcessedPositionHasValue;
-				long lastProcessedPositionValue;
-				long? lastProcessedPosition;
-				bool hasError;
-
-				// FileShare.ReadWrite will allow other code to read but not write while we're reading the file.
-				using (BinaryReader reader = new BinaryReader(File.Open(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
+				try
 				{
-					lastProcessedPositionHasValue = reader.ReadBoolean();
-					lastProcessedPositionValue = reader.ReadInt64();
-					hasError = reader.ReadBoolean();
+					var stateFilePath = BuildStreamStateFilePath(streamId);
+
+					if (File.Exists(stateFilePath))
+					{
+						long lastAttemptedPosition;
+						bool hasError;
+
+						// FileShare.ReadWrite will allow other code to read but not write while we're reading the file.
+						using (BinaryReader reader = new BinaryReader(File.Open(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
+						{
+							lastAttemptedPosition = reader.ReadInt64();
+							hasError = reader.ReadBoolean();
+						}
+
+						return new StreamState(lastAttemptedPosition, hasError);
+					}
 				}
+				catch (Exception ex)
+				{
+					var delayMs = 1000;
+					if (tryCount == 2) delayMs = 5000;
+					if (tryCount == 3) delayMs = 30000;
 
-				if (lastProcessedPositionHasValue) lastProcessedPosition = lastProcessedPositionValue;
-				else lastProcessedPosition = null;
-
-				return Task.FromResult<StreamState>(new StreamState(lastProcessedPosition, hasError));
+					if (tryCount == 4)
+					{
+						retry = false;
+						logger.LogError(ex, "Exception while saving stream state. Giving up.");
+						throw;
+					}
+					else
+					{
+						logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
+						await Task.Delay(1000);
+						tryCount++;
+					}
+				}
 			}
-			else
-			{
-				return Task.FromResult<StreamState>(null);
-			}
+			return null;
 		}
 
-		public Task SaveStreamStateAsync(string streamId, long? lastProcessedPosition, bool hasError)
+		public async Task SaveStreamStateAsync(IGenericLogger logger, string streamId, long lastAttemptedPosition, bool hasError)
 		{
-			var stateFilePath = BuildStreamStateFilePath(streamId);
+			var retry = true;
+			var tryCount = 1;
 
-			// FileMode.Create will overwrite the file if exists - this is what we want.
-			// FileShare.None will prevent other code from access while we're writing.
-			using (BinaryWriter writer = new BinaryWriter(File.Open(stateFilePath, FileMode.Create, FileAccess.Write, FileShare.None)))
+			while (retry)
 			{
-				writer.Write(lastProcessedPosition.HasValue);
-				writer.Write(lastProcessedPosition.GetValueOrDefault());
-				writer.Write(hasError);
-			}
+				try
+				{
+					var stateFilePath = BuildStreamStateFilePath(streamId);
 
-			return Task.CompletedTask;
+					// FileMode.Create will overwrite the file if exists - this is what we want.
+					// FileShare.None will prevent other code from access while we're writing.
+					using (BinaryWriter writer = new BinaryWriter(File.Open(stateFilePath, FileMode.Create, FileAccess.Write, FileShare.None)))
+					{
+						writer.Write(lastAttemptedPosition);
+						writer.Write(hasError);
+					}
+				}
+				catch (Exception ex)
+				{
+					var delayMs = 1000;
+					if (tryCount == 2) delayMs = 5000;
+					if (tryCount == 3) delayMs = 30000;
+					
+					if (tryCount == 4)
+					{
+						retry = false;
+						logger.LogError(ex, "Exception while saving stream state. Giving up.");
+						throw;
+					}
+					else
+					{
+						logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
+						await Task.Delay(1000);
+						tryCount++;
+					}
+				}
+			}
 		}
 	}
 }

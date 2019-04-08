@@ -108,7 +108,7 @@ namespace EventCore.StatefulSubscriber
 						regionId, streamId, streamClient.FirstPositionInStream,
 						async (se, ct) =>
 						{
-							if ((await IsStreamEventEligibleForDeserialization(resolver, streamClient, streamId, streamStateRepo, se)) == DeserializationEligibility.Eligible)
+							if ((await IsStreamEventEligibleForDeserialization(logger, resolver, streamClient, streamId, streamStateRepo, se)) == DeserializationEligibility.Eligible)
 							{
 								// Send to the deserialization queue when space opens up.
 								await deserializationQueue.EnqueueWithWaitAsync(se, cancellationToken);
@@ -126,21 +126,20 @@ namespace EventCore.StatefulSubscriber
 			}
 		}
 
-		public static async Task<DeserializationEligibility> IsStreamEventEligibleForDeserialization(IBusinessEventResolver resolver, IStreamClient streamClient, string streamId, IStreamStateRepo repo, StreamEvent streamEvent)
+		public static async Task<DeserializationEligibility> IsStreamEventEligibleForDeserialization(IGenericLogger logger, IBusinessEventResolver resolver, IStreamClient streamClient, string streamId, IStreamStateRepo repo, StreamEvent streamEvent)
 		{
-			var streamState = await repo.LoadStreamStateAsync(streamId);
+			var streamState = await repo.LoadStreamStateAsync(logger, streamId);
 
 			long expectedPosition = streamClient.FirstPositionInStream;
 			if (streamState != null)
 			{
 				if (streamState.HasError) return DeserializationEligibility.UnableStreamHasError; // Ignore events from errored streams.
 
-				if (streamEvent.Position <= streamState.LastProcessedPosition.Value) return DeserializationEligibility.SkippedAlreadyProcessed; // Skip events already processed.
+				if (streamEvent.Position <= streamState.LastAttemptedPosition) return DeserializationEligibility.SkippedAlreadyProcessed; // Skip events already processed.
 
 				if (!resolver.CanResolve(streamEvent.EventType)) return DeserializationEligibility.UnableToResolveEventType;
 
-				if (streamState.LastProcessedPosition.HasValue)
-					expectedPosition = streamState.LastProcessedPosition.Value + 1;
+				expectedPosition = streamState.LastAttemptedPosition + 1;
 			}
 
 			// Sanity check to ensure events arrive sequentially for a given stream.
@@ -207,7 +206,7 @@ namespace EventCore.StatefulSubscriber
 			}
 		}
 
-		public static async Task ManageHandlingAsync(IGenericLogger logger, IHandlingQueue handlingQueue, IStreamStateRepo repo, Func<SubscriberEvent, CancellationToken, Task> handlerAsync, int maxParallelHandlerExecutions, CancellationToken cancellationToken)
+		public static async Task ManageHandlingAsync(IGenericLogger logger, IHandlingQueue handlingQueue, IStreamStateRepo streamStateRepo, Func<SubscriberEvent, CancellationToken, Task> handlerAsync, int maxParallelHandlerExecutions, CancellationToken cancellationToken)
 		{
 			try
 			{
@@ -225,34 +224,14 @@ namespace EventCore.StatefulSubscriber
 						handlerCompletionTrigger.Reset();
 
 						// Clean up finished tasks.
-						foreach (var key in parallelTasks.Where(kvp => kvp.Value.IsCanceled || kvp.Value.IsCompleted || kvp.Value.IsFaulted).Select(kvp => kvp.Key).ToList())
-						{
-							parallelTasks.Remove(key);
-						}
+						PurgeFinishedTasks(parallelTasks);
 
 						var item = handlingQueue.TryDequeue(parallelTasks.Keys.ToList());
 						if (item != null)
 						{
-							await throttle.WaitAsync(cancellationToken);
-							
-							if (cancellationToken.IsCancellationRequested) break;
-
-							parallelTasks.Add(
-								item.ParallelKey,
-								Task.Run(async () =>
-								{
-									try
-									{
-										await RunHandlerAsync(logger, handlerAsync, repo, item.SubscriberEvent, cancellationToken);
-									}
-									finally
-									{
-										throttle.Release(); // Make room for other handlers.
-										handlerCompletionTrigger.Set();
-									}
-								}
-								)
-							);
+							await RunHandlerTaskAsync(
+								parallelTasks, throttle, handlerCompletionTrigger, item.ParallelKey, item.SubscriberEvent,
+								logger, streamStateRepo, handlerAsync, cancellationToken);
 						}
 						else
 						{
@@ -262,9 +241,8 @@ namespace EventCore.StatefulSubscriber
 								handlerCompletionTrigger.WaitHandle.AsTask(),
 								handlingQueue.EnqueueTrigger.WaitHandle.AsTask(),
 								cancellationToken.WaitHandle.AsTask() });
-
-							if (cancellationToken.IsCancellationRequested) break;
 						}
+						if (cancellationToken.IsCancellationRequested) break;
 					}
 
 					if (cancellationToken.IsCancellationRequested) break;
@@ -280,46 +258,68 @@ namespace EventCore.StatefulSubscriber
 			}
 		}
 
-		public static async Task WaitForSemaphoreOrManualResetAsync(SemaphoreSlim semaphore, ManualResetEventSlim mre, CancellationToken cancellationToken)
+		public static void PurgeFinishedTasks(Dictionary<string, Task> tasks)
 		{
-			var mutexCts = new CancellationTokenSource();
-			try
+			foreach (var key in tasks.Where(kvp => kvp.Value.IsCanceled || kvp.Value.IsCompleted || kvp.Value.IsFaulted).Select(kvp => kvp.Key).ToList())
 			{
-				await Task.WhenAny(new Task[] { semaphore.WaitAsync(mutexCts.Token), mre.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
-				if (cancellationToken.IsCancellationRequested)
+				tasks.Remove(key);
+			}
+		}
+
+		public static async Task RunHandlerTaskAsync(
+			Dictionary<string, Task> tasks, SemaphoreSlim throttle, ManualResetEventSlim handlerCompletionTrigger,
+			string parallelKey, SubscriberEvent subscriberEvent,
+			IGenericLogger logger, IStreamStateRepo streamStateRepo,
+			Func<SubscriberEvent, CancellationToken, Task> handlerAsync,
+			CancellationToken cancellationToken)
+		{
+			var state = await streamStateRepo.LoadStreamStateAsync(logger, subscriberEvent.StreamId);
+			if (state.HasError)
+			{
+				// When a stream has an error there may already be subscriber events in the
+				// handling queue that have made it past the first check for errored stream state
+				// prior to deserialization. If that's the case we just ignore the event.
+				return;
+			}
+
+			await throttle.WaitAsync(cancellationToken);
+
+			if (cancellationToken.IsCancellationRequested) return;
+
+			tasks.Add(
+				parallelKey,
+				Task.Run(async () =>
 				{
-					mutexCts.Cancel(); // Mutex needs a separate token source to ensure we don't leave it waiting.
+					try
+					{
+						await RunHandlerAsync(logger, handlerAsync, streamStateRepo, subscriberEvent, cancellationToken);
+					}
+					finally
+					{
+						throttle.Release(); // Make room for other handlers.
+						handlerCompletionTrigger.Set();
+					}
 				}
-			}
-			finally
-			{
-				if (!mre.IsSet && !cancellationToken.IsCancellationRequested)
-					semaphore.Release();
-
-				if (mre.IsSet)
-					mre.Reset();
-			}
+				)
+			);
 		}
 
-		public static async Task WaitForManualResetAsync(ManualResetEventSlim mre, CancellationToken cancellationToken)
-		{
-			await Task.WhenAny(new Task[] { mre.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
-			mre.Reset();
-		}
-
-		public static async Task RunHandlerAsync(IGenericLogger logger, Func<SubscriberEvent, CancellationToken, Task> handlerAsync, IStreamStateRepo streamStateRepo, SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
+		public static async Task RunHandlerAsync(
+			IGenericLogger logger, Func<SubscriberEvent, CancellationToken, Task> handlerAsync,
+			IStreamStateRepo streamStateRepo, SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
 		{
 			try
 			{
 				await handlerAsync(subscriberEvent, cancellationToken);
 
-				// Save stream state...
+				await streamStateRepo.SaveStreamStateAsync(logger, subscriberEvent.StreamId, subscriberEvent.Position, false);
 			}
 			catch (Exception ex)
 			{
 				logger.LogError(ex, "Exception while handling event. Stream will be halted.");
 
-				// Save errored stream state...
+				// Save errored stream state.
+				await streamStateRepo.SaveStreamStateAsync(logger, subscriberEvent.StreamId, subscriberEvent.Position, true);
 			}
 		}
 	}

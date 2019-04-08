@@ -4,12 +4,12 @@ namespace EventCore.StatefulSubscriber
 {
 	public class StreamState
 	{
-		public readonly long? LastProcessedPosition;
+		public readonly long LastAttemptedPosition;
 		public readonly bool HasError;
 
-		public StreamState(long? lastProcessedPosition, bool hasError)
+		public StreamState(long lastAttemptedPosition, bool hasError)
 		{
-			LastProcessedPosition = lastProcessedPosition;
+			LastAttemptedPosition = lastAttemptedPosition;
 			HasError = hasError;
 		}
 	}

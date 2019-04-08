@@ -13,7 +13,7 @@ namespace EventCore.StatefulSubscriber.Tests
 
 			var state = new StreamState(lastProcessedPosition, hasError);
 
-			Assert.Equal(lastProcessedPosition, state.LastProcessedPosition);
+			Assert.Equal(lastProcessedPosition, state.LastAttemptedPosition);
 			Assert.Equal(hasError, state.HasError);
 		}
 	}
