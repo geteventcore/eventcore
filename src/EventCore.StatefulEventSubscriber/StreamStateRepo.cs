@@ -24,10 +24,10 @@ namespace EventCore.StatefulEventSubscriber
 
 		public async Task<StreamState> LoadStreamStateAsync(string streamId)
 		{
-			var retry = true;
+			var retry = false;
 			var tryCount = 1;
 
-			while (retry)
+			do
 			{
 				try
 				{
@@ -62,21 +62,24 @@ namespace EventCore.StatefulEventSubscriber
 					}
 					else
 					{
+						retry = true;
 						_logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
 						await Task.Delay(1000);
-						tryCount++;
 					}
+
+					tryCount++;
 				}
-			}
+			} while (retry);
+			
 			return null;
 		}
 
 		public async Task SaveStreamStateAsync(string streamId, long lastAttemptedPosition, bool hasError)
 		{
-			var retry = true;
+			var retry = false;
 			var tryCount = 1;
 
-			while (retry)
+			do
 			{
 				try
 				{
@@ -104,12 +107,14 @@ namespace EventCore.StatefulEventSubscriber
 					}
 					else
 					{
+						retry = true;
 						_logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
 						await Task.Delay(1000);
-						tryCount++;
 					}
+
+					tryCount++;
 				}
-			}
+			} while (retry);
 		}
 	}
 }
