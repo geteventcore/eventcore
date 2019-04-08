@@ -15,8 +15,8 @@ namespace EventCore.StatefulEventSubscriber
 
 		private readonly int _maxSharedQueueSize;
 
-		private readonly ConcurrentDictionary<string, Queue<SubscriberEvent>> _queues =
-			new ConcurrentDictionary<string, Queue<SubscriberEvent>>(StringComparer.OrdinalIgnoreCase);
+		private readonly ConcurrentDictionary<string, ConcurrentQueue<SubscriberEvent>> _queues =
+			new ConcurrentDictionary<string, ConcurrentQueue<SubscriberEvent>>(StringComparer.OrdinalIgnoreCase);
 
 		private readonly ManualResetEventSlim _dequeueTrigger = new ManualResetEventSlim(false);
 
@@ -36,17 +36,17 @@ namespace EventCore.StatefulEventSubscriber
 				// Clean up empty queues.
 				foreach (var key in _queues.Where(kvp => kvp.Value.Count == 0).Select(kvp => kvp.Key).ToList())
 				{
-					Queue<SubscriberEvent> _;
+					ConcurrentQueue<SubscriberEvent> _;
 					_queues.TryRemove(key, out _);
 				}
 
 				// Is there room for at least one more among the total of all queue counts?
 				if (_queues.Sum(x => x.Value.Count) < _maxSharedQueueSize)
 				{
-					Queue<SubscriberEvent> queue;
+					ConcurrentQueue<SubscriberEvent> queue;
 					if (!_queues.TryGetValue(parallelKey, out queue))
 					{
-						queue = new Queue<SubscriberEvent>();
+						queue = new ConcurrentQueue<SubscriberEvent>();
 						_queues.TryAdd(parallelKey, queue);
 					}
 
@@ -66,14 +66,17 @@ namespace EventCore.StatefulEventSubscriber
 			var key = _queues.Keys.Where(x => !filterOutParallelKeys.Contains(x, StringComparer.OrdinalIgnoreCase)).FirstOrDefault();
 			if (string.IsNullOrEmpty(key)) return null;
 
-			Queue<SubscriberEvent> queue;
+			ConcurrentQueue<SubscriberEvent> queue;
 			if (_queues.TryGetValue(key, out queue))
 			{
 				if (queue.Count > 0)
 				{
-					var subscriberEvent = queue.Dequeue();
-					_dequeueTrigger.Set(); // Signal that we've dequeued an item.
-					return new HandlingQueueItem(key, subscriberEvent);
+					SubscriberEvent subscriberEvent;
+					if (queue.TryDequeue(out subscriberEvent))
+					{
+						_dequeueTrigger.Set(); // Signal that we've dequeued an item.
+						return new HandlingQueueItem(key, subscriberEvent);
+					}
 				}
 			}
 			return null;

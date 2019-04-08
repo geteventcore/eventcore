@@ -1,4 +1,5 @@
 ﻿using EventCore.Utilities;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace EventCore.StatefulEventSubscriber
 		// and only one process will dequeue, with both enqueue/dequeue occuring simultaneously.
 
 		private readonly int _maxQueueSize;
-		private readonly Queue<SubscriberEvent> _queue = new Queue<SubscriberEvent>();
+		private readonly ConcurrentQueue<SubscriberEvent> _queue = new ConcurrentQueue<SubscriberEvent>();
 		private readonly ManualResetEventSlim _dequeueTrigger = new ManualResetEventSlim(false);
 
 		public SortingQueue(int maxQueueSize)
@@ -42,7 +43,8 @@ namespace EventCore.StatefulEventSubscriber
 
 		public SubscriberEvent TryDequeue()
 		{
-			if(_queue.Count > 0) return _queue.Dequeue();
+			SubscriberEvent subscriberEvent;
+			if(_queue.TryDequeue(out subscriberEvent)) return subscriberEvent;
 			else return null;
 		}
 	}

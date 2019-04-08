@@ -1,6 +1,6 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Utilities;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -8,11 +8,11 @@ namespace EventCore.StatefulEventSubscriber
 {
 	public class ResolutionQueue : IResolutionQueue
 	{
-		// NOTE: This implementation expects that only one process will enqueue
-		// and only one process will dequeue, with both enqueue/dequeue occuring simultaneously.
+		// NOTE: Safe for concurrent operations, expecting multiple subscription listeners
+		// to send events to the queue in parallel.
 
 		private readonly int _maxQueueSize;
-		private readonly Queue<StreamEvent> _queue = new Queue<StreamEvent>();
+		private readonly ConcurrentQueue<StreamEvent> _queue = new ConcurrentQueue<StreamEvent>();
 		private readonly ManualResetEventSlim _dequeueTrigger = new ManualResetEventSlim(false);
 
 		public ResolutionQueue(int maxQueueSize)
@@ -27,6 +27,9 @@ namespace EventCore.StatefulEventSubscriber
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				// Is there room for at least one more in the queue?
+				// Note if there are other listeners adding to the queue that we
+				// may end up going over the max queue size, but it will never exceed
+				// that threshold by more than one so this is acceptable.
 				if (_queue.Count < _maxQueueSize)
 				{
 					_queue.Enqueue(streamEvent);
@@ -43,7 +46,8 @@ namespace EventCore.StatefulEventSubscriber
 
 		public StreamEvent TryDequeue()
 		{
-			if(_queue.Count > 0) return _queue.Dequeue();
+			StreamEvent streamEvent;
+			if(_queue.TryDequeue(out streamEvent)) return streamEvent;
 			else return null;
 		}
 	}
