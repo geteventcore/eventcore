@@ -1,7 +1,7 @@
 using System.Text;
 using Xunit;
 
-namespace EventCore.StatefulSubscriber.Tests
+namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class StreamStateTests
 	{

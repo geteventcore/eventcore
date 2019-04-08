@@ -1,7 +1,7 @@
 ﻿using EventCore.EventSourcing;
 using System;
 
-namespace EventCore.StatefulSubscriber
+namespace EventCore.StatefulEventSubscriber
 {
 	public class SubscriberEvent
 	{

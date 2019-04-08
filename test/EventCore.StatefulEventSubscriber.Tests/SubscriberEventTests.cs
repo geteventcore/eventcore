@@ -2,7 +2,7 @@ using System.Text;
 using EventCore.EventSourcing;
 using Xunit;
 
-namespace EventCore.StatefulSubscriber.Tests
+namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class SubscriberEventTests
 	{

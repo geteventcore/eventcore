@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\EventCore.StatefulSubscriber\EventCore.StatefulSubscriber.csproj" />
+    <ProjectReference Include="..\..\src\EventCore.StatefulEventSubscriber\EventCore.StatefulEventSubscriber.csproj" />
   </ItemGroup>
 
 </Project>

@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.StatefulSubscriber
+namespace EventCore.StatefulEventSubscriber
 {
 	public class SortingManager : ISortingManager
 	{
@@ -17,12 +17,13 @@ namespace EventCore.StatefulSubscriber
 
 		public SortingManager(
 			IStandardLogger logger, IBusinessEventResolver resolver, IStreamStateRepo streamStateRepo,
-			ISortingQueue sortingQueue, IHandlingManager handlingManager)
+			ISortingQueue sortingQueue, ISubscriberEventSorter sorter, IHandlingManager handlingManager)
 		{
 			_logger = logger;
 			_resolver = resolver;
 			_streamStateRepo = streamStateRepo;
 			_sortingQueue = sortingQueue;
+			_sorter = sorter;
 			_handlingManager = handlingManager;
 		}
 

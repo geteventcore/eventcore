@@ -4,7 +4,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.StatefulSubscriber
+namespace EventCore.StatefulEventSubscriber
 {
 	public class ResolutionManager : IResolutionManager
 	{

@@ -1,4 +1,4 @@
-﻿namespace EventCore.StatefulSubscriber
+﻿namespace EventCore.StatefulEventSubscriber
 {
 	public enum ResolutionEligibility
 	{

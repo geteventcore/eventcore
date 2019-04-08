@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EventCore.StatefulSubscriber
+namespace EventCore.StatefulEventSubscriber
 {
 	public class StreamState
 	{

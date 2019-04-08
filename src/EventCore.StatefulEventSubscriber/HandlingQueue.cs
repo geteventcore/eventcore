@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.StatefulSubscriber
+namespace EventCore.StatefulEventSubscriber
 {
 	public class HandlingQueue : IHandlingQueue
 	{

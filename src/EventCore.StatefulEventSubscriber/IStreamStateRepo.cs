@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using EventCore.Utilities;
 
-namespace EventCore.StatefulSubscriber
+namespace EventCore.StatefulEventSubscriber
 {
 	public interface IStreamStateRepo
 	{
