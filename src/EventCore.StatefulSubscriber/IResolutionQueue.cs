@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.StatefulSubscriber
 {
-	public interface IDeserializationQueue
+	public interface IResolutionQueue
 	{
 		ManualResetEventSlim EnqueueTrigger { get; }
 		Task EnqueueWithWaitAsync(StreamEvent streamEvent, CancellationToken cancellationToken);

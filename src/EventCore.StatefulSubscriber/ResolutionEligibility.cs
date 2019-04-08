@@ -1,6 +1,6 @@
 ﻿namespace EventCore.StatefulSubscriber
 {
-	public enum DeserializationEligibility
+	public enum ResolutionEligibility
 	{
 		Eligible, UnableStreamHasError,UnableToResolveEventType, SkippedAlreadyProcessed
 	}

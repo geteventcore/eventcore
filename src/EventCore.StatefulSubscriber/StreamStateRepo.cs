@@ -7,10 +7,12 @@ namespace EventCore.StatefulSubscriber
 {
 	public class StreamStateRepo : IStreamStateRepo
 	{
+		private readonly IStandardLogger _logger;
 		private readonly string _basePath;
 
-		public StreamStateRepo(string basePath)
+		public StreamStateRepo(IStandardLogger logger, string basePath)
 		{
+			_logger = logger;
 			_basePath = Path.GetFullPath(basePath);
 		}
 
@@ -18,7 +20,7 @@ namespace EventCore.StatefulSubscriber
 		// since stream ids are controlled internally by development team, not subject to external input.
 		private string BuildStreamStateFilePath(string streamId) => Path.Combine(_basePath, streamId.ToLower());
 
-		public async Task<StreamState> LoadStreamStateAsync(IGenericLogger logger, string streamId)
+		public async Task<StreamState> LoadStreamStateAsync(string streamId)
 		{
 			var retry = true;
 			var tryCount = 1;
@@ -53,12 +55,12 @@ namespace EventCore.StatefulSubscriber
 					if (tryCount == 4)
 					{
 						retry = false;
-						logger.LogError(ex, "Exception while saving stream state. Giving up.");
+						_logger.LogError(ex, "Exception while saving stream state. Giving up.");
 						throw;
 					}
 					else
 					{
-						logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
+						_logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
 						await Task.Delay(1000);
 						tryCount++;
 					}
@@ -67,7 +69,7 @@ namespace EventCore.StatefulSubscriber
 			return null;
 		}
 
-		public async Task SaveStreamStateAsync(IGenericLogger logger, string streamId, long lastAttemptedPosition, bool hasError)
+		public async Task SaveStreamStateAsync(string streamId, long lastAttemptedPosition, bool hasError)
 		{
 			var retry = true;
 			var tryCount = 1;
@@ -91,16 +93,16 @@ namespace EventCore.StatefulSubscriber
 					var delayMs = 1000;
 					if (tryCount == 2) delayMs = 5000;
 					if (tryCount == 3) delayMs = 30000;
-					
+
 					if (tryCount == 4)
 					{
 						retry = false;
-						logger.LogError(ex, "Exception while saving stream state. Giving up.");
+						_logger.LogError(ex, "Exception while saving stream state. Giving up.");
 						throw;
 					}
 					else
 					{
-						logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
+						_logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
 						await Task.Delay(1000);
 						tryCount++;
 					}

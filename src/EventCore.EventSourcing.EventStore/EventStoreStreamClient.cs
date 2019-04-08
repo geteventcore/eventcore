@@ -14,13 +14,13 @@ namespace EventCore.EventSourcing.EventStore
 		// NOTE: Stream ids are case SENSITIVE in GY's Event Store.
 		// Haven't figured out how to disable this yet.
 
-		private readonly IGenericLogger _logger;
+		private readonly IStandardLogger _logger;
 		private readonly IEventStoreConnectionFactory _connectionFactory;
 		private readonly EventStoreStreamClientOptions _options;
 
 		public long FirstPositionInStream => Constants.FIRST_POSITION_IN_STREAM;
 
-		public EventStoreStreamClient(IGenericLogger logger, IEventStoreConnectionFactory connectionFactory, EventStoreStreamClientOptions options)
+		public EventStoreStreamClient(IStandardLogger logger, IEventStoreConnectionFactory connectionFactory, EventStoreStreamClientOptions options)
 		{
 			_logger = logger;
 			_connectionFactory = connectionFactory;

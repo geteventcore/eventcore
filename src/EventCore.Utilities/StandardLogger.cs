@@ -3,11 +3,11 @@ using System;
 
 namespace EventCore.Utilities
 {
-	public class GenericLogger : IGenericLogger
+	public class StandardLogger : IStandardLogger
 	{
 		private readonly ILogger _logger;
 
-		public GenericLogger(ILogger logger)
+		public StandardLogger(ILogger logger)
 		{
 			_logger = logger;
 		}

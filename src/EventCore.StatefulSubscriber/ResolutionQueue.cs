@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.StatefulSubscriber
 {
-	public class DeserializationQueue : IDeserializationQueue
+	public class ResolutionQueue : IResolutionQueue
 	{
 		// NOTE: This implementation expects that only one process will enqueue
 		// and only one process will dequeue, with both enqueue/dequeue occuring simultaneously.
@@ -15,7 +15,7 @@ namespace EventCore.StatefulSubscriber
 		private readonly Queue<StreamEvent> _queue = new Queue<StreamEvent>();
 		private readonly ManualResetEventSlim _dequeueTrigger = new ManualResetEventSlim(false);
 
-		public DeserializationQueue(int maxQueueSize)
+		public ResolutionQueue(int maxQueueSize)
 		{
 			_maxQueueSize = maxQueueSize;
 		}

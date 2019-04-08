@@ -84,7 +84,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		[Fact]
 		public async Task commit_should_detect_invalid_stream_id()
 		{
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, new Mock<IEventStoreConnectionFactory>().Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, new Mock<IEventStoreConnectionFactory>().Object, ClientOptions);
 			var invalidStreamId = "s!"; // Contains invalid char.
 
 			await Assert.ThrowsAsync<ArgumentException>(() => client.CommitEventsToStreamAsync(DEFAULT_REGION_ID, invalidStreamId, null, new CommitEvent[] { }));
@@ -93,7 +93,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		[Fact]
 		public async Task commit_should_throw_when_invalid_expected_position()
 		{
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, new Mock<IEventStoreConnectionFactory>().Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, new Mock<IEventStoreConnectionFactory>().Object, ClientOptions);
 			var streamId = "s";
 			var invalidPosition = client.FirstPositionInStream - 1;
 
@@ -106,7 +106,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
 			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var eventType = "a";
 			var e = new CommitEvent(eventType, EmptyJsonPayload);
@@ -128,7 +128,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
 			Func<IEventStoreConnection> connFactory = () => mockConn.Object;
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var eventType = "a";
 			var e = new CommitEvent(eventType, EmptyJsonPayload);
@@ -145,7 +145,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var eventType = "a";
 			var e = new CommitEvent(eventType, EmptyJsonPayload);
@@ -162,7 +162,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var eventType1 = "a1";
 			var eventType2 = "a2";
@@ -189,7 +189,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var eventType = "a";
 			var e = new CommitEvent(eventType, EmptyJsonPayload);
@@ -210,7 +210,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var eventType = "a";
 			var e = new CommitEvent(eventType, EmptyJsonPayload);
@@ -228,7 +228,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		public async Task load_should_throw_when_invalid_from_position()
 		{
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var invalidPosition = client.FirstPositionInStream - 1;
 
@@ -242,7 +242,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var ex = new TestException();
 
@@ -260,7 +260,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var eventType = "a";
 			var json = "{'prop':'val1'}";
@@ -287,7 +287,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 
 			// Status is the only value that matters here.
@@ -307,7 +307,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var mockSlice = ForceCreateStreamEventsSlice(SliceReadStatus.Success, streamId, new ResolvedEvent[] { }, 0, true);
 
@@ -327,7 +327,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, new EventStoreStreamClientOptions(1));
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, new EventStoreStreamClientOptions(1));
 			var streamId = "s";
 			var linkStreamId = "l";
 			var linkPosition = 20; // This can be whatever.
@@ -398,7 +398,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		public async Task subscribe_should_throw_when_invalid_from_position()
 		{
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var invalidPosition = client.FirstPositionInStream - 1;
 
@@ -412,7 +412,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var ex = new TestException();
 
@@ -434,7 +434,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var eventType = "a";
 			var json = "{'prop':'val1'}";
@@ -483,7 +483,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, new EventStoreStreamClientOptions(1));
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, new EventStoreStreamClientOptions(1));
 			var streamId = "s";
 			var linkStreamId = "l";
 			var linkPosition = 20; // This can be whatever.
@@ -575,7 +575,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 
 			var mockReadResult = ForceCreateEventReadResult(EventReadStatus.NotFound, ForceCreateResolvedEvent(ForceCreateRecordedEvent(null, 0, null, null), null));
@@ -596,7 +596,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 		{
 			var mockConn = new Mock<IEventStoreConnection>();
 			var mockConnFactory = new Mock<IEventStoreConnectionFactory>();
-			var client = new EventStoreStreamClient(NullGenericLogger.Instance, mockConnFactory.Object, ClientOptions);
+			var client = new EventStoreStreamClient(NullStandardLogger.Instance, mockConnFactory.Object, ClientOptions);
 			var streamId = "s";
 			var expectedPosition = 143; // Made up number.
 

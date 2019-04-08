@@ -44,7 +44,7 @@ namespace EventCore.Samples.DemoCli.Actions
 		{
 			var serializer = new JsonBusinessEventSerializer();
 			var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
-			var streamClient = new EventStoreStreamClient(NullGenericLogger.Instance, Helpers.EventStoreConnectionFactory, options);
+			var streamClient = new EventStoreStreamClient(NullStandardLogger.Instance, Helpers.EventStoreConnectionFactory, options);
 			long position;
 
 
