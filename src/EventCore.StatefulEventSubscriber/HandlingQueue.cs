@@ -22,7 +22,11 @@ namespace EventCore.StatefulEventSubscriber
 
 		public ManualResetEventSlim EnqueueTrigger { get; } = new ManualResetEventSlim(false);
 
-		public bool IsEventsAvailable => _queues.Any(x => x.Value.Count > 0);
+		public bool IsEventsAvailable => _queues.Any(kvp => kvp.Value.Count > 0);
+
+		// Need these for testing.
+		public int QueueCount { get => _queues.Sum(kvp => kvp.Value.Count); }
+		public ManualResetEventSlim EnqueueIsWaitingSignal { get; } = new ManualResetEventSlim(false);
 
 		public HandlingQueue(int maxSharedQueueSize)
 		{
@@ -52,18 +56,27 @@ namespace EventCore.StatefulEventSubscriber
 
 					queue.Enqueue(subscriberEvent);
 					EnqueueTrigger.Set(); // Signal that we've enqueued a new item.
+
+					return;
 				}
 				else
 				{
+					EnqueueIsWaitingSignal.Set();
 					await Task.WhenAny(new Task[] { _dequeueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
 					_dequeueTrigger.Reset();
+					EnqueueIsWaitingSignal.Reset();
 				}
 			}
 		}
 
 		public HandlingQueueItem TryDequeue(IList<string> filterOutParallelKeys)
 		{
-			var key = _queues.Keys.Where(x => !filterOutParallelKeys.Contains(x, StringComparer.OrdinalIgnoreCase)).FirstOrDefault();
+			var key = _queues
+				.Where(kvp => kvp.Value.Count > 0)
+				.Select(kvp => kvp.Key)
+				.Where(x => !filterOutParallelKeys.Contains(x, StringComparer.OrdinalIgnoreCase))
+				.FirstOrDefault();
+
 			if (string.IsNullOrEmpty(key)) return null;
 
 			ConcurrentQueue<SubscriberEvent> queue;
