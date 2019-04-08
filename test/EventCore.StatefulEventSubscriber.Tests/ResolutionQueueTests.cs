@@ -14,7 +14,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		{
 			var cts = new CancellationTokenSource(3000);
 			var queue = new ResolutionQueue(1);
-			var streamEvent = new StreamEvent("s", 1, new StreamEventLink("l", 1), "x", new byte[] { });
+			var streamEvent = new StreamEvent("s", 1, null, "x", new byte[] { });
 
 			await queue.EnqueueWithWaitAsync(streamEvent, cts.Token);
 			var dequeuedStreamEvent = queue.TryDequeue();
@@ -28,9 +28,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var cts = new CancellationTokenSource(3000);
 			var maxQueueSize = 2;
 			var queue = new ResolutionQueue(maxQueueSize);
-			var streamEvent1 = new StreamEvent("s", 1, new StreamEventLink("l", 1), "x", new byte[] { });
-			var streamEvent2 = new StreamEvent("s", 2, new StreamEventLink("l", 2), "x", new byte[] { });
-			var streamEvent3 = new StreamEvent("s", 3, new StreamEventLink("l", 3), "x", new byte[] { });
+			var streamEvent1 = new StreamEvent("s", 1, null, "x", new byte[] { });
+			var streamEvent2 = new StreamEvent("s", 2, null, "x", new byte[] { });
+			var streamEvent3 = new StreamEvent("s", 3, null, "x", new byte[] { });
 
 			await queue.EnqueueWithWaitAsync(streamEvent1, cts.Token);
 			await queue.EnqueueWithWaitAsync(streamEvent2, cts.Token);

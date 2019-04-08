@@ -13,7 +13,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		[Fact]
 		public async Task enqueue_and_dequeue_items()
 		{
-			var cts = new CancellationTokenSource(30000);
+			var cts = new CancellationTokenSource(3000);
 			var queue = new HandlingQueue(2);
 			var parallelKey1 = "pk1";
 			var parallelKey2 = "pk2";
@@ -25,8 +25,8 @@ namespace EventCore.StatefulEventSubscriber.Tests
 
 			if(cts.IsCancellationRequested) throw new TimeoutException();
 
-			var dequeuedItem1 = queue.TryDequeue(new string[] { });
-			var dequeuedItem2 = queue.TryDequeue(new string[] { });
+			var dequeuedItem1 = queue.TryDequeue(new string[] { parallelKey2 });
+			var dequeuedItem2 = queue.TryDequeue(new string[] { parallelKey1 });
 
 			Assert.Equal(parallelKey1, dequeuedItem1.ParallelKey);
 			Assert.Equal(subscriberEvent1, dequeuedItem1.SubscriberEvent);
