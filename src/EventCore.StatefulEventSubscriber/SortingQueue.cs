@@ -15,6 +15,10 @@ namespace EventCore.StatefulEventSubscriber
 		private readonly ConcurrentQueue<SubscriberEvent> _queue = new ConcurrentQueue<SubscriberEvent>();
 		private readonly ManualResetEventSlim _dequeueTrigger = new ManualResetEventSlim(false);
 
+		// Need these for testing.
+		public int QueueCount { get => _queue.Count; }
+		public ManualResetEventSlim EnqueueIsWaitingSignal { get; } = new ManualResetEventSlim(false);
+
 		public SortingQueue(int maxQueueSize)
 		{
 			_maxQueueSize = maxQueueSize;
@@ -35,8 +39,10 @@ namespace EventCore.StatefulEventSubscriber
 				}
 				else
 				{
+					EnqueueIsWaitingSignal.Set();
 					await Task.WhenAny(new Task[] { _dequeueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
 					_dequeueTrigger.Reset();
+					EnqueueIsWaitingSignal.Reset();
 				}
 			}
 		}
@@ -44,8 +50,14 @@ namespace EventCore.StatefulEventSubscriber
 		public SubscriberEvent TryDequeue()
 		{
 			SubscriberEvent subscriberEvent;
-			if(_queue.TryDequeue(out subscriberEvent)) return subscriberEvent;
-			else return null;
+			
+			if (_queue.TryDequeue(out subscriberEvent))
+			{
+				_dequeueTrigger.Set(); // Signal that we've dequeued an item.
+				return subscriberEvent;
+			}
+
+			return null;
 		}
 	}
 }
