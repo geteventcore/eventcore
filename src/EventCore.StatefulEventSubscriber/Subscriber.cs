@@ -1,7 +1,6 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Utilities;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -17,11 +16,14 @@ namespace EventCore.StatefulEventSubscriber
 		// 3. Stream events enqueued for deserialization/resolution.
 		// 4. Stream event deserialization attempted resulting in stateful subscriber event.
 		// 5. Subscriber event enqueued for sorting into parallel handler executions.
-		// 6. Handlers called in parallel by pulling events in order off of handling queue.
+		// 6. Handlers called in parallel by pulling events in order off of handling queues grouped by parallel key.
 		//
-		// Handling queue will be grouped into parallel keys, where each group has guaranteed
-		// in-order events per stream.
-		// (Multiple streams may be interleaved in one group, but at the stream level order is guaranteed.)
+		// Handling queues are identified by parallel keys, where each parallel queue has guaranteed
+		// in-order events per stream. Multiple streams may be interleaved into one parallel queue,
+		// and all events from a specific stream will be in order in any given parallel queue, but there is no
+		// temporal guarantee across multiple parallel queues. Therefore, events in a stream may be handled out of
+		// order between multiple parallel handlers, so it is up to the client implementation to sort events
+		// into parallel keys with this consideration.
 
 		private readonly IStandardLogger _logger;
 		private readonly ISubscriptionListener _subListener;

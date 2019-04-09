@@ -25,7 +25,7 @@ namespace EventCore.StatefulEventSubscriber
 			_sortingManager = sortingManager;
 		}
 
-		// No thread safe.
+		// Not thread safe.
 		public async Task ManageAsync(CancellationToken cancellationToken)
 		{
 			try
@@ -38,7 +38,7 @@ namespace EventCore.StatefulEventSubscriber
 						var businessEvent = _resolver.ResolveEvent(streamEvent.EventType, streamEvent.Data);
 						var subscriberEvent = new SubscriberEvent(streamEvent.StreamId, streamEvent.Position, businessEvent);
 
-						// Send to the sorting queue.
+						// Send to the sorting manager.
 						await _sortingManager.ReceiveSubscriberEventAsync(subscriberEvent, cancellationToken);
 					}
 					await Task.WhenAny(new Task[] { _resolutionQueue.EnqueueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });

@@ -43,7 +43,7 @@ namespace EventCore.StatefulEventSubscriber
 						if (string.IsNullOrEmpty(parallelKey))
 							throw new ArgumentException("Parallel key can't be null or empty.");
 
-						// Send to the handling queue.
+						// Send to the handling manager.
 						await _handlingManager.ReceiveSubscriberEventAsync(parallelKey, subscriberEvent, cancellationToken);
 					}
 					await Task.WhenAny(new Task[] { _sortingQueue.EnqueueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
