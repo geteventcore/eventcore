@@ -11,7 +11,6 @@ namespace EventCore.StatefulEventSubscriber
 	public class HandlingManager : IHandlingManager
 	{
 		private readonly IStandardLogger _logger;
-		private readonly IBusinessEventResolver _resolver;
 		private readonly IStreamStateRepo _streamStateRepo;
 		private readonly IHandlingQueue _handlingQueue;
 		private readonly ISubscriberEventHandler _handler;
@@ -27,12 +26,11 @@ namespace EventCore.StatefulEventSubscriber
 		public ManualResetEventSlim HandlerCompletionTrigger { get => _handlerCompletionTrigger; }
 
 		public HandlingManager(
-			IStandardLogger logger, IBusinessEventResolver resolver, IStreamStateRepo streamStateRepo,
+			IStandardLogger logger, IStreamStateRepo streamStateRepo,
 			IHandlingQueue handlingQueue, ISubscriberEventHandler handler,
 			int maxParallelHandlerExecutions)
 		{
 			_logger = logger;
-			_resolver = resolver;
 			_streamStateRepo = streamStateRepo;
 			_handlingQueue = handlingQueue;
 			_handler = handler;

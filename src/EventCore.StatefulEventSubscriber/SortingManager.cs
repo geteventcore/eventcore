@@ -9,19 +9,13 @@ namespace EventCore.StatefulEventSubscriber
 	public class SortingManager : ISortingManager
 	{
 		private readonly IStandardLogger _logger;
-		private readonly IBusinessEventResolver _resolver;
-		private readonly IStreamStateRepo _streamStateRepo;
 		private readonly ISortingQueue _sortingQueue;
 		private readonly ISubscriberEventSorter _sorter;
 		private readonly IHandlingManager _handlingManager;
 
-		public SortingManager(
-			IStandardLogger logger, IBusinessEventResolver resolver, IStreamStateRepo streamStateRepo,
-			ISortingQueue sortingQueue, ISubscriberEventSorter sorter, IHandlingManager handlingManager)
+		public SortingManager(IStandardLogger logger, ISortingQueue sortingQueue, ISubscriberEventSorter sorter, IHandlingManager handlingManager)
 		{
 			_logger = logger;
-			_resolver = resolver;
-			_streamStateRepo = streamStateRepo;
 			_sortingQueue = sortingQueue;
 			_sorter = sorter;
 			_handlingManager = handlingManager;

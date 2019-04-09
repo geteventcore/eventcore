@@ -133,7 +133,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task enqueue_stream_event()
+		public async Task receive_and_enqueue_stream_event()
 		{
 			var cts = new CancellationTokenSource(10000);
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();

@@ -26,55 +26,70 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task resolve_stream_event_and_send_to_sorting_manager()
+		public async Task throw_when_parallel_key_empty()
 		{
 			var cts = new CancellationTokenSource(10000);
-			var mockResolver = new Mock<IBusinessEventResolver>();
-			var mockQueue = new Mock<IResolutionQueue>();
-			var mockSortingManager = new Mock<ISortingManager>();
-			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, null, mockQueue.Object, mockSortingManager.Object);
+			var mockQueue = new Mock<ISortingQueue>();
+			var mockSorter = new Mock<ISubscriberEventSorter>();
+			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, null);
+			var streamId = "s";
+			var position = 1;
+			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var parallelKey = ""; // Must be empty (or null).
+
+			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
+			mockSorter.Setup(x => x.SortToParallelKey(subscriberEvent)).Returns(parallelKey);
+
+			await Assert.ThrowsAsync<ArgumentException>(() => manager.ManageAsync(cts.Token));
+		}
+
+		[Fact]
+		public async Task sort_subscriber_event_and_send_to_handling_manager()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var mockQueue = new Mock<ISortingQueue>();
+			var mockSorter = new Mock<ISubscriberEventSorter>();
+			var mockHandlingManager = new Mock<IHandlingManager>();
+			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, mockHandlingManager.Object);
 			var enqueueTrigger = new ManualResetEventSlim(false);
 			var streamId = "s";
 			var position = 1;
-			var eventType = "x";
-			var data = new byte[] { };
-			var streamEvent = new StreamEvent(streamId, position, null, eventType, data);
 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var parallelKey = "x"; // This can be anything.
 
-			mockResolver.Setup(x => x.ResolveEvent(eventType, data)).Returns(businessEvent);
-			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
+			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
+			mockSorter.Setup(x => x.SortToParallelKey(subscriberEvent)).Returns(parallelKey);
 			mockQueue.Setup(x => x.EnqueueTrigger).Returns(enqueueTrigger);
-			mockSortingManager
-				.Setup(x => x.ReceiveSubscriberEventAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>()))
+			mockHandlingManager
+				.Setup(x => x.ReceiveSubscriberEventAsync(It.IsAny<string>(), It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>()))
 				.Callback(() => cts.Cancel())
 				.Returns(Task.CompletedTask);
 
 			await manager.ManageAsync(cts.Token);
 
-			mockSortingManager.Verify(x => x.ReceiveSubscriberEventAsync(
-				It.Is<SubscriberEvent>(e => e.StreamId == streamId && e.Position == position && e.ResolvedEvent == businessEvent), cts.Token
-				));
+			mockHandlingManager.Verify(x => x.ReceiveSubscriberEventAsync(parallelKey, subscriberEvent, cts.Token));
 		}
 
 		[Fact]
 		public async Task wait_for_enqueue_when_managing_and_no_events_in_queue()
 		{
 			var cts = new CancellationTokenSource(10000);
-			var mockResolver = new Mock<IBusinessEventResolver>();
-			var mockQueue = new Mock<IResolutionQueue>();
-			var mockSortingManager = new Mock<ISortingManager>();
-			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, null, mockQueue.Object, mockSortingManager.Object);
+			var mockQueue = new Mock<ISortingQueue>();
+			var mockSorter = new Mock<ISubscriberEventSorter>();
+			var mockHandlingManager = new Mock<IHandlingManager>();
+			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, mockHandlingManager.Object);
 			var enqueueTrigger = new ManualResetEventSlim(false);
 			var manageIsWaitingSignal = new ManualResetEventSlim(false);
 			var streamId = "s";
 			var position = 1;
-			var eventType = "x";
-			var data = new byte[] { };
-			var streamEvent = new StreamEvent(streamId, position, null, eventType, data);
 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var parallelKey = "x"; // This can be anything.
 
-			mockResolver.Setup(x => x.ResolveEvent(eventType, data)).Returns(businessEvent);
-			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
+			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
+			mockSorter.Setup(x => x.SortToParallelKey(subscriberEvent)).Returns(parallelKey);
 			mockQueue.Setup(x => x.EnqueueTrigger).Callback(() => manageIsWaitingSignal.Set()).Returns(enqueueTrigger);
 
 			var manageTask = manager.ManageAsync(cts.Token);
@@ -85,33 +100,26 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			cts.Cancel();
 
 			await Task.WhenAny(new[] { manageTask, new CancellationTokenSource(1000).Token.WaitHandle.AsTask() });
-			
+
 			Assert.True(manageTask.IsCompletedSuccessfully);
 		}
 
 		[Fact]
-		public async Task enqueue_subscriber_event()
+		public async Task receive_and_enqueue_subscriber_event()
 		{
 			var cts = new CancellationTokenSource(10000);
-			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
-			var mockResolver = new Mock<IBusinessEventResolver>();
-			var mockQueue = new Mock<IResolutionQueue>();
+			var mockQueue = new Mock<ISortingQueue>();
 			var streamId = "s";
-			var newPosition = 1;
-			var eventType = "x";
-			var lastAttemptedPosition = 0;
-			var firstPositionInStream = 0;
-			var streamState = new StreamState(lastAttemptedPosition, false);
-			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, mockStreamStateRepo.Object, mockQueue.Object, null);
-			var streamEvent = new StreamEvent(streamId, newPosition, null, eventType, new byte[] { });
+			var position = 1;
+			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, null, null);
+			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 
-			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(streamId)).ReturnsAsync(streamState);
-			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(true);
+			mockQueue.Setup(x => x.EnqueueWithWaitAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-			await manager.ReceiveStreamEventAsync(streamEvent, firstPositionInStream, cts.Token);
-			if (cts.IsCancellationRequested) throw new TimeoutException();
+			await manager.ReceiveSubscriberEventAsync(subscriberEvent, cts.Token);
 
-			mockQueue.Verify(x => x.EnqueueWithWaitAsync(streamEvent, cts.Token));
+			mockQueue.Verify(x => x.EnqueueWithWaitAsync(subscriberEvent, cts.Token));
 		}
 	}
 }
