@@ -36,7 +36,20 @@ namespace EventCore.StatefulEventSubscriber
 					if (streamEvent != null)
 					{
 						var businessEvent = _resolver.ResolveEvent(streamEvent.EventType, streamEvent.Data);
-						var subscriberEvent = new SubscriberEvent(streamEvent.StreamId, streamEvent.Position, businessEvent);
+
+						// Stream events may (will for subscription streams) have links to original events.
+						// We want the original event as the core event and the subscription event info as secondary.
+						// However, if the event is not a link then we take the event info as both subscription info and original event.
+						var streamId = streamEvent.StreamId;
+						var position = streamEvent.Position;
+						var subscriptionStreamId = streamEvent.StreamId;
+						var subscriptionPosition = streamEvent.Position;
+						if (streamEvent.IsLink)
+						{
+							streamId = streamEvent.Link.StreamId;
+							position = streamEvent.Link.Position;
+						}
+						var subscriberEvent = new SubscriberEvent(streamId, position, subscriptionStreamId, subscriptionPosition, businessEvent);
 
 						// Send to the sorting manager.
 						await _sortingManager.ReceiveSubscriberEventAsync(subscriberEvent, cancellationToken);

@@ -26,7 +26,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task resolve_stream_event_and_send_to_sorting_manager()
+		public async Task resolve_stream_event_without_link_and_send_to_sorting_manager()
 		{
 			var cts = new CancellationTokenSource(10000);
 			var mockResolver = new Mock<IBusinessEventResolver>();
@@ -52,7 +52,50 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			await manager.ManageAsync(cts.Token);
 
 			mockSortingManager.Verify(x => x.ReceiveSubscriberEventAsync(
-				It.Is<SubscriberEvent>(e => e.StreamId == streamId && e.Position == position && e.ResolvedEvent == businessEvent), cts.Token
+				It.Is<SubscriberEvent>(e =>
+					e.StreamId == streamId && e.Position == position
+					&& e.SubscriptionStreamId == streamId && e.SubscriptionPosition == position
+					&& e.ResolvedEvent == businessEvent
+					),
+					cts.Token
+				));
+		}
+
+		[Fact]
+		public async Task resolve_stream_event_with_link_and_send_to_sorting_manager()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var mockResolver = new Mock<IBusinessEventResolver>();
+			var mockQueue = new Mock<IResolutionQueue>();
+			var mockSortingManager = new Mock<ISortingManager>();
+			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, null, mockQueue.Object, mockSortingManager.Object);
+			var enqueueTrigger = new ManualResetEventSlim(false);
+			var streamId = "str";
+			var position = 1;
+			var subStreamId = "sub";
+			var subPosition = 20;
+			var eventType = "x";
+			var data = new byte[] { };
+			var streamEvent = new StreamEvent(subStreamId, subPosition, new StreamEventLink(streamId, position), eventType, data);
+			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+
+			mockResolver.Setup(x => x.ResolveEvent(eventType, data)).Returns(businessEvent);
+			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
+			mockQueue.Setup(x => x.EnqueueTrigger).Returns(enqueueTrigger);
+			mockSortingManager
+				.Setup(x => x.ReceiveSubscriberEventAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>()))
+				.Callback(() => cts.Cancel())
+				.Returns(Task.CompletedTask);
+
+			await manager.ManageAsync(cts.Token);
+
+			mockSortingManager.Verify(x => x.ReceiveSubscriberEventAsync(
+				It.Is<SubscriberEvent>(e =>
+					e.StreamId == streamId && e.Position == position
+					&& e.SubscriptionStreamId == subStreamId && e.SubscriptionPosition == subPosition
+					&& e.ResolvedEvent == businessEvent
+					),
+					cts.Token
 				));
 		}
 
@@ -85,7 +128,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			cts.Cancel();
 
 			await Task.WhenAny(new[] { manageTask, new CancellationTokenSource(1000).Token.WaitHandle.AsTask() });
-			
+
 			Assert.True(manageTask.IsCompletedSuccessfully);
 		}
 
