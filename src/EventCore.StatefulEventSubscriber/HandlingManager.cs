@@ -59,7 +59,7 @@ namespace EventCore.StatefulEventSubscriber
 
 								if (!cancellationToken.IsCancellationRequested)
 								{
-									_handlerTasks.Add(item.ParallelKey, _handlerRunner.TryRunHandlerAsync(item.ParallelKey, item.SubscriberEvent, cancellationToken));
+									_handlerTasks.Add(item.ParallelKey, _handlerRunner.TryRunHandlerAsync(item.SubscriberEvent, cancellationToken));
 								}
 							}
 						}

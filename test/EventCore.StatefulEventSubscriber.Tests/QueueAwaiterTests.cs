@@ -18,14 +18,22 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		}
 
 		[Fact]
-		public void set_signals()
+		public void set_enqueue_signal()
 		{
 			var awaiter = new QueueAwaiter();
 
 			awaiter.SetDequeueSignal();
-			awaiter.SetEnqueueSignal();
 
 			Assert.True(awaiter.IsDequeueSignalSet);
+		}
+
+		[Fact]
+		public void set_dequeue_signal()
+		{
+			var awaiter = new QueueAwaiter();
+
+			awaiter.SetEnqueueSignal();
+
 			Assert.True(awaiter.IsEnqueueSignalSet);
 		}
 
@@ -43,6 +51,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			await Task.WhenAny(new[] { waitTask, cts.Token.WaitHandle.AsTask() });
 			if (cts.IsCancellationRequested) throw new TimeoutException();
 
+			// Signal should auto reset.
 			Assert.False(awaiter.IsDequeueSignalSet);
 		}
 
@@ -60,6 +69,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			await Task.WhenAny(new[] { waitTask, cts.Token.WaitHandle.AsTask() });
 			if (cts.IsCancellationRequested) throw new TimeoutException();
 
+			// Signal should auto reset.
 			Assert.False(awaiter.IsEnqueueSignalSet);
 		}
 	}

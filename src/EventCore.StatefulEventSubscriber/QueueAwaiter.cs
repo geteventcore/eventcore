@@ -20,14 +20,14 @@ namespace EventCore.StatefulEventSubscriber
 		public async Task AwaitDequeueSignalAsync()
 		{
 			await _dequeueSignal.WaitHandle.AsTask();
-			_dequeueSignal.Reset();
+			_dequeueSignal.Reset(); // Auto reset.
 		}
 
 		public async Task AwaitEnqueueSignalAsync()
 		{
 
 			await _enqueueSignal.WaitHandle.AsTask();
-			_enqueueSignal.Reset();
+			_enqueueSignal.Reset(); // Auto reset.
 		}
 
 		public void SetDequeueSignal() => _dequeueSignal.Set();

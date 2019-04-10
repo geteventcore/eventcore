@@ -9,6 +9,10 @@ namespace EventCore.StatefulEventSubscriber
 		private readonly SemaphoreSlim _throttle;
 		private readonly ManualResetEventSlim _handlerCompletionSignal = new ManualResetEventSlim(false);
 
+		// For testing.
+		public int ThrottleCurrentCount { get => _throttle.CurrentCount; }
+		public bool IsHandlerCompleitionSignalSet { get => _handlerCompletionSignal.IsSet; }
+
 		public HandlingManagerAwaiter(int maxParallelHandlerExecutions)
 		{
 			_throttle = new SemaphoreSlim(maxParallelHandlerExecutions, maxParallelHandlerExecutions);

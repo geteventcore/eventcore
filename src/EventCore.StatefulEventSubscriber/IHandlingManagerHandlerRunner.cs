@@ -5,6 +5,6 @@ namespace EventCore.StatefulEventSubscriber
 {
 	public interface IHandlingManagerHandlerRunner
 	{
-		Task TryRunHandlerAsync(string parallelKey, SubscriberEvent subscriberEvent, CancellationToken cancellationToken);
+		Task TryRunHandlerAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken);
 	}
 }

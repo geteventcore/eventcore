@@ -20,7 +20,7 @@ namespace EventCore.StatefulEventSubscriber
 			_handler = handler;
 		}
 
-		public async Task TryRunHandlerAsync(string parallelKey, SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
+		public async Task TryRunHandlerAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
 		{
 			try
 			{
