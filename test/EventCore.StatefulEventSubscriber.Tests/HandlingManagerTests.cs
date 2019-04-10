@@ -14,6 +14,32 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		private class TestException : Exception { }
 
 		[Fact]
+		public async Task manage_until_cancelled()
+		{
+			var cts = new CancellationTokenSource();
+			var ex = new TestException();
+			var mockQueue = new Mock<IHandlingQueue>();
+			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
+			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
+			var mockEnqueueSignal = new ManualResetEventSlim(false);
+
+			mockQueue.Setup(x => x.IsEventsAvailable).Returns(false);
+			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockEnqueueSignal.WaitHandle.AsTask());
+
+			var manageTask = manager.ManageAsync(cts.Token);
+
+			var timeoutToken1 = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { awaitingEnqueueSignal.WaitHandle.AsTask(), timeoutToken1.WaitHandle.AsTask() });
+			if (timeoutToken1.IsCancellationRequested) throw new TimeoutException();
+
+			cts.Cancel();
+
+			var timeoutToken2 = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { manageTask, timeoutToken2.WaitHandle.AsTask() });
+			if (timeoutToken2.IsCancellationRequested) throw new TimeoutException();
+		}
+
+		[Fact]
 		public async Task rethrow_exception_when_managing()
 		{
 			var cts = new CancellationTokenSource(10000);
@@ -27,7 +53,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task awwait_both_enqueue_and_handler_completion_when_managing_and_events_in_queue_but_not_parallelable()
+		public async Task await_both_enqueue_and_handler_completion_when_managing_and_events_in_queue_but_not_parallelable()
 		{
 			var cts = new CancellationTokenSource(10000);
 			var mockAwaiter = new Mock<IHandlingManagerAwaiter>();
@@ -170,7 +196,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			mockAwaiter.Setup(x => x.AwaitThrottleAsync()).Callback(() => awaitingThrottleSignal.Set()).Returns(Task.CompletedTask);
 			mockHandlerRunner.Setup(x => x.TryRunHandlerAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Callback(() => cts.Cancel()).Returns(Task.CompletedTask);
 
-			var managerTask = manager.ManageAsync(cts.Token);
+			var manageTask = manager.ManageAsync(cts.Token);
 
 			var timeoutToken1 = new CancellationTokenSource(10000).Token;
 			await Task.WhenAny(new[] { awaitingThrottleSignal.WaitHandle.AsTask(), timeoutToken1.WaitHandle.AsTask() });
@@ -181,7 +207,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			}
 
 			var timeoutToken2 = new CancellationTokenSource(10000).Token;
-			await Task.WhenAny(new[] { managerTask, timeoutToken2.WaitHandle.AsTask() });
+			await Task.WhenAny(new[] { manageTask, timeoutToken2.WaitHandle.AsTask() });
 			cts.Cancel();
 			if (timeoutToken2.IsCancellationRequested) throw new TimeoutException();
 

@@ -13,12 +13,38 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		private class TestException : Exception { }
 
 		[Fact]
+		public async Task manage_until_cancelled()
+		{
+			var cts = new CancellationTokenSource();
+			var ex = new TestException();
+			var mockQueue = new Mock<ISortingQueue>();
+			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, null, null);
+			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
+			var mockEnqueueSignal = new ManualResetEventSlim(false);
+
+			mockQueue.Setup(x => x.TryDequeue()).Returns((SubscriberEvent)null);
+			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockEnqueueSignal.WaitHandle.AsTask());
+
+			var manageTask = manager.ManageAsync(cts.Token);
+
+			var timeoutToken1 = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { awaitingEnqueueSignal.WaitHandle.AsTask(), timeoutToken1.WaitHandle.AsTask() });
+			if (timeoutToken1.IsCancellationRequested) throw new TimeoutException();
+
+			cts.Cancel();
+
+			var timeoutToken2 = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { manageTask, timeoutToken2.WaitHandle.AsTask() });
+			if (timeoutToken2.IsCancellationRequested) throw new TimeoutException();
+		}
+
+		[Fact]
 		public async Task rethrow_exception_when_managing()
 		{
 			var cts = new CancellationTokenSource(10000);
 			var ex = new TestException();
-			var mockQueue = new Mock<IResolutionQueue>();
-			var manager = new ResolutionManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null);
+			var mockQueue = new Mock<ISortingQueue>();
+			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, null, null);
 
 			mockQueue.Setup(x => x.TryDequeue()).Throws(ex);
 

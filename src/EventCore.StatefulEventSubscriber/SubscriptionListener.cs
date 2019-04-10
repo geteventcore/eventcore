@@ -33,7 +33,7 @@ namespace EventCore.StatefulEventSubscriber
 						(se, ct) => _resolutionManager.ReceiveStreamEventAsync(se, _streamClient.FirstPositionInStream, ct),
 						cancellationToken
 					);
-					await Task.WhenAny(new Task[] { cancellationToken.WaitHandle.AsTask() });
+					await cancellationToken.WaitHandle.AsTask();
 				}
 			}
 			catch (Exception ex)
