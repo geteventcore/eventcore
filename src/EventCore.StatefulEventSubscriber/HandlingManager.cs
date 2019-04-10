@@ -43,7 +43,7 @@ namespace EventCore.StatefulEventSubscriber
 						// Clean up finished tasks.
 						_handlerTasks.PurgeFinishedTasks();
 
-						var item = _handlingQueue.TryDequeue(_handlerTasks.Keys.ToList());
+						var item = _handlingQueue.TryDequeue(_handlerTasks.Keys);
 						if (item != null)
 						{
 							// When a stream has an error there may already be subscriber events in the

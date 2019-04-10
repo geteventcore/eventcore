@@ -9,11 +9,11 @@ namespace EventCore.StatefulEventSubscriber
 	{
 		private readonly Dictionary<string, Task> _tasks = new Dictionary<string, Task>(StringComparer.OrdinalIgnoreCase);
 
+		public IList<string> Keys => _tasks.Keys.ToList();
+
 		public HandlingManagerTaskCollection()
 		{
 		}
-
-		public IList<string> Keys => throw new System.NotImplementedException();
 
 		public void Add(string key, Task task) => _tasks.Add(key, task);
 
