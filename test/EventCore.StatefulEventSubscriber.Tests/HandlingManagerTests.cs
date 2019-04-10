@@ -17,7 +17,6 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		public async Task manage_until_cancelled()
 		{
 			var cts = new CancellationTokenSource();
-			var ex = new TestException();
 			var mockQueue = new Mock<IHandlingQueue>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
