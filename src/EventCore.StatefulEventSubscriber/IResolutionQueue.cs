@@ -6,7 +6,7 @@ namespace EventCore.StatefulEventSubscriber
 {
 	public interface IResolutionQueue
 	{
-		ManualResetEventSlim EnqueueTrigger { get; }
+		Task AwaitEnqueueSignalAsync();
 		Task EnqueueWithWaitAsync(StreamEvent streamEvent, CancellationToken cancellationToken);
 		StreamEvent TryDequeue();
 	}

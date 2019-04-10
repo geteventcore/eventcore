@@ -5,7 +5,7 @@ namespace EventCore.StatefulEventSubscriber
 {
 	public interface ISortingQueue
 	{
-		ManualResetEventSlim EnqueueTrigger { get; }
+		Task AwaitEnqueueSignalAsync();
 		Task EnqueueWithWaitAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken);
 		SubscriberEvent TryDequeue();
 	}

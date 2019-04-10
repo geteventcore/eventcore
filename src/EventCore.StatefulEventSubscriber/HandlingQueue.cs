@@ -13,23 +13,20 @@ namespace EventCore.StatefulEventSubscriber
 		// NOTE: This implementation expects that only one process will enqueue
 		// and only one process will dequeue, with both enqueue/dequeue occuring simultaneously.
 
+		private readonly IQueueAwaiter _awaiter;
 		private readonly int _maxSharedQueueSize;
 
 		private readonly ConcurrentDictionary<string, ConcurrentQueue<SubscriberEvent>> _queues =
 			new ConcurrentDictionary<string, ConcurrentQueue<SubscriberEvent>>(StringComparer.OrdinalIgnoreCase);
 
-		private readonly ManualResetEventSlim _dequeueTrigger = new ManualResetEventSlim(false);
-
-		public ManualResetEventSlim EnqueueTrigger { get; } = new ManualResetEventSlim(false);
-
 		public bool IsEventsAvailable => _queues.Any(kvp => kvp.Value.Count > 0);
 
 		// Need these for testing.
 		public int QueueCount { get => _queues.Sum(kvp => kvp.Value.Count); }
-		public ManualResetEventSlim EnqueueIsWaitingSignal { get; } = new ManualResetEventSlim(false);
 
-		public HandlingQueue(int maxSharedQueueSize)
+		public HandlingQueue(IQueueAwaiter awaiter, int maxSharedQueueSize)
 		{
+			_awaiter = awaiter;
 			_maxSharedQueueSize = maxSharedQueueSize;
 		}
 
@@ -55,16 +52,13 @@ namespace EventCore.StatefulEventSubscriber
 					}
 
 					queue.Enqueue(subscriberEvent);
-					EnqueueTrigger.Set(); // Signal that we've enqueued a new item.
+					_awaiter.SetEnqueueSignal(); // Signal that we've enqueued a new item.
 
 					return;
 				}
 				else
 				{
-					EnqueueIsWaitingSignal.Set();
-					await Task.WhenAny(new Task[] { _dequeueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
-					_dequeueTrigger.Reset();
-					EnqueueIsWaitingSignal.Reset();
+					await Task.WhenAny(new Task[] { _awaiter.AwaitDequeueSignalAsync(), cancellationToken.WaitHandle.AsTask() });
 				}
 			}
 		}
@@ -87,12 +81,14 @@ namespace EventCore.StatefulEventSubscriber
 					SubscriberEvent subscriberEvent;
 					if (queue.TryDequeue(out subscriberEvent))
 					{
-						_dequeueTrigger.Set(); // Signal that we've dequeued an item.
+						_awaiter.SetDequeueSignal(); // Signal that we've dequeued an item.
 						return new HandlingQueueItem(key, subscriberEvent);
 					}
 				}
 			}
 			return null;
 		}
+
+		public Task AwaitEnqueueSignalAsync() => _awaiter.AwaitEnqueueSignalAsync();
 	}
 }

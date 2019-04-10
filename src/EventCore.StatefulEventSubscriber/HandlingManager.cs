@@ -11,31 +11,22 @@ namespace EventCore.StatefulEventSubscriber
 	public class HandlingManager : IHandlingManager
 	{
 		private readonly IStandardLogger _logger;
+		private readonly IHandlingManagerAwaiter _awaiter;
 		private readonly IStreamStateRepo _streamStateRepo;
 		private readonly IHandlingQueue _handlingQueue;
-		private readonly ISubscriberEventHandler _handler;
-
-		// Key is parallel key used to group events into parallel execution.
-		private readonly Dictionary<string, Task> _handlerTasks = new Dictionary<string, Task>(StringComparer.OrdinalIgnoreCase);
-
-		private readonly SemaphoreSlim _throttle; // Used to throttle parallel executions.
-		private readonly ManualResetEventSlim _handlerCompletionTrigger = new ManualResetEventSlim(false);
-
-		public Dictionary<string, Task> HandlerTasks { get => _handlerTasks; }
-		public SemaphoreSlim Throttle { get => _throttle; }
-		public ManualResetEventSlim HandlerCompletionTrigger { get => _handlerCompletionTrigger; }
+		private readonly IHandlingManagerHandlerRunner _handlerRunner;
+		private readonly IHandlingManagerTaskCollection _handlerTasks;
 
 		public HandlingManager(
-			IStandardLogger logger, IStreamStateRepo streamStateRepo,
-			IHandlingQueue handlingQueue, ISubscriberEventHandler handler,
-			int maxParallelHandlerExecutions)
+			IStandardLogger logger, IHandlingManagerAwaiter awaiter, IStreamStateRepo streamStateRepo,
+			IHandlingQueue handlingQueue, IHandlingManagerHandlerRunner handlerRunner, IHandlingManagerTaskCollection handlerTasks)
 		{
 			_logger = logger;
+			_awaiter = awaiter;
 			_streamStateRepo = streamStateRepo;
 			_handlingQueue = handlingQueue;
-			_handler = handler;
-
-			_throttle = new SemaphoreSlim(maxParallelHandlerExecutions, maxParallelHandlerExecutions);
+			_handlerRunner = handlerRunner;
+			_handlerTasks = handlerTasks;
 		}
 
 		// Not thread safe.
@@ -43,44 +34,51 @@ namespace EventCore.StatefulEventSubscriber
 		{
 			try
 			{
-				var handlerCompletionTrigger = new ManualResetEventSlim(false);
-
-				// Dictionary key is the case INsensitive parallel key used to group parallel executions.
-				var parallelTasks = new Dictionary<string, Task>(StringComparer.OrdinalIgnoreCase);
-
 				while (!cancellationToken.IsCancellationRequested)
 				{
 					while (_handlingQueue.IsEventsAvailable)
 					{
-						_handlerCompletionTrigger.Reset();
+						_awaiter.ResetHandlerCompletionSignal();
 
 						// Clean up finished tasks.
-						foreach (var key in _handlerTasks.Where(kvp => kvp.Value.IsCanceled || kvp.Value.IsCompleted || kvp.Value.IsFaulted).Select(kvp => kvp.Key).ToList())
-						{
-							_handlerTasks.Remove(key);
-						}
+						_handlerTasks.PurgeFinishedTasks();
 
-						var item = _handlingQueue.TryDequeue(parallelTasks.Keys.ToList());
+						var item = _handlingQueue.TryDequeue(_handlerTasks.Keys.ToList());
 						if (item != null)
 						{
-							await RunHandlerTaskAsync(item.ParallelKey, item.SubscriberEvent, cancellationToken);
+							// When a stream has an error there may already be subscriber events in the
+							// handling queue that have made it past the first check for errored stream state
+							// prior to deserialization. If that's the case we just ignore the event.
+							// Note this may represent an opportunity for optimization - if loading from disk
+							// is a bottleneck then we need some other way to receive feedback from the handlers when
+							// a stream is in an error state.
+							var state = await _streamStateRepo.LoadStreamStateAsync(item.SubscriberEvent.StreamId);
+							if (!state.HasError)
+							{
+								await Task.WhenAny(new[] { _awaiter.AwaitThrottleAsync(), cancellationToken.WaitHandle.AsTask() });
+
+								if (!cancellationToken.IsCancellationRequested)
+								{
+									_handlerTasks.Add(item.ParallelKey, _handlerRunner.TryRunHandlerAsync(item.ParallelKey, item.SubscriberEvent, cancellationToken));
+								}
+							}
 						}
 						else
 						{
 							// Events are available but none in a parallel group that is not already executing.
 							// Wait for a new event to arrive or for an event handler to complete.
 							await Task.WhenAny(new Task[] {
-								handlerCompletionTrigger.WaitHandle.AsTask(),
-								_handlingQueue.EnqueueTrigger.WaitHandle.AsTask(),
+								_awaiter.AwaitHandlerCompletionSignalAsync(),
+								_handlingQueue.AwaitEnqueueSignalAsync(),
 								cancellationToken.WaitHandle.AsTask() });
 						}
+
 						if (cancellationToken.IsCancellationRequested) break;
 					}
 
 					if (cancellationToken.IsCancellationRequested) break;
 
-					await Task.WhenAny(new Task[] { _handlingQueue.EnqueueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
-					_handlingQueue.EnqueueTrigger.Reset();
+					await Task.WhenAny(new Task[] { _handlingQueue.AwaitEnqueueSignalAsync(), cancellationToken.WaitHandle.AsTask() });
 				}
 			}
 			catch (Exception ex)
@@ -94,55 +92,6 @@ namespace EventCore.StatefulEventSubscriber
 		{
 			// Enqueue when space available.
 			await _handlingQueue.EnqueueWithWaitAsync(parallelKey, subscriberEvent, cancellationToken);
-		}
-
-		public async Task RunHandlerTaskAsync(string parallelKey, SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
-		{
-			var state = await _streamStateRepo.LoadStreamStateAsync(subscriberEvent.StreamId);
-			if (state.HasError)
-			{
-				// When a stream has an error there may already be subscriber events in the
-				// handling queue that have made it past the first check for errored stream state
-				// prior to deserialization. If that's the case we just ignore the event.
-				return;
-			}
-
-			await _throttle.WaitAsync(cancellationToken);
-
-			if (cancellationToken.IsCancellationRequested) return;
-
-			_handlerTasks.Add(
-				parallelKey,
-				Task.Run(async () =>
-				{
-					try
-					{
-						await RunHandlerAsync(subscriberEvent, cancellationToken);
-					}
-					finally
-					{
-						_throttle.Release(); // Make room for other handlers.
-						_handlerCompletionTrigger.Set();
-					}
-				}
-				)
-			);
-		}
-
-		public async Task RunHandlerAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
-		{
-			try
-			{
-				await _handler.HandleAsync(subscriberEvent, cancellationToken);
-				await _streamStateRepo.SaveStreamStateAsync(subscriberEvent.StreamId, subscriberEvent.Position, false);
-			}
-			catch (Exception ex)
-			{
-				_logger.LogError(ex, "Exception while handling event. Stream will be halted.");
-
-				// Save errored stream state.
-				await _streamStateRepo.SaveStreamStateAsync(subscriberEvent.StreamId, subscriberEvent.Position, true);
-			}
 		}
 	}
 }

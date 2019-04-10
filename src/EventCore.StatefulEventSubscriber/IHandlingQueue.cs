@@ -7,7 +7,7 @@ namespace EventCore.StatefulEventSubscriber
 {
 	public interface IHandlingQueue
 	{
-		ManualResetEventSlim EnqueueTrigger { get; }
+		Task AwaitEnqueueSignalAsync();
 		bool IsEventsAvailable { get; }
 		Task EnqueueWithWaitAsync(string parallelKey, SubscriberEvent subscriberEvent, CancellationToken cancellationToken);
 		HandlingQueueItem TryDequeue(IList<string> filterOutParallelKeys);

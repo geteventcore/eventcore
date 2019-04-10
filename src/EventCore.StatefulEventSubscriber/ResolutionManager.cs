@@ -54,8 +54,7 @@ namespace EventCore.StatefulEventSubscriber
 						// Send to the sorting manager.
 						await _sortingManager.ReceiveSubscriberEventAsync(subscriberEvent, cancellationToken);
 					}
-					await Task.WhenAny(new Task[] { _resolutionQueue.EnqueueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
-					_resolutionQueue.EnqueueTrigger.Reset();
+					await Task.WhenAny(new Task[] { _resolutionQueue.AwaitEnqueueSignalAsync(), cancellationToken.WaitHandle.AsTask() });
 				}
 			}
 			catch (Exception ex)

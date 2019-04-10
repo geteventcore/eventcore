@@ -11,20 +11,18 @@ namespace EventCore.StatefulEventSubscriber
 		// NOTE: Safe for concurrent operations, expecting multiple subscription listeners
 		// to send events to the queue in parallel.
 
+		private readonly IQueueAwaiter _awaiter;
 		private readonly int _maxQueueSize;
 		private readonly ConcurrentQueue<StreamEvent> _queue = new ConcurrentQueue<StreamEvent>();
-		private readonly ManualResetEventSlim _dequeueTrigger = new ManualResetEventSlim(false);
 
 		// Need these for testing.
 		public int QueueCount { get => _queue.Count; }
-		public ManualResetEventSlim EnqueueIsWaitingSignal { get; } = new ManualResetEventSlim(false);
 
-		public ResolutionQueue(int maxQueueSize)
+		public ResolutionQueue(IQueueAwaiter awaiter, int maxQueueSize)
 		{
+			_awaiter = awaiter;
 			_maxQueueSize = maxQueueSize;
 		}
-
-		public ManualResetEventSlim EnqueueTrigger { get; } = new ManualResetEventSlim(false);
 
 		public async Task EnqueueWithWaitAsync(StreamEvent streamEvent, CancellationToken cancellationToken)
 		{
@@ -38,15 +36,12 @@ namespace EventCore.StatefulEventSubscriber
 				if (_queue.Count < _maxQueueSize)
 				{
 					_queue.Enqueue(streamEvent);
-					EnqueueTrigger.Set();
+					_awaiter.SetEnqueueSignal();
 					return;
 				}
 				else
 				{
-					EnqueueIsWaitingSignal.Set();
-					await Task.WhenAny(new Task[] { _dequeueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
-					_dequeueTrigger.Reset();
-					EnqueueIsWaitingSignal.Reset();
+					await Task.WhenAny(new Task[] { _awaiter.AwaitDequeueSignalAsync(), cancellationToken.WaitHandle.AsTask() });
 				}
 			}
 		}
@@ -57,11 +52,13 @@ namespace EventCore.StatefulEventSubscriber
 
 			if (_queue.TryDequeue(out streamEvent))
 			{
-				_dequeueTrigger.Set(); // Signal that we've dequeued an item.
+				_awaiter.SetDequeueSignal(); // Signal that we've dequeued an item.
 				return streamEvent;
 			}
 
 			return null;
 		}
+
+		public  Task AwaitEnqueueSignalAsync() => _awaiter.AwaitEnqueueSignalAsync();
 	}
 }

@@ -40,8 +40,7 @@ namespace EventCore.StatefulEventSubscriber
 						// Send to the handling manager.
 						await _handlingManager.ReceiveSubscriberEventAsync(parallelKey, subscriberEvent, cancellationToken);
 					}
-					await Task.WhenAny(new Task[] { _sortingQueue.EnqueueTrigger.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
-					_sortingQueue.EnqueueTrigger.Reset();
+					await Task.WhenAny(new Task[] { _sortingQueue.AwaitEnqueueSignalAsync(), cancellationToken.WaitHandle.AsTask() });
 				}
 			}
 			catch (Exception ex)
