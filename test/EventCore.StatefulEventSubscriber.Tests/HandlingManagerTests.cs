@@ -1,235 +1,222 @@
-// using EventCore.EventSourcing;
-// using EventCore.Utilities;
-// using Moq;
-// using System;
-// using System.Threading;
-// using System.Threading.Tasks;
-// using Xunit;
+using EventCore.EventSourcing;
+using EventCore.Utilities;
+using Moq;
+using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
 
-// namespace EventCore.StatefulEventSubscriber.Tests
-// {
-// 	public class HandlingManagerTests
-// 	{
-// 		private class TestException : Exception { }
+namespace EventCore.StatefulEventSubscriber.Tests
+{
+	public class HandlingManagerTests
+	{
+		private class TestException : Exception { }
 
-// 		[Fact]
-// 		public async Task rethrow_exception_when_managing()
-// 		{
-// 			var cts = new CancellationTokenSource(10000);
-// 			var ex = new TestException();
-// 			var mockQueue = new Mock<IHandlingQueue>();
-// 			var manager = new HandlingManager(NullStandardLogger.Instance, null, mockQueue.Object, null, 1);
+		[Fact]
+		public async Task rethrow_exception_when_managing()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var ex = new TestException();
+			var mockQueue = new Mock<IHandlingQueue>();
+			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
 
-// 			mockQueue.Setup(x => x.IsEventsAvailable).Throws(new TestException());
+			mockQueue.Setup(x => x.IsEventsAvailable).Throws(new TestException());
 
-// 			await Assert.ThrowsAsync<TestException>(() => manager.ManageAsync(cts.Token));
-// 		}
+			await Assert.ThrowsAsync<TestException>(() => manager.ManageAsync(cts.Token));
+		}
 
-// 		[Fact]
-// 		public async Task manage_and_handle_when_events_in_queue()
-// 		{
-// 			var cts = new CancellationTokenSource(10000);
-// 			var mockQueue = new Mock<IHandlingQueue>();
-// 			var maxParallelExcutions = 2;
-// 			var manager = new HandlingManager(NullStandardLogger.Instance, null, mockQueue.Object, null, maxParallelExcutions);
-// 			var streamIdA = "sA";
-// 			var streamIdB = "sB";
-// 			var startPositionA = 1;
-// 			var startPositionB = 20;
-// 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
-// 			var subscriberEventA1 = new SubscriberEvent(streamIdA, startPositionA, businessEvent);
-// 			var subscriberEventA2 = new SubscriberEvent(streamIdA, startPositionA + 1, businessEvent);
-// 			var subscriberEventB1 = new SubscriberEvent(streamIdB, startPositionB, businessEvent);
-// 			var subscriberEventB2 = new SubscriberEvent(streamIdB, startPositionB + 1, businessEvent);
-// 			var parallelKeyA = "pkA";
-// 			var parallelKeyB = "pkB";
-// 			var parallelHold1 = new ManualResetEventSlim(false);
-// 			var bShouldThrow = true;
+		[Fact]
+		public async Task awwait_both_enqueue_and_handler_completion_when_managing_and_events_in_queue_but_not_parallelable()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var mockAwaiter = new Mock<IHandlingManagerAwaiter>();
+			var mockTaskCollection = new Mock<IHandlingManagerTaskCollection>();
+			var mockQueue = new Mock<IHandlingQueue>();
+			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
+			var mockHandlerRunner = new Mock<IHandlingManagerHandlerRunner>();
+			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
+			var streamId = "s";
+			var position = 1;
+			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
+			var awaitingCompletionSignal = new ManualResetEventSlim(false);
+			var mockCompletionAndEnqueueSignal = new ManualResetEventSlim(false);
 
-// 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(parallelKeyA, subscriberEventA1, cts.Token)).Returns(parallelHold1.WaitHandle.AsTask());
-// 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(parallelKeyB, subscriberEventB1, cts.Token)).Returns(parallelHold1.WaitHandle.AsTask());
-// 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(parallelKeyA, subscriberEventA2, cts.Token)).Callback(() => { if (bShouldThrow) throw new Exception(); }).Returns(Task.CompletedTask);
-// 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(parallelKeyB, subscriberEventB2, cts.Token)).Callback(() => { if (bShouldThrow) throw new Exception(); }).Returns(Task.CompletedTask);
+			mockQueue.Setup(x => x.IsEventsAvailable).Returns(true);
+			mockQueue.Setup(x => x.TryDequeue(new string[] { })).Returns((HandlingQueueItem)null);
+			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockCompletionAndEnqueueSignal.WaitHandle.AsTask());
+			mockAwaiter.Setup(x => x.AwaitHandlerCompletionSignalAsync()).Callback(() => awaitingCompletionSignal.Set()).Returns(mockCompletionAndEnqueueSignal.WaitHandle.AsTask());
 
-// 			// Expecting these two to execute immediately.
-// 			var taskA1 = manager.ReceiveSubscriberEventAsync(parallelKeyA, subscriberEventA1, cts.Token);
-// 			var taskB1 = manager.ReceiveSubscriberEventAsync(parallelKeyB, subscriberEventB1, cts.Token);
+			var manageTask = manager.ManageAsync(cts.Token);
 
-// 			// Expecting these two to hold for the first two.
-// 			// var taskA2 = manager.ReceiveSubscriberEventAsync(parallelKeyA, subscriberEventA1, cts.Token);
-// 			// var taskB2 = manager.ReceiveSubscriberEventAsync(parallelKeyB, subscriberEventB2, cts.Token);
+			await Task.WhenAny(new[] {
+				Task.WhenAll(new[] { awaitingEnqueueSignal.WaitHandle.AsTask(), awaitingCompletionSignal.WaitHandle.AsTask() }),
+				cts.Token.WaitHandle.AsTask() });
+			if (cts.IsCancellationRequested) throw new TimeoutException();
 
-// 			await Task.WhenAny(new[] { Task.WhenAll(new[] { taskA1, taskB1 }), cts.Token.WaitHandle.AsTask() });
-// 			if (cts.IsCancellationRequested) throw new TimeoutException();
+			cts.Cancel();
+			mockCompletionAndEnqueueSignal.Set();
+		}
 
-// 			// Allow the first tasks to complete.
-// 			// bShouldThrow = false;
-// 			// parallelHold1.Set();
+		[Fact]
+		public async Task wait_for_enqueue_when_managing_and_no_events_in_queue()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var mockQueue = new Mock<IHandlingQueue>();
+			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
+			var streamId = "s";
+			var position = 1;
+			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var parallelKey = "x";
+			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
+			var mockEnqueueSignal = new ManualResetEventSlim(false);
 
-// 			// await Task.WhenAny(new[] { Task.WhenAll(new[] { taskA2, taskB2 }), cts.Token.WaitHandle.AsTask() });
-// 			// if (cts.IsCancellationRequested) throw new TimeoutException();
+			mockQueue.Setup(x => x.TryDequeue(It.IsAny<IList<string>>())).Returns(new HandlingQueueItem(parallelKey, subscriberEvent));
+			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockEnqueueSignal.WaitHandle.AsTask());
 
-// 			// mockQueue.Verify(x => x.EnqueueWithWaitAsync(parallelKeyA, subscriberEventA1, cts.Token));
-// 			// mockQueue.Verify(x => x.EnqueueWithWaitAsync(parallelKeyA, subscriberEventB1, cts.Token));
-// 			// mockQueue.Verify(x => x.EnqueueWithWaitAsync(parallelKeyB, subscriberEventA2, cts.Token));
-// 			// mockQueue.Verify(x => x.EnqueueWithWaitAsync(parallelKeyB, subscriberEventB2, cts.Token));
-// 		}
+			var manageTask = manager.ManageAsync(cts.Token);
 
-// 		[Fact]
-// 		public async Task wait_for_enqueue_when_managing_and_no_events_in_queue()
-// 		{
-// 			var cts = new CancellationTokenSource(10000);
-// 			var mockQueue = new Mock<IHandlingQueue>();
-// 			var manager = new HandlingManager(NullStandardLogger.Instance, null, mockQueue.Object, null, 1);
-// 			var enqueueTrigger = new ManualResetEventSlim(false);
-// 			var manageIsWaitingSignal = new ManualResetEventSlim(false);
-// 			var streamId = "s";
-// 			var position = 1;
-// 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
-// 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
-// 			var parallelKey = "x"; // This can be anything.
+			await Task.WhenAny(new[] { awaitingEnqueueSignal.WaitHandle.AsTask(), cts.Token.WaitHandle.AsTask() });
+			if (cts.IsCancellationRequested) throw new TimeoutException();
 
-// 			mockQueue.Setup(x => x.TryDequeue(new string[] { })).Returns(new HandlingQueueItem(parallelKey, subscriberEvent));
-// 			mockQueue.Setup(x => x.EnqueueTrigger).Callback(() => manageIsWaitingSignal.Set()).Returns(enqueueTrigger);
+			cts.Cancel();
+		}
 
-// 			var manageTask = manager.ManageAsync(cts.Token);
+		[Fact]
+		public async Task receive_and_enqueue_subscriber_event()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var mockQueue = new Mock<IHandlingQueue>();
+			var streamId = "s";
+			var position = 1;
+			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
+			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var parallelKey = "x";
 
-// 			await Task.WhenAny(new[] { manageIsWaitingSignal.WaitHandle.AsTask(), cts.Token.WaitHandle.AsTask() });
-// 			if (cts.IsCancellationRequested) throw new TimeoutException();
+			mockQueue.Setup(x => x.EnqueueWithWaitAsync(It.IsAny<string>(), It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 
-// 			cts.Cancel();
+			await manager.ReceiveSubscriberEventAsync(parallelKey, subscriberEvent, cts.Token);
 
-// 			await Task.WhenAny(new[] { manageTask, new CancellationTokenSource(1000).Token.WaitHandle.AsTask() });
+			mockQueue.Verify(x => x.EnqueueWithWaitAsync(parallelKey, subscriberEvent, cts.Token));
+		}
 
-// 			Assert.True(manageTask.IsCompletedSuccessfully);
-// 		}
+		[Fact]
+		public async Task purge_finished_handler_tasks()
+		{
+			var cts = new CancellationTokenSource();
+			var mockAwaiter = new Mock<IHandlingManagerAwaiter>();
+			var mockTaskCollection = new Mock<IHandlingManagerTaskCollection>();
+			var mockQueue = new Mock<IHandlingQueue>();
+			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, null, mockQueue.Object, null, mockTaskCollection.Object);
 
-// 		[Fact]
-// 		public async Task receive_and_enqueue_subscriber_event()
-// 		{
-// 			var cts = new CancellationTokenSource(10000);
-// 			var mockQueue = new Mock<IHandlingQueue>();
-// 			var streamId = "s";
-// 			var position = 1;
-// 			var manager = new HandlingManager(NullStandardLogger.Instance, null, mockQueue.Object, null, 1);
-// 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
-// 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
-// 			var parallelKey = "x";
+			mockQueue.Setup(x => x.IsEventsAvailable).Returns(true);
+			mockQueue.Setup(x => x.TryDequeue(It.IsAny<IList<string>>())).Callback(() => cts.Cancel()).Returns((HandlingQueueItem)null);
 
-// 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(It.IsAny<string>(), It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+			var timeoutToken = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { manager.ManageAsync(cts.Token), timeoutToken.WaitHandle.AsTask() });
+			cts.Cancel();
+			if (timeoutToken.IsCancellationRequested) throw new TimeoutException();
 
-// 			await manager.ReceiveSubscriberEventAsync(parallelKey, subscriberEvent, cts.Token);
+			mockTaskCollection.Verify(x => x.PurgeFinishedTasks());
+		}
 
-// 			mockQueue.Verify(x => x.EnqueueWithWaitAsync(parallelKey, subscriberEvent, cts.Token));
-// 		}
+		[Fact]
+		public async Task reset_handler_completion_signal()
+		{
+			var cts = new CancellationTokenSource();
+			var mockAwaiter = new Mock<IHandlingManagerAwaiter>();
+			var mockTaskCollection = new Mock<IHandlingManagerTaskCollection>();
+			var mockQueue = new Mock<IHandlingQueue>();
+			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, null, mockQueue.Object, null, mockTaskCollection.Object);
 
-// 		[Fact]
-// 		public async Task run_handler_tasks_and_wait_for_throttle()
-// 		{
-// 			var cts = new CancellationTokenSource(10000);
-// 			var mockHandler = new Mock<ISubscriberEventHandler>();
-// 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
-// 			var streamId = "s";
-// 			var position = 1;
-// 			var maxParallelExcutions = 1; // Must be 1.
-// 			var manager = new HandlingManager(NullStandardLogger.Instance, mockStreamStateRepo.Object, null, mockHandler.Object, maxParallelExcutions);
-// 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
-// 			var subscriberEvent1 = new SubscriberEvent(streamId, position, businessEvent);
-// 			var subscriberEvent2 = new SubscriberEvent(streamId, position, businessEvent);
-// 			var streamState = new StreamState(position, false);
-// 			var handlerHold1 = new ManualResetEventSlim(false);
-// 			var parallelKey = "x"; // Shared for both calls.
+			mockQueue.Setup(x => x.IsEventsAvailable).Returns(true);
+			mockQueue.Setup(x => x.TryDequeue(It.IsAny<IList<string>>())).Callback(() => cts.Cancel()).Returns((HandlingQueueItem)null);
 
-// 			mockStreamStateRepo
-// 				.Setup(x => x.LoadStreamStateAsync(streamId))
-// 				.Returns(Task.FromResult<StreamState>(streamState));
+			var timeoutToken = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { manager.ManageAsync(cts.Token), timeoutToken.WaitHandle.AsTask() });
+			cts.Cancel();
+			if (timeoutToken.IsCancellationRequested) throw new TimeoutException();
 
-// 			mockHandler.Setup(x => x.HandleAsync(subscriberEvent1, It.IsAny<CancellationToken>())).Returns(() => handlerHold1.WaitHandle.AsTask());
-// 			mockHandler.Setup(x => x.HandleAsync(subscriberEvent2, It.IsAny<CancellationToken>())).Returns(() => Task.CompletedTask);
+			mockAwaiter.Verify(x => x.ResetHandlerCompletionSignal());
+		}
 
-// 			Assert.Equal(1, manager.ThrottleCurrentCount);
+		[Fact]
+		public async Task await_throttle_and_run_handler_when_stream_state_does_not_have_error()
+		{
+			var cts = new CancellationTokenSource();
+			var mockAwaiter = new Mock<IHandlingManagerAwaiter>();
+			var mockTaskCollection = new Mock<IHandlingManagerTaskCollection>();
+			var mockQueue = new Mock<IHandlingQueue>();
+			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
+			var mockHandlerRunner = new Mock<IHandlingManagerHandlerRunner>();
+			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
+			var streamId = "s";
+			var position = 1;
+			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var parallelKey = "x";
+			var queueItem = new HandlingQueueItem(parallelKey, subscriberEvent);
+			var streamState = new StreamState(position, false); // Does NOT have error.
+			var awaitingThrottleSignal = new ManualResetEventSlim(false);
 
-// 			await manager.HandleSubscriberEventAsync(parallelKey, subscriberEvent1, cts.Token);
-// 			if (cts.IsCancellationRequested) throw new TimeoutException();
+			mockQueue.Setup(x => x.IsEventsAvailable).Returns(true);
+			mockQueue.Setup(x => x.TryDequeue(It.IsAny<IList<string>>())).Returns(queueItem);
+			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => cts.Cancel()).Returns(Task.CompletedTask); // Ensures manager can't get into an infinite loop.
+			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(It.IsAny<string>())).ReturnsAsync(streamState);
+			mockAwaiter.Setup(x => x.AwaitThrottleAsync()).Callback(() => awaitingThrottleSignal.Set()).Returns(Task.CompletedTask);
+			mockHandlerRunner.Setup(x => x.TryRunHandlerAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Callback(() => cts.Cancel()).Returns(Task.CompletedTask);
 
-// 			// Because both calls use the same parallel key we'll get an error if this second call
-// 			// attempts to add a task with the same key.
-// 			var runTask2 = manager.HandleSubscriberEventAsync(parallelKey, subscriberEvent2, cts.Token);
+			var managerTask = manager.ManageAsync(cts.Token);
 
-// 			Assert.Equal(0, manager.ThrottleCurrentCount);
+			var timeoutToken1 = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { awaitingThrottleSignal.WaitHandle.AsTask(), timeoutToken1.WaitHandle.AsTask() });
+			if (timeoutToken1.IsCancellationRequested)
+			{
+				cts.Cancel();
+				throw new TimeoutException();
+			}
 
-// 			handlerHold1.Set();
+			var timeoutToken2 = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { managerTask, timeoutToken2.WaitHandle.AsTask() });
+			cts.Cancel();
+			if (timeoutToken2.IsCancellationRequested) throw new TimeoutException();
 
-// 			await Task.WhenAny(new[] { runTask2, cts.Token.WaitHandle.AsTask() });
-// 			if (cts.IsCancellationRequested) throw new TimeoutException();
+			mockHandlerRunner.Verify(x => x.TryRunHandlerAsync(subscriberEvent, cts.Token));
+		}
 
-// 			mockHandler.Verify(x => x.HandleAsync(subscriberEvent1, cts.Token));
-// 			mockHandler.Verify(x => x.HandleAsync(subscriberEvent2, cts.Token));
-// 		}
+		[Fact]
+		public async Task not_run_handler_when_stream_state_has_error()
+		{
+			var cts = new CancellationTokenSource();
+			var mockAwaiter = new Mock<IHandlingManagerAwaiter>();
+			var mockTaskCollection = new Mock<IHandlingManagerTaskCollection>();
+			var mockQueue = new Mock<IHandlingQueue>();
+			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
+			var mockHandlerRunner = new Mock<IHandlingManagerHandlerRunner>();
+			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
+			var streamId = "s";
+			var position = 1;
+			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var parallelKey = "x";
+			var queueItem = new HandlingQueueItem(parallelKey, subscriberEvent);
+			var streamState = new StreamState(position, true); // Has error.
 
-// 		[Fact]
-// 		public async Task not_run_handler_task_when_stream_state_is_errored()
-// 		{
-// 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
-// 			var streamId = "s";
-// 			var position = 1;
-// 			var manager = new HandlingManager(NullStandardLogger.Instance, mockStreamStateRepo.Object, null, null, 1);
-// 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
-// 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
-// 			var parallelKey = "x";
-// 			var streamState = new StreamState(position, true); // Has error.
+			mockQueue.Setup(x => x.IsEventsAvailable).Returns(true);
+			mockQueue.Setup(x => x.TryDequeue(It.IsAny<IList<string>>())).Returns(queueItem);
+			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(It.IsAny<string>())).Callback(() => cts.Cancel()).ReturnsAsync(streamState);
 
-// 			mockStreamStateRepo
-// 				.Setup(x => x.LoadStreamStateAsync(streamId))
-// 				.Returns(Task.FromResult<StreamState>(streamState));
+			var timeoutToken = new CancellationTokenSource(10000).Token;
+			await Task.WhenAny(new[] { manager.ManageAsync(cts.Token), timeoutToken.WaitHandle.AsTask() });
+			cts.Cancel();
+			if (timeoutToken.IsCancellationRequested) throw new TimeoutException();
 
-// 			var result = await manager.HandleSubscriberEventAsync(parallelKey, subscriberEvent, CancellationToken.None);
-
-// 			Assert.False(result);
-// 		}
-
-// 		[Fact]
-// 		public async Task run_handler_and_save_stream_state_with_success()
-// 		{
-// 			var cts = new CancellationTokenSource();
-// 			var mockHandler = new Mock<ISubscriberEventHandler>();
-// 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
-// 			var streamId = "s";
-// 			var position = 1;
-// 			var manager = new HandlingManager(NullStandardLogger.Instance, mockStreamStateRepo.Object, null, mockHandler.Object, 1);
-// 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
-// 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
-// 			var hasError = false; // Should not have error.
-
-// 			mockHandler.Setup(x => x.HandleAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-// 			mockStreamStateRepo.Setup(x => x.SaveStreamStateAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
-
-// 			await manager.RunHandlerAsync(subscriberEvent, cts.Token);
-
-// 			mockHandler.Verify(x => x.HandleAsync(subscriberEvent, cts.Token));
-// 			mockStreamStateRepo.Verify(x => x.SaveStreamStateAsync(streamId, position, hasError));
-// 		}
-
-// 		[Fact]
-// 		public async Task run_handler_and_save_errored_stream_state()
-// 		{
-// 			var cts = new CancellationTokenSource();
-// 			var mockHandler = new Mock<ISubscriberEventHandler>();
-// 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
-// 			var streamId = "s";
-// 			var position = 1;
-// 			var manager = new HandlingManager(NullStandardLogger.Instance, mockStreamStateRepo.Object, null, mockHandler.Object, 1);
-// 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
-// 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
-// 			var hasError = true; // Should have error after exception.
-
-// 			mockHandler.Setup(x => x.HandleAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Throws(new Exception());
-// 			mockStreamStateRepo.Setup(x => x.SaveStreamStateAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
-
-// 			await manager.RunHandlerAsync(subscriberEvent, cts.Token);
-
-// 			mockHandler.Verify(x => x.HandleAsync(subscriberEvent, cts.Token));
-// 			mockStreamStateRepo.Verify(x => x.SaveStreamStateAsync(streamId, position, hasError));
-// 		}
-// 	}
-// }
+			mockAwaiter.Verify(x => x.ResetHandlerCompletionSignal());
+			mockAwaiter.VerifyNoOtherCalls();
+		}
+	}
+}

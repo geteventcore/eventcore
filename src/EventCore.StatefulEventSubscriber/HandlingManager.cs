@@ -43,6 +43,7 @@ namespace EventCore.StatefulEventSubscriber
 						// Clean up finished tasks.
 						_handlerTasks.PurgeFinishedTasks();
 
+						// Get the next event from the queue that isn't in a parallel group already running.
 						var item = _handlingQueue.TryDequeue(_handlerTasks.Keys);
 						if (item != null)
 						{

@@ -82,7 +82,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var position = 1;
 			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
-			var parallelKey = "x"; // This can be anything.
+			var parallelKey = "x";
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
 
