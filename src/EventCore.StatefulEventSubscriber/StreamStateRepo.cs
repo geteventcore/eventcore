@@ -1,12 +1,14 @@
-﻿using System;
+﻿using EventCore.Utilities;
+using System;
 using System.IO;
 using System.Threading.Tasks;
-using EventCore.Utilities;
 
 namespace EventCore.StatefulEventSubscriber
 {
 	public class StreamStateRepo : IStreamStateRepo
 	{
+		public const string STREAM_PATH_PREFIX = "streams";
+
 		private readonly IStandardLogger _logger;
 		private readonly string _basePath;
 
@@ -16,11 +18,22 @@ namespace EventCore.StatefulEventSubscriber
 		{
 			_logger = logger;
 			_basePath = Path.GetFullPath(basePath);
+
+			var dirPath = BuildStreamStateDirectoryPath();
+			if (!Directory.Exists(dirPath))
+			{
+				Directory.CreateDirectory(dirPath);
+			}
 		}
 
 		// NOTE: Stream ids are lower-cased to be case INsensitive, expecting ascii characters only
 		// since stream ids are controlled internally by development team, not subject to external input.
-		private string BuildStreamStateFilePath(string streamId) => Path.Combine(_basePath, streamId.ToLower());
+		// Also, stream state files are prefixed by a subdirectory to ensure that when we reset state
+		// we don't just delete the whole base path directory, but instead delete well-defined paths. This
+		// to guard against accidentally deleting an important directory if the setting provided is a root path
+		// or some other important directory.
+		public string BuildStreamStateFilePath(string streamId) => Path.Combine(_basePath, STREAM_PATH_PREFIX, streamId.ToLower());
+		public string BuildStreamStateDirectoryPath() => Path.Combine(_basePath, STREAM_PATH_PREFIX + Path.DirectorySeparatorChar);
 
 		public async Task<StreamState> LoadStreamStateAsync(string streamId)
 		{
@@ -70,7 +83,7 @@ namespace EventCore.StatefulEventSubscriber
 					tryCount++;
 				}
 			} while (retry);
-			
+
 			return null;
 		}
 
@@ -91,6 +104,44 @@ namespace EventCore.StatefulEventSubscriber
 					{
 						writer.Write(lastAttemptedPosition);
 						writer.Write(hasError);
+					}
+				}
+				catch (Exception ex)
+				{
+					var delayMs = 1000;
+					if (tryCount == 2) delayMs = 5000;
+					if (tryCount == 3) delayMs = 30000;
+
+					if (tryCount == 4)
+					{
+						retry = false;
+						_logger.LogError(ex, "Exception while saving stream state. Giving up.");
+						throw;
+					}
+					else
+					{
+						retry = true;
+						_logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
+						await Task.Delay(1000);
+					}
+
+					tryCount++;
+				}
+			} while (retry);
+		}
+
+		public async Task ResetAllStateAsync()
+		{
+			var retry = false;
+			var tryCount = 1;
+
+			do
+			{
+				try
+				{
+					foreach (var filePath in Directory.EnumerateFiles(BuildStreamStateDirectoryPath()))
+					{
+						File.Delete(filePath);
 					}
 				}
 				catch (Exception ex)

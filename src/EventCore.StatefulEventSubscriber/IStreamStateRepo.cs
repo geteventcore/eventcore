@@ -7,5 +7,6 @@ namespace EventCore.StatefulEventSubscriber
 	{
 		Task SaveStreamStateAsync(string streamId, long lastAttemptedPosition, bool hasError);
 		Task<StreamState> LoadStreamStateAsync(string streamId);
+		Task ResetAllStateAsync();
 	}
 }
