@@ -14,8 +14,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		public async Task enqueue_and_dequeue_single_item()
 		{
 			var cts = new CancellationTokenSource(10000);
+			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
-			var queue = new SortingQueue(mockQueueAwaiter.Object, 1);
+			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
 			var subscriberEvent = new SubscriberEvent("s", 1, new BusinessEvent(BusinessMetadata.Empty));
 
 			await queue.EnqueueWithWaitAsync(subscriberEvent, cts.Token);
@@ -28,8 +29,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		public async Task set_queue_signals()
 		{
 			var cts = new CancellationTokenSource(10000);
+			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
-			var queue = new SortingQueue(mockQueueAwaiter.Object, 1);
+			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
 			var subscriberEvent = new SubscriberEvent("s", 1, new BusinessEvent(BusinessMetadata.Empty));
 
 			queue.TryDequeue();

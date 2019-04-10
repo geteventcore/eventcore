@@ -14,8 +14,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		public async Task enqueue_and_dequeue_single_item()
 		{
 			var cts = new CancellationTokenSource(10000);
+			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
-			var queue = new ResolutionQueue(mockQueueAwaiter.Object, 1);
+			var queue = new ResolutionQueue(mockQueueAwaiter.Object, maxQueueSize);
 			var streamEvent = new StreamEvent("s", 1, null, "x", new byte[] { });
 
 			await queue.EnqueueWithWaitAsync(streamEvent, cts.Token);
@@ -28,8 +29,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		public async Task set_queue_signals()
 		{
 			var cts = new CancellationTokenSource(10000);
+			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
-			var queue = new ResolutionQueue(mockQueueAwaiter.Object, 1);
+			var queue = new ResolutionQueue(mockQueueAwaiter.Object, maxQueueSize);
 			var streamEvent = new StreamEvent("s", 1, null, "x", new byte[] { });
 
 			queue.TryDequeue();
@@ -48,8 +50,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		[Fact]
 		public async Task await_enqueue_signal()
 		{
+			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
-			var queue = new ResolutionQueue(mockQueueAwaiter.Object, 1);
+			var queue = new ResolutionQueue(mockQueueAwaiter.Object, maxQueueSize);
 
 			await queue.AwaitEnqueueSignalAsync();
 
@@ -66,7 +69,6 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var streamEvent1 = new StreamEvent("s", 1, null, "x", new byte[] { });
 			var streamEvent2 = new StreamEvent("s", 2, null, "x", new byte[] { });
 			var streamEvent3 = new StreamEvent("s", 3, null, "x", new byte[] { });
-
 			var enqueueuSignalSetCount = 0;
 			var awaitingDequeueSignal = new ManualResetEventSlim(true);
 			var mockDequeueSignal = new ManualResetEventSlim(false);
