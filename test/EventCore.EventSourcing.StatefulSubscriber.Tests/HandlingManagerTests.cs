@@ -63,7 +63,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var awaitingCompletionSignal = new ManualResetEventSlim(false);
@@ -93,7 +93,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var parallelKey = "x";
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
@@ -118,7 +118,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var streamId = "s";
 			var position = 1;
 			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var parallelKey = "x";
 
@@ -181,7 +181,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var parallelKey = "x";
 			var queueItem = new HandlingQueueItem(parallelKey, subscriberEvent);
@@ -225,7 +225,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var parallelKey = "x";
 			var queueItem = new HandlingQueueItem(parallelKey, subscriberEvent);

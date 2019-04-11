@@ -11,7 +11,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			public string PropA { get; }
 
-			public DerivedBusinessEvent(BusinessMetadata metadata, string propA) : base(metadata)
+			public DerivedBusinessEvent(BusinessEventMetadata metadata, string propA) : base(metadata)
 			{
 				PropA = propA;
 			}
@@ -21,7 +21,7 @@ namespace EventCore.EventSourcing.Tests
 		public void serialize_and_deserialize_a_derived_business_event()
 		{
 			var serializer = new JsonBusinessEventSerializer();
-			var originalEvent = new DerivedBusinessEvent(new BusinessMetadata("abc", "123"), "A");
+			var originalEvent = new DerivedBusinessEvent(new BusinessEventMetadata("abc", "123"), "A");
 
 			var data = serializer.SerializeEvent(originalEvent);
 			var deserializedEvent = (DerivedBusinessEvent)serializer.DeserializeEvent(typeof(DerivedBusinessEvent), data);

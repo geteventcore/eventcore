@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
+    <ProjectReference Include="..\EventCore.Utilities\EventCore.Utilities.csproj" />
+  </ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="System.Collections.Immutable" Version="1.5.0" />
+	</ItemGroup>
+
+</Project>

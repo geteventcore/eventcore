@@ -59,7 +59,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, null);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var parallelKey = ""; // Must be empty (or null).
 
@@ -79,7 +79,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, mockHandlingManager.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var parallelKey = "x";
 
@@ -105,7 +105,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, mockHandlingManager.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var parallelKey = "x";
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
@@ -131,7 +131,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var streamId = "s";
 			var position = 1;
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, null, null);
-			var businessEvent = new BusinessEvent(BusinessMetadata.Empty);
+			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
 			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 
 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);

@@ -8,7 +8,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 	{
 		private class TestBusinessEvent : BusinessEvent
 		{
-			public TestBusinessEvent(BusinessMetadata metadata) : base(metadata)
+			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata)
 			{
 			}
 		}
@@ -55,7 +55,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var streamId = "s";
 			var position = 1;
 			var eventType = typeof(TestBusinessEvent);
-			var resolvedEvent = new TestBusinessEvent(BusinessMetadata.Empty);
+			var resolvedEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
 
 			var e = new SubscriberEvent(streamId, position, resolvedEvent);
 

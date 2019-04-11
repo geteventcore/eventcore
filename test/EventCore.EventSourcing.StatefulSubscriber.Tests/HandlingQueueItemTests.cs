@@ -9,7 +9,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 		public void construct()
 		{
 			var parallelKey = "pk";
-			var subscriberEvent = new SubscriberEvent("sId", 1, new BusinessEvent(BusinessMetadata.Empty));
+			var subscriberEvent = new SubscriberEvent("sId", 1, new BusinessEvent(BusinessEventMetadata.Empty));
 			
 			var item = new HandlingQueueItem(parallelKey, subscriberEvent);
 

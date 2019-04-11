@@ -7,7 +7,7 @@ namespace EventCore.Samples.DemoCli.BasicBusinessEvents
 	{
 		public string Message {get;}
 
-		public BaseBusinessEvent(string message) : base(BusinessMetadata.Empty)
+		public BaseBusinessEvent(string message) : base(BusinessEventMetadata.Empty)
 		{
 			Message = message;
 		}
