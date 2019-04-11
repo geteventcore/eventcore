@@ -150,7 +150,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task receive_and_enqueue_stream_event()
+		public async Task receive_and_enqueue_stream_event_when_eligible()
 		{
 			var cts = new CancellationTokenSource(10000);
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
@@ -172,6 +172,31 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			if (cts.IsCancellationRequested) throw new TimeoutException();
 
 			mockQueue.Verify(x => x.EnqueueWithWaitAsync(streamEvent, cts.Token));
+		}
+
+		[Fact]
+		public async Task receive_and_not_enqueue_stream_event_when_not_eligible()
+		{
+			var cts = new CancellationTokenSource(10000);
+			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
+			var mockResolver = new Mock<IBusinessEventResolver>();
+			var mockQueue = new Mock<IResolutionQueue>();
+			var streamId = "s";
+			var newPosition = 1;
+			var eventType = "x";
+			var lastAttemptedPosition = 0;
+			var firstPositionInStream = 0;
+			var streamState = new StreamState(lastAttemptedPosition, true);
+			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, mockStreamStateRepo.Object, mockQueue.Object, null);
+			var streamEvent = new StreamEvent(streamId, newPosition, null, eventType, new byte[] { });
+
+			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(streamId)).ReturnsAsync(streamState);
+			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(false); // Make this event ineligible.
+
+			await manager.ReceiveStreamEventAsync(streamEvent, firstPositionInStream, cts.Token);
+			if (cts.IsCancellationRequested) throw new TimeoutException();
+
+			mockQueue.VerifyNoOtherCalls();
 		}
 
 		[Fact]

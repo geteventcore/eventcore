@@ -1,6 +1,7 @@
 ﻿using EventCore.Utilities;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventCore.StatefulEventSubscriber
@@ -11,6 +12,7 @@ namespace EventCore.StatefulEventSubscriber
 
 		private readonly IStandardLogger _logger;
 		private readonly string _basePath;
+		private readonly bool _simulateErrorInRetryLoops = false;
 
 		public string BasePath { get => _basePath; }
 
@@ -24,6 +26,12 @@ namespace EventCore.StatefulEventSubscriber
 			{
 				Directory.CreateDirectory(dirPath);
 			}
+		}
+
+		// For testing.
+		public StreamStateRepo(IStandardLogger logger, string basePath, bool simulateErrorsInRetryLoops) : this(logger, basePath)
+		{
+			_simulateErrorInRetryLoops = simulateErrorsInRetryLoops;
 		}
 
 		// NOTE: Stream ids are lower-cased to be case INsensitive, expecting ascii characters only
@@ -44,22 +52,11 @@ namespace EventCore.StatefulEventSubscriber
 			{
 				try
 				{
+					if (_simulateErrorInRetryLoops) throw new Exception("Simulated.");
+
 					var stateFilePath = BuildStreamStateFilePath(streamId);
 
-					if (File.Exists(stateFilePath))
-					{
-						long lastAttemptedPosition;
-						bool hasError;
-
-						// FileShare.ReadWrite will allow other code to read but not write while we're reading the file.
-						using (BinaryReader reader = new BinaryReader(File.Open(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
-						{
-							lastAttemptedPosition = reader.ReadInt64();
-							hasError = reader.ReadBoolean();
-						}
-
-						return new StreamState(lastAttemptedPosition, hasError);
-					}
+					return TryLoadStreamState(stateFilePath);
 				}
 				catch (Exception ex)
 				{
@@ -87,6 +84,25 @@ namespace EventCore.StatefulEventSubscriber
 			return null;
 		}
 
+		private StreamState TryLoadStreamState(string stateFilePath)
+		{
+			if (File.Exists(stateFilePath))
+			{
+				long lastAttemptedPosition;
+				bool hasError;
+
+				// FileShare.ReadWrite will allow other code to read but not write while we're reading the file.
+				using (BinaryReader reader = new BinaryReader(File.Open(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
+				{
+					lastAttemptedPosition = reader.ReadInt64();
+					hasError = reader.ReadBoolean();
+				}
+
+				return new StreamState(lastAttemptedPosition, hasError);
+			}
+			return null;
+		}
+
 		public async Task SaveStreamStateAsync(string streamId, long lastAttemptedPosition, bool hasError)
 		{
 			var retry = false;
@@ -96,6 +112,8 @@ namespace EventCore.StatefulEventSubscriber
 			{
 				try
 				{
+					if (_simulateErrorInRetryLoops) throw new Exception("Simulated.");
+
 					var stateFilePath = BuildStreamStateFilePath(streamId);
 
 					// FileMode.Create will overwrite the file if exists - this is what we want.
@@ -130,42 +148,24 @@ namespace EventCore.StatefulEventSubscriber
 			} while (retry);
 		}
 
-		public async Task ResetAllStateAsync()
+		public Task ResetStreamStatesAsync()
 		{
-			var retry = false;
-			var tryCount = 1;
+			Directory.Delete(BuildStreamStateDirectoryPath(), true);
+			return Task.CompletedTask;
+		}
 
-			do
+		public async Task ClearStreamStateErrorsAsync(CancellationToken cancellationToken)
+		{
+			foreach (var stateFilePath in Directory.EnumerateFiles(BuildStreamStateDirectoryPath()))
 			{
-				try
+				if(cancellationToken.IsCancellationRequested) return;
+				
+				var state = TryLoadStreamState(stateFilePath);
+				if(state != null && state.HasError)
 				{
-					foreach (var filePath in Directory.EnumerateFiles(BuildStreamStateDirectoryPath()))
-					{
-						File.Delete(filePath);
-					}
+					await SaveStreamStateAsync(Path.GetFileName(stateFilePath), state.LastAttemptedPosition, false);
 				}
-				catch (Exception ex)
-				{
-					var delayMs = 1000;
-					if (tryCount == 2) delayMs = 5000;
-					if (tryCount == 3) delayMs = 30000;
-
-					if (tryCount == 4)
-					{
-						retry = false;
-						_logger.LogError(ex, "Exception while saving stream state. Giving up.");
-						throw;
-					}
-					else
-					{
-						retry = true;
-						_logger.LogError(ex, $"Exception while saving stream state. Waiting {delayMs}ms and trying again.");
-						await Task.Delay(1000);
-					}
-
-					tryCount++;
-				}
-			} while (retry);
+			}
 		}
 	}
 }

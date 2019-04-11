@@ -26,44 +26,31 @@ namespace EventCore.StatefulEventSubscriber
 		// into parallel keys with this consideration.
 
 		private readonly IStandardLogger _logger;
-		private readonly ISubscriptionListener _subListener;
+		private readonly ISubscriptionListener _subscriptionListener;
 		private readonly IResolutionManager _resolutionManager;
 		private readonly ISortingManager _sortingManager;
 		private readonly IHandlingManager _handlingManager;
+		private readonly IStreamStateRepo _streamStateRepo;
 		private readonly SubscriberOptions _options;
 
-		private  bool _isSubscribing = false;
+		private bool _isSubscribing = false;
 
 		public Subscriber(
-			IStandardLogger logger, ISubscriptionListener subListener,
+			IStandardLogger logger, ISubscriptionListener subscriptionListener,
 			IResolutionManager resolutionManager, ISortingManager sortingManager, IHandlingManager handlingManager,
+			IStreamStateRepo streamStateRepo,
 			SubscriberOptions options)
 		{
 			_logger = logger;
-			_subListener = subListener;
+			_subscriptionListener = subscriptionListener;
 			_resolutionManager = resolutionManager;
 			_sortingManager = sortingManager;
 			_handlingManager = handlingManager;
+			_streamStateRepo = streamStateRepo;
 			_options = options;
 		}
 
-		public async Task ResetStreamErrorStatesAsync()
-		{
-			if (_isSubscribing)
-				throw new InvalidOperationException("Can't reset while subscribing.");
-
-			await Task.Delay(10);
-		}
-
-		public async Task ResetAllStatesAsync()
-		{
-			if (_isSubscribing)
-				throw new InvalidOperationException("Can't reset while subscribing.");
-
-			await Task.Delay(10);
-		}
-
-		public async Task SubscribeAsync(IBusinessEventResolver resolver, Func<SubscriberEvent, string> sorter, Func<SubscriberEvent, CancellationToken, Task> handlerAsync, CancellationToken cancellationToken)
+		public async Task SubscribeAsync(CancellationToken cancellationToken)
 		{
 			if (_isSubscribing) throw new InvalidOperationException("Already subscribing.");
 
@@ -73,9 +60,9 @@ namespace EventCore.StatefulEventSubscriber
 			var tasks = new List<Task>();
 
 			// One subscription listener for each region.
-			foreach (var regionId in _options.RegionIds.Distinct(StringComparer.OrdinalIgnoreCase))
+			foreach (var subStreamId in _options.SubscriptionStreamIds)
 			{
-				tasks.Add(_subListener.ListenAsync(regionId, _options.StreamId, cancellationToken));
+				tasks.Add(_subscriptionListener.ListenAsync(subStreamId.RegionId, subStreamId.StreamId, cancellationToken));
 			}
 
 			tasks.Add(_resolutionManager.ManageAsync(cancellationToken));
@@ -88,6 +75,38 @@ namespace EventCore.StatefulEventSubscriber
 
 			_logger.LogInformation("Stateful subscriber stopped.");
 			_isSubscribing = false;
+		}
+
+		public async Task ResetStreamStatesAsync()
+		{
+			if (_isSubscribing)
+				throw new InvalidOperationException("Can't reset stream states while subscribing.");
+
+			try
+			{
+				await _streamStateRepo.ResetStreamStatesAsync();
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error while resetting stream states.");
+				throw;
+			}
+		}
+
+		public async Task ClearStreamStateErrorsAsync(CancellationToken cancellationToken)
+		{
+			if (_isSubscribing)
+				throw new InvalidOperationException("Can't clear stream state errors while subscribing.");
+
+			try
+			{
+				await _streamStateRepo.ClearStreamStateErrorsAsync(cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error while clearing stream state errors.");
+				throw;
+			}
 		}
 	}
 }

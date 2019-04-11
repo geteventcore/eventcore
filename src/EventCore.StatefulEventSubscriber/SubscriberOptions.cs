@@ -1,16 +1,16 @@
-﻿namespace EventCore.StatefulEventSubscriber
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace EventCore.StatefulEventSubscriber
 {
 	public class SubscriberOptions
 	{
-		public readonly int MaxParallelHandlerExecutions;
-		public readonly string StreamId;
-		public readonly string[] RegionIds;
+		public readonly IList<SubscriptionStreamId> SubscriptionStreamIds;
 
-		public SubscriberOptions(int maxParallelHandlerExecutions, string streamId, string[] regionIds)
+		public SubscriberOptions(IList<SubscriptionStreamId> subscriptionStreamIds)
 		{
-			MaxParallelHandlerExecutions = maxParallelHandlerExecutions;
-			StreamId = streamId;
-			RegionIds = regionIds;
+			SubscriptionStreamIds = subscriptionStreamIds;
 		}
 	}
 }

@@ -7,6 +7,8 @@ namespace EventCore.StatefulEventSubscriber
 {
 	public interface ISubscriber
 	{
-		Task SubscribeAsync(IBusinessEventResolver resolver, Func<SubscriberEvent, string> sorter, Func<SubscriberEvent, CancellationToken, Task> handlerAsync, CancellationToken cancellationToken);
+		Task SubscribeAsync(CancellationToken cancellationToken);
+		Task ResetStreamStatesAsync();
+		Task ClearStreamStateErrorsAsync(CancellationToken cancellationToken);
 	}
 }

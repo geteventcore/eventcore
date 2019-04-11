@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using EventCore.Utilities;
 
 namespace EventCore.StatefulEventSubscriber
@@ -7,6 +8,7 @@ namespace EventCore.StatefulEventSubscriber
 	{
 		Task SaveStreamStateAsync(string streamId, long lastAttemptedPosition, bool hasError);
 		Task<StreamState> LoadStreamStateAsync(string streamId);
-		Task ResetAllStateAsync();
+		Task ResetStreamStatesAsync();
+		Task ClearStreamStateErrorsAsync(CancellationToken cancellationToken);
 	}
 }

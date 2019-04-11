@@ -1,8 +1,9 @@
+using EventCore.Utilities;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
-using EventCore.Utilities;
 using Xunit;
 
 namespace EventCore.StatefulEventSubscriber.Tests
@@ -108,7 +109,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task reset_all_state()
+		public async Task reset_stream_states()
 		{
 			var basePath = Directory.GetCurrentDirectory();
 			var streamId1 = Guid.NewGuid().ToString();
@@ -123,67 +124,56 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			Assert.NotNull(await repo.LoadStreamStateAsync(streamId1));
 			Assert.NotNull(await repo.LoadStreamStateAsync(streamId2));
 
-			await repo.ResetAllStateAsync();
+			await repo.ResetStreamStatesAsync();
 
 			Assert.Null(await repo.LoadStreamStateAsync(streamId1));
 			Assert.Null(await repo.LoadStreamStateAsync(streamId2));
 		}
 
 		[Fact]
-		public async Task rethrow_when_save_stream_state_error()
+		public async Task clear_stream_state_errors()
 		{
 			var basePath = Directory.GetCurrentDirectory();
-			var streamId = Guid.NewGuid().ToString();
-			var position = 5;
-			var hasError = true;
+			var streamId1 = Guid.NewGuid().ToString();
+			var streamId2 = Guid.NewGuid().ToString();
+			var position1 = 1;
+			var position2 = 1;
 			var repo = new StreamStateRepo(NullStandardLogger.Instance, basePath);
 
-			await repo.SaveStreamStateAsync(streamId, position, hasError); // Successful save.
+			await repo.SaveStreamStateAsync(streamId1, position1, false);
+			await repo.SaveStreamStateAsync(streamId2, position2, true);
 
-			// Manually open and lock the file.
-			var filePath = repo.BuildStreamStateFilePath(streamId);
-			using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.None)))
-			{
-				await Assert.ThrowsAnyAsync<Exception>(() => repo.SaveStreamStateAsync(streamId, position, hasError));
-			}
+			Assert.NotNull(await repo.LoadStreamStateAsync(streamId1));
+			Assert.NotNull(await repo.LoadStreamStateAsync(streamId2));
+
+			await repo.ClearStreamStateErrorsAsync(CancellationToken.None);
+
+			var state1 = await repo.LoadStreamStateAsync(streamId1);
+			var state2 = await repo.LoadStreamStateAsync(streamId2);
+
+			Assert.False(state1.HasError);
+			Assert.False(state2.HasError);
 		}
 
 		[Fact]
-		public async Task rethrow_when_load_stream_state_error()
+		public async Task rethrow_when_save_stream_state_has_exception_in_retry_loop()
 		{
 			var basePath = Directory.GetCurrentDirectory();
 			var streamId = Guid.NewGuid().ToString();
 			var position = 5;
-			var hasError = true;
-			var repo = new StreamStateRepo(NullStandardLogger.Instance, basePath);
-
-			await repo.SaveStreamStateAsync(streamId, position, hasError); // Successful save.
-
-			// Manually open and lock the file.
-			var filePath = repo.BuildStreamStateFilePath(streamId);
-			using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.None)))
-			{
-				await Assert.ThrowsAnyAsync<Exception>(() => repo.LoadStreamStateAsync(streamId));
-			}
+			var hasError = false;
+			var repo = new StreamStateRepo(NullStandardLogger.Instance, basePath, true);
+			await Assert.ThrowsAnyAsync<Exception>(() => repo.SaveStreamStateAsync(streamId, position, hasError));
 		}
 
 		[Fact]
-		public async Task rethrow_when_reset_all_state_error()
+		public async Task rethrow_when_load_stream_state_has_exception_in_retry_loop()
 		{
 			var basePath = Directory.GetCurrentDirectory();
 			var streamId = Guid.NewGuid().ToString();
-			var position = 5;
-			var hasError = true;
-			var repo = new StreamStateRepo(NullStandardLogger.Instance, basePath);
+			var repo = new StreamStateRepo(NullStandardLogger.Instance, basePath, true);
 
-			await repo.SaveStreamStateAsync(streamId, position, hasError); // Successful save.
-
-			// Manually open and lock the file.
-			var filePath = repo.BuildStreamStateFilePath(streamId);
-			using (BinaryWriter writer = new BinaryWriter(File.Open(filePath, FileMode.Create, FileAccess.Write, FileShare.None)))
-			{
-				await Assert.ThrowsAnyAsync<Exception>(() => repo.ResetAllStateAsync());
-			}
+			await Assert.ThrowsAnyAsync<Exception>(() => repo.LoadStreamStateAsync(streamId));
 		}
 	}
 }

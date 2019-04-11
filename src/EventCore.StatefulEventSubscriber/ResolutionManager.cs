@@ -66,8 +66,6 @@ namespace EventCore.StatefulEventSubscriber
 
 		public async Task ReceiveStreamEventAsync(StreamEvent streamEvent, long firstPositionInStream, CancellationToken cancellationToken)
 		{
-			// Enqueue when space opens up.
-
 			if ((await IsStreamEventEligibleForResolution(streamEvent, firstPositionInStream)) == ResolutionEligibility.Eligible)
 			{
 				// Send to the resolution queue when space opens up.
