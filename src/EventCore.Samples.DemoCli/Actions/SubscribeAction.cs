@@ -17,42 +17,43 @@ namespace EventCore.Samples.DemoCli.Actions
 			_options = options;
 		}
 
-		public async Task RunAsync()
+		public Task RunAsync()
 		{
 			var streamId = Constants.STREAM_ID_ALL;
 
 			Console.WriteLine($"Subscribing to events on {streamId} stream.");
 			Console.WriteLine();
 
-			var serializer = new JsonBusinessEventSerializer();
-			var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
-			var streamClient = new EventStoreStreamClient(NullStandardLogger.Instance, Helpers.EventStoreConnectionFactory, options);
+			// var serializer = new JsonBusinessEventSerializer();
+			// var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
+			// var streamClient = new EventStoreStreamClient(NullStandardLogger.Instance, Helpers.EventStoreConnectionFactory, options);
 
-			Console.WriteLine("Current end of stream: " + (await streamClient.FindLastPositionInStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId)).GetValueOrDefault(streamClient.FirstPositionInStream - 1));
-			Console.WriteLine();
+			// Console.WriteLine("Current end of stream: " + (await streamClient.FindLastPositionInStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId)).GetValueOrDefault(streamClient.FirstPositionInStream - 1));
+			// Console.WriteLine();
 
-			var cancelSource = new CancellationTokenSource();
+			// var cancelSource = new CancellationTokenSource();
 
-			var _ = streamClient.SubscribeToStreamAsync(
-				Constants.EVENTSTORE_DEFAULT_REGION, streamId, _options.FromPosition,
-				(se, ct) =>
-				{
-					var linkMsg = se.IsLink ? $" [Linked to {se.Link.StreamId} ({se.Link.Position}).]" : "";
-					var type = MapEventType(se.EventType);
-					var e = (BaseBusinessEvent)serializer.DeserializeEvent(type, se.Data);
+			// var _ = streamClient.SubscribeToStreamAsync(
+			// 	Constants.EVENTSTORE_DEFAULT_REGION, streamId, _options.FromPosition,
+			// 	(se, ct) =>
+			// 	{
+			// 		var linkMsg = se.IsLink ? $" [Linked to {se.Link.StreamId} ({se.Link.Position}).]" : "";
+			// 		var type = MapEventType(se.EventType);
+			// 		var e = (BaseBusinessEvent)serializer.DeserializeEvent(type, se.Data);
 
-					Console.WriteLine($"Received event type {type.Name} from {se.StreamId} ({se.Position})." + linkMsg);
-					Console.WriteLine($"Message: {e.Message}");
-					Console.WriteLine();
+			// 		Console.WriteLine($"Received event type {type.Name} from {se.StreamId} ({se.Position})." + linkMsg);
+			// 		Console.WriteLine($"Message: {e.Message}");
+			// 		Console.WriteLine();
 					
 					
-					return Task.CompletedTask;
-				},
-				cancelSource.Token);
+			// 		return Task.CompletedTask;
+			// 	},
+			// 	cancelSource.Token);
 
 			Console.WriteLine("Press ENTER to stop.");
 			Console.WriteLine();
 			Console.ReadLine();
+			return Task.CompletedTask;
 		}
 
 		private Type MapEventType(string eventType)

@@ -1,6 +1,4 @@
-﻿using EventCore.EventSourcing;
-using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 
@@ -8,31 +6,30 @@ namespace EventCore.AggregateRoots
 {
 	public class HandledCommandResult : IHandledCommandResult
 	{
-		public bool IsSuccess { get; } = true;
-		public IImmutableList<string> Errors { get; } = ImmutableList<string>.Empty;
-		public IImmutableList<BusinessEvent> Events { get; } = ImmutableList<BusinessEvent>.Empty;
+		public bool IsSuccess { get; }
+		public IImmutableList<string> ValidationErrors { get; }
+		public string SerializedState { get; }
 
-		public HandledCommandResult(IList<string> errors)
+		public HandledCommandResult(IList<string> errors, string serializedState = null)
 		{
 			IsSuccess = false;
-			Errors = errors.ToImmutableList();
+			ValidationErrors = errors.ToImmutableList();
+			SerializedState = serializedState;
 		}
 
-		public HandledCommandResult(IList<BusinessEvent> events)
+		public HandledCommandResult(string serializedState = null)
 		{
-			Events = events.ToImmutableList();
+			IsSuccess = true;
+			SerializedState = serializedState;
 		}
 
-		public static IHandledCommandResult FromError(string error) => new HandledCommandResult(new List<string>() { error });
-		public static Task<IHandledCommandResult> FromErrorAsync(string error) => Task.FromResult<IHandledCommandResult>(FromError(error));
+		public static IHandledCommandResult FromSuccess() => new HandledCommandResult();
+		public static Task<IHandledCommandResult> FromSuccessAsync() => Task.FromResult<IHandledCommandResult>(FromSuccess());
 
-		public static IHandledCommandResult FromErrors(IList<string> errors) => new HandledCommandResult(errors);
-		public static Task<IHandledCommandResult> FromErrorsAsync(IList<string> errors) => Task.FromResult<IHandledCommandResult>(FromErrors(errors));
+		public static IHandledCommandResult FromValidationError(string error, string serializedState = null) => new HandledCommandResult(new List<string>() { error }, serializedState);
+		public static Task<IHandledCommandResult> FromValidationErrorAsync(string error, string serializedState = null) => Task.FromResult<IHandledCommandResult>(FromValidationError(error, serializedState));
 
-		public static IHandledCommandResult FromEvent(BusinessEvent e) => new HandledCommandResult(new List<BusinessEvent>() { e });
-		public static Task<IHandledCommandResult> FromEventAsync(BusinessEvent e) => Task.FromResult<IHandledCommandResult>(FromEvent(e));
-
-		public static IHandledCommandResult FromEvents(IList<BusinessEvent> events) => new HandledCommandResult(events);
-		public static Task<IHandledCommandResult> FromEventsAsync(IList<BusinessEvent> events) => Task.FromResult<IHandledCommandResult>(FromEvents(events));
+		public static IHandledCommandResult FromValidationErrors(IList<string> errors, string serializedState = null) => new HandledCommandResult(errors, serializedState);
+		public static Task<IHandledCommandResult> FromValidationErrorsAsync(IList<string> errors, string serializedState = null) => Task.FromResult<IHandledCommandResult>(FromValidationErrors(errors, serializedState));
 	}
 }

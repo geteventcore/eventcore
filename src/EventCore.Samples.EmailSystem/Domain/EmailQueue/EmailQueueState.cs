@@ -4,7 +4,7 @@ using System;
 
 namespace EventCore.Samples.EmailSystem.Domain.EmailQueue
 {
-    public class EmailQueueState : AggregateRootState
+    public class EmailQueueState : GenericAggregateRootState
     {
 			public EmailQueueMessage Message {get;}
     }

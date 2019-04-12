@@ -23,7 +23,6 @@ namespace EventCore.Samples.DemoCli.Actions
 
 			Console.WriteLine($"Loading events from {streamId} stream.");
 
-			var serializer = new JsonBusinessEventSerializer();
 			var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
 			var streamClient = new EventStoreStreamClient(NullStandardLogger.Instance, Helpers.EventStoreConnectionFactory, options);
 

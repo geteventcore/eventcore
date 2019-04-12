@@ -1,24 +1,53 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace EventCore.EventSourcing
 {
 	public class StreamIdBuilder
 	{
-		private const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9._-]";
+		// Valid stream characters:
+		// - ASCII letters and numbers
+		// - underscore ("_")
+		// - short dash / minus sign ("-")
+		private const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9_-]";
+		
+		private const string SEPARATOR = "_";
 
-		public readonly string StreamId;
+		public static bool ValidateStreamIdFragment(string fragment) => !Regex.IsMatch(fragment, INVALID_STREAM_ID_REGEX);
 
-		public StreamIdBuilder(string aggregateName, string aggregateId)
+		public string Build(string regionId, string context, string aggregateRootName, string aggregateRootId)
 		{
-			if (!ValidateStreamIdFragment(aggregateName + aggregateId))
+			if (string.IsNullOrWhiteSpace(aggregateRootName))
+			{
+				throw new ArgumentNullException("Aggregate root name is required.");
+			}
+
+			if (!ValidateStreamIdFragment(regionId + context + aggregateRootName + aggregateRootId))
 			{
 				throw new ArgumentException("Invalid character(s) in stream id input.");
 			}
 
-			StreamId = aggregateName + "-" + aggregateId;
-		}
+			var composite = new List<string>();
 
-		public static bool ValidateStreamIdFragment(string fragment) => !Regex.IsMatch(fragment, INVALID_STREAM_ID_REGEX);
+			if (!string.IsNullOrWhiteSpace(regionId))
+			{
+				composite.Add(regionId);
+			}
+
+			if (!string.IsNullOrWhiteSpace(context))
+			{
+				composite.Add(aggregateRootName);
+			}
+
+			composite.Add(aggregateRootName); // Required.
+
+			if (!string.IsNullOrWhiteSpace(aggregateRootId))
+			{
+				composite.Add(aggregateRootId);
+			}
+
+			return string.Join(SEPARATOR, composite);
+		}
 	}
 }

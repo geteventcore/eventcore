@@ -40,51 +40,52 @@ namespace EventCore.Samples.DemoCli.Actions
 			}
 		}
 
-		private async Task CommitEventGroupToAggregateStreamAsync(string streamId, long? startPosition)
+		private Task CommitEventGroupToAggregateStreamAsync(string streamId, long? startPosition)
 		{
-			var serializer = new JsonBusinessEventSerializer();
-			var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
-			var streamClient = new EventStoreStreamClient(NullStandardLogger.Instance, Helpers.EventStoreConnectionFactory, options);
-			long position;
+			// var serializer = new JsonBusinessEventSerializer();
+			// var options = new EventStoreStreamClientOptions(100); // Read batch size not used here.
+			// var streamClient = new EventStoreStreamClient(NullStandardLogger.Instance, Helpers.EventStoreConnectionFactory, options);
+			// long position;
 
 
-			position = startPosition.GetValueOrDefault(streamClient.FirstPositionInStream);
-			var e1 = new BusinessEventT01($"{typeof(BusinessEventT01).Name} committing to {streamId} at {position++}.");
-			var e2 = new BusinessEventT02($"{typeof(BusinessEventT02).Name} committing to {streamId} at {position++}.");
-			var e3 = new BusinessEventT03($"{typeof(BusinessEventT03).Name} committing to {streamId} at {position++}.");
-			var e4 = new BusinessEventT04($"{typeof(BusinessEventT04).Name} committing to {streamId} at {position++}.");
-			var e5 = new BusinessEventT05($"{typeof(BusinessEventT05).Name} committing to {streamId} at {position++}.");
-			var e6 = new BusinessEventT06($"{typeof(BusinessEventT06).Name} committing to {streamId} at {position++}.");
-			var e7 = new BusinessEventT07($"{typeof(BusinessEventT07).Name} committing to {streamId} at {position++}.");
-			var e8 = new BusinessEventT08($"{typeof(BusinessEventT08).Name} committing to {streamId} at {position++}.");
-			var e9 = new BusinessEventT09($"{typeof(BusinessEventT09).Name} committing to {streamId} at {position++}.");
-			var e10 = new BusinessEventT10($"{typeof(BusinessEventT10).Name} committing to {streamId} at {position++}.");
+			// position = startPosition.GetValueOrDefault(streamClient.FirstPositionInStream);
+			// var e1 = new BusinessEventT01($"{typeof(BusinessEventT01).Name} committing to {streamId} at {position++}.");
+			// var e2 = new BusinessEventT02($"{typeof(BusinessEventT02).Name} committing to {streamId} at {position++}.");
+			// var e3 = new BusinessEventT03($"{typeof(BusinessEventT03).Name} committing to {streamId} at {position++}.");
+			// var e4 = new BusinessEventT04($"{typeof(BusinessEventT04).Name} committing to {streamId} at {position++}.");
+			// var e5 = new BusinessEventT05($"{typeof(BusinessEventT05).Name} committing to {streamId} at {position++}.");
+			// var e6 = new BusinessEventT06($"{typeof(BusinessEventT06).Name} committing to {streamId} at {position++}.");
+			// var e7 = new BusinessEventT07($"{typeof(BusinessEventT07).Name} committing to {streamId} at {position++}.");
+			// var e8 = new BusinessEventT08($"{typeof(BusinessEventT08).Name} committing to {streamId} at {position++}.");
+			// var e9 = new BusinessEventT09($"{typeof(BusinessEventT09).Name} committing to {streamId} at {position++}.");
+			// var e10 = new BusinessEventT10($"{typeof(BusinessEventT10).Name} committing to {streamId} at {position++}.");
 
-			var events = new List<BusinessEvent>() { e1, e2, e3, e4, e5, e6, e7, e8, e9, e10 };
-			var commitEvents = new List<CommitEvent>();
+			// var events = new List<BusinessEvent>() { e1, e2, e3, e4, e5, e6, e7, e8, e9, e10 };
+			// var commitEvents = new List<CommitEvent>();
 
-			position = startPosition.GetValueOrDefault(streamClient.FirstPositionInStream);
-			foreach (var e in events)
-			{
-				commitEvents.Add(new CommitEvent(e.GetType().Name, serializer.SerializeEvent(e)));
-				Console.WriteLine($"Committing {e.GetType().Name} to {streamId} at position {position++}.");
-			}
+			// position = startPosition.GetValueOrDefault(streamClient.FirstPositionInStream);
+			// foreach (var e in events)
+			// {
+			// 	commitEvents.Add(new CommitEvent(e.GetType().Name, serializer.SerializeEvent(e)));
+			// 	Console.WriteLine($"Committing {e.GetType().Name} to {streamId} at position {position++}.");
+			// }
 
-			long? expectedLastPosition = null;
-			if (startPosition.GetValueOrDefault(streamClient.FirstPositionInStream) > streamClient.FirstPositionInStream)
-			{
-				expectedLastPosition = startPosition.Value - 1;
-			}
+			// long? expectedLastPosition = null;
+			// if (startPosition.GetValueOrDefault(streamClient.FirstPositionInStream) > streamClient.FirstPositionInStream)
+			// {
+			// 	expectedLastPosition = startPosition.Value - 1;
+			// }
 
-			var result = await streamClient.CommitEventsToStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId, expectedLastPosition, commitEvents);
+			// var result = await streamClient.CommitEventsToStreamAsync(Constants.EVENTSTORE_DEFAULT_REGION, streamId, expectedLastPosition, commitEvents);
 
-			switch(result)
-			{
-				case CommitResult.Success: break;
-				case CommitResult.ConcurrencyConflict: throw new Exception("Concurrency conflict.");
-			}
+			// switch(result)
+			// {
+			// 	case CommitResult.Success: break;
+			// 	case CommitResult.ConcurrencyConflict: throw new Exception("Concurrency conflict.");
+			// }
 
 			Console.WriteLine("Events committed.");
+			return Task.CompletedTask;
 		}
 	}
 }

@@ -12,6 +12,7 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailQueue
 			EmailId = emailId;
 		}
 
+		public override string RegionId() => null;
 		public override string AggregateRootId() => EmailId.ToString();
 	}
 }

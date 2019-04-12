@@ -1,7 +1,7 @@
 ﻿namespace EventCore.AggregateRoots
 {
-	public interface IAggregateRootStateFactory
+	public interface IAggregateRootStateFactory<TState> where TState : IAggregateRootState
 	{
-		AggregateRootState Create();
+		TState Create(string serializedState = null);
 	}
 }

@@ -9,6 +9,7 @@
 			Metadata = metadata;
 		}
 
+		public abstract string RegionId();
 		public abstract string AggregateRootId();
 	}
 }

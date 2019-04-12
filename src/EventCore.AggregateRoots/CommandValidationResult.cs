@@ -8,14 +8,9 @@ namespace EventCore.AggregateRoots
 	public class CommandValidationResult : ICommandValidationResult
 	{
 		public bool IsValid { get; } = true;
-		public IImmutableList<string> Errors { get; } = ImmutableList<string>.Empty;
+		public IImmutableList<string> Errors { get; }
 
-		public CommandValidationResult() : this(true) { }
-
-		public CommandValidationResult(bool isValid)
-		{
-			IsValid = isValid;
-		}
+		public CommandValidationResult() : this(new List<string>()) { }
 
 		public CommandValidationResult(IList<string> errors)
 		{
@@ -23,13 +18,13 @@ namespace EventCore.AggregateRoots
 			Errors = errors.ToImmutableList();
 		}
 
-		ICommandValidationResult FromSuccess() => new CommandValidationResult(true);
-		Task<ICommandValidationResult> FromSuccessAsync() => Task.FromResult<ICommandValidationResult>(FromSuccess());
+		public static ICommandValidationResult FromValid() => new CommandValidationResult();
+		public static Task<ICommandValidationResult> FromValidAsync() => Task.FromResult<ICommandValidationResult>(FromValid());
 
-		ICommandValidationResult FromError(string error) => new CommandValidationResult(new List<string>() {error});
-		Task<ICommandValidationResult> FromErrorAsync(string error) => Task.FromResult<ICommandValidationResult>(FromError(error));
+		public static ICommandValidationResult FromError(string error) => new CommandValidationResult(new List<string>() {error});
+		public static Task<ICommandValidationResult> FromErrorAsync(string error) => Task.FromResult<ICommandValidationResult>(FromError(error));
 
-		ICommandValidationResult FromErrors(IList<string> errors) => new CommandValidationResult(errors);
-		Task<ICommandValidationResult> FromErrorsAsync(IList<string> errors) => Task.FromResult<ICommandValidationResult>(FromErrors(errors));
+		public static ICommandValidationResult FromErrors(IList<string> errors) => new CommandValidationResult(errors);
+		public static Task<ICommandValidationResult> FromErrorsAsync(IList<string> errors) => Task.FromResult<ICommandValidationResult>(FromErrors(errors));
 	}
 }

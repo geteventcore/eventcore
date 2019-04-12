@@ -8,7 +8,5 @@ namespace EventCore.Samples.EmailSystem.Domain
 		public DomainCommand(CommandMetadata metadata) : base(metadata)
 		{
 		}
-		
-		public abstract override string AggregateRootId();
 	}
 }
