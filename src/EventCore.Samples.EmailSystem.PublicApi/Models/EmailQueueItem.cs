@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EventCore.Samples.EmailSystem.WebApi.Models
+namespace EventCore.Samples.EmailSystem.PublicApi.Models
 {
 	public class EmailQueueItem
 	{

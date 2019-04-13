@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EventCore.Samples.EmailSystem.WebApi
+namespace EventCore.Samples.EmailSystem.PublicApi
 {
 	public class Startup
 	{

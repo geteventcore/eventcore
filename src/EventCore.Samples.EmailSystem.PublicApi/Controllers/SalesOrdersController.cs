@@ -1,9 +1,9 @@
-﻿using EventCore.Samples.EmailSystem.WebApi.Models;
+﻿using EventCore.Samples.EmailSystem.PublicApi.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.EmailSystem.WebApi.Controllers
+namespace EventCore.Samples.EmailSystem.PublicApi.Controllers
 {
 	[Route("api/[controller]")]
 	[ApiController]

@@ -14,6 +14,9 @@ namespace EventCore.EventSourcing
 		private readonly Dictionary<string, Type> _typeNamesToStrongTypes = new Dictionary<string, Type>();
 		private readonly Dictionary<Type, string> _strongTypesToTypeNames = new Dictionary<Type, string>();
 
+		public bool CanResolve(string type) => _typeNamesToStrongTypes.ContainsKey(type);
+		public bool CanUnresolve(BusinessEvent e) => _strongTypesToTypeNames.ContainsKey(e.GetType());
+
 		public BusinessEventResolver(IStandardLogger logger, HashSet<Type> businessEventTypes)
 		{
 			_logger = logger;
@@ -28,9 +31,6 @@ namespace EventCore.EventSourcing
 				_strongTypesToTypeNames.Add(type, type.Name);
 			}
 		}
-
-		public bool CanResolve(string type) => _typeNamesToStrongTypes.ContainsKey(type);
-		public bool CanUnresolve(BusinessEvent e) => _strongTypesToTypeNames.ContainsKey(e.GetType());
 
 		public BusinessEvent ResolveEvent(string type, byte[] data)
 		{
