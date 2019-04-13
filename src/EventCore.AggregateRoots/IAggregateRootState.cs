@@ -6,8 +6,10 @@ namespace EventCore.AggregateRoots
 {
 	public interface IAggregateRootState
 	{
+		bool SupportsSerialization {get;}
 		long? StreamPositionCheckpoint { get; }
 		Task HydrateAsync(IStreamClient streamClient, string streamId);
-		Task ApplyGenericEventAsync(BusinessEvent e, CancellationToken cancellationToken);
+		Task ApplyGenericBusinessEventAsync<TEvent>(TEvent e, CancellationToken cancellationToken) where TEvent : BusinessEvent;
+		Task<string> SerializeAsync();
 	}
 }

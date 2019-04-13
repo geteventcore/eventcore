@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.AggregateRoots
+namespace EventCore.Samples.EmailSystem.Domain
 {
 	public interface IApplyBusinessEvent<TEvent> where TEvent : BusinessEvent
 	{

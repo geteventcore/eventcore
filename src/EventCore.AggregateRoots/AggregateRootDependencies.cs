@@ -1,11 +1,5 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EventCore.AggregateRoots
 {
@@ -17,11 +11,13 @@ namespace EventCore.AggregateRoots
 		public readonly IStreamClient StreamClient;
 		public readonly IBusinessEventResolver Resolver;
 		public readonly ICommandHandlerFactory<TState> HandlerFactory;
+		public readonly ISerializedAggregateRootStateRepo SerializedAggregateRootStateRepo;
 
 		public AggregateRootDependencies(
 			IStandardLogger logger,
 			IAggregateRootStateFactory<TState> stateFactory, IStreamIdBuilder streamIdBuilder, IStreamClient streamClient,
-			IBusinessEventResolver resolver, ICommandHandlerFactory<TState> handlerFactory)
+			IBusinessEventResolver resolver, ICommandHandlerFactory<TState> handlerFactory,
+			ISerializedAggregateRootStateRepo serializedAggregateRootStateRepo)
 		{
 			Logger = logger;
 			StateFactory = stateFactory;
@@ -29,6 +25,7 @@ namespace EventCore.AggregateRoots
 			StreamClient = streamClient;
 			Resolver = resolver;
 			HandlerFactory = handlerFactory;
+			SerializedAggregateRootStateRepo = serializedAggregateRootStateRepo;
 		}
 	}
 }

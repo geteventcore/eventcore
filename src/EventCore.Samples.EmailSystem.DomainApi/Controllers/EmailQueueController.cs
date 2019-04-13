@@ -11,22 +11,17 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 	[ApiController]
 	public class EmailQueueController : ControllerBase
 	{
-		private readonly IAggregateRootHarness<EmailQueueRoot, EmailQueueState> _ar;
+		private readonly EmailQueueAggregate _ar;
 
-		public EmailQueueController(IAggregateRootHarness<EmailQueueRoot, EmailQueueState> ar)
+		public EmailQueueController(EmailQueueAggregate ar)
 		{
+			_ar = ar;
 		}
 
 		// POST api/emailQueue
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public async Task<IActionResult> Post([FromBody] EnqueueEmailCommand c)
-		{
-			var result = await _ar.HandleCommandAsync(c);
-
-			if(result.IsSuccess) return Ok();
-			else return BadRequest(result.ValidationErrors);
-		}
+		public Task<IActionResult> Post([FromBody] EnqueueEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
 	}
 }
