@@ -33,7 +33,7 @@ namespace EventCore.AggregateRoots
 			_aggregateRootName = aggregateRootName;
 		}
 
-		protected async Task<IHandledCommandResult> HandleGenericCommandAsync<TCommand>(TCommand command, string serializedState = null) where TCommand : Command
+		public async Task<IHandledCommandResult> HandleGenericCommandAsync<TCommand>(TCommand command, string serializedState = null) where TCommand : Command
 		{
 			try
 			{

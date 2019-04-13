@@ -3,7 +3,7 @@ using System;
 
 namespace EventCore.Samples.EmailSystem.Domain.EmailQueue
 {
-	public class EmailQueueCommand : Command
+	public class EmailQueueCommand : DomainCommand
 	{
 		public readonly Guid EmailId;
 
