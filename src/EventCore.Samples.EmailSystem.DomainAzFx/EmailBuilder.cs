@@ -14,8 +14,6 @@ namespace EventCore.Samples.EmailSystem.DomainAzFx
 	{
 		[FunctionName("BuildSalesOrderEmail")]
 		public static Task<IActionResult> BuildSalesOrderEmailAsync([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
-		{
-			return new CommandProcessor<EmailBuilderAggregate, BuildSalesOrderEmailCommand>().TryProcessCommandAsync(req, log);
-		}
+			=> CommandProcessor<EmailBuilderAggregate, BuildSalesOrderEmailCommand>.TryProcessCommandAsync(req, log);
 	}
 }

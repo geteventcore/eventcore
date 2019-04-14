@@ -15,7 +15,7 @@ namespace EventCore.Samples.EmailSystem.DomainAzFx.Infrastructure
 		where TAggregateRoot : IAggregateRoot
 		where TCommand : DomainCommand
 	{
-		public async Task<IActionResult> TryProcessCommandAsync(HttpRequest req, ILogger log)
+		public static async Task<IActionResult> TryProcessCommandAsync(HttpRequest req, ILogger log)
 		{
 			try
 			{

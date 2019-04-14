@@ -1,5 +1,5 @@
-using EventCore.Samples.EmailSystem.Domain.EmailQueue;
-using EventCore.Samples.EmailSystem.Domain.EmailQueue.Commands;
+using EventCore.Samples.EmailSystem.Domain.SalesOrder;
+using EventCore.Samples.EmailSystem.Domain.SalesOrder.Commands;
 using EventCore.Samples.EmailSystem.DomainAzFx.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,10 +10,10 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.EmailSystem.DomainAzFx
 {
-	public static class EmailQueue
+	public static class SalesOrder
 	{
-		[FunctionName("EnqueueEmail")]
+		[FunctionName("RaiseSalesOrder")]
 		public static Task<IActionResult> EnqueueEmailAsync([HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequest req, ILogger log)
-			=> CommandProcessor<EmailQueueAggregate, EnqueueEmailCommand>.TryProcessCommandAsync(req, log);
+			=> CommandProcessor<SalesOrderAggregate, RaiseSalesOrderCommand>.TryProcessCommandAsync(req, log);
 	}
 }
