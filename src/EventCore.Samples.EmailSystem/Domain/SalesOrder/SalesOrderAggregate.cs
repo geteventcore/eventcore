@@ -7,9 +7,11 @@ namespace EventCore.Samples.EmailSystem.Domain.SalesOrder
 {
 	public class SalesOrderAggregate : AggregateRoot<SalesOrderState>
 	{
+		public const string NAME = "SalesOrder";
+
 		public override bool SupportsSerializeableState {get => true;}
 		
-		public SalesOrderAggregate(AggregateRootDependencies<SalesOrderState> dependencies) : base(dependencies, null, "SalesOrder")
+		public SalesOrderAggregate(AggregateRootDependencies<SalesOrderState> dependencies) : base(dependencies, null, NAME)
 		{
 		}
 	}

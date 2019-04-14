@@ -20,6 +20,8 @@ namespace EventCore.Samples.EmailSystem.Domain
 			}
 		}
 
+		public abstract string _AggregateRootName { get; }
+
 		public DomainCommand(CommandMetadata metadata) : base(metadata)
 		{
 		}
