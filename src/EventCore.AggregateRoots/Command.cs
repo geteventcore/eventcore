@@ -11,5 +11,10 @@
 
 		public abstract string RegionId();
 		public abstract string AggregateRootId();
+
+		public virtual ICommandValidationResult ValidateSemantics()
+		{
+			return CommandValidationResult.FromValid(); // TODO: Implement validation attributes...
+		}
 	}
 }

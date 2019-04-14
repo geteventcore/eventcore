@@ -39,9 +39,12 @@ namespace EventCore.AggregateRoots
 		{
 			try
 			{
-
-				// TODO: Need checks for duplicate, can't handle command, etc...
-
+				// Semantic validation to check format of fields, etc. - data that isn't dependent on state.
+				var semanticValidationResult = command.ValidateSemantics();
+				if (!semanticValidationResult.IsValid)
+				{
+					return HandledCommandResult.FromValidationErrors(semanticValidationResult.Errors.ToList());
+				}
 
 				var regionId = command.RegionId();
 				var aggregateRootId = command.AggregateRootId();
@@ -62,6 +65,12 @@ namespace EventCore.AggregateRoots
 
 				var state = _stateFactory.Create(serializedState);
 				await state.HydrateAsync(_streamClient, streamId);
+
+				// Check for duplicate command id.
+				if (state.IsCausalIdInRecentHistory(command.Metadata.CommandId))
+				{
+					return HandledCommandResult.FromValidationError("Duplicate command id.");
+				}
 
 				var handler = _handlerFactory.Create<TCommand>();
 
