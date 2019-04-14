@@ -1,13 +1,13 @@
 ﻿using EventCore.AggregateRoots;
 using System;
 
-namespace EventCore.Samples.EmailSystem.Domain.EmailQueue
+namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder
 {
-	public abstract class EmailQueueCommand : DomainCommand
+	public abstract class EmailBuilderCommand : DomainCommand
 	{
 		public readonly Guid EmailId;
 
-		public EmailQueueCommand(CommandMetadata metadata, Guid emailId) : base(metadata)
+		public EmailBuilderCommand(CommandMetadata metadata, Guid emailId) : base(metadata)
 		{
 			EmailId = emailId;
 		}

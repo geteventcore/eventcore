@@ -18,7 +18,7 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 			_ar = ar;
 		}
 
-		// POST api/emailQueue
+		// POST api/emailQueue/enqueueEmail
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
