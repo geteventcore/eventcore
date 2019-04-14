@@ -8,7 +8,7 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailQueue
 		where TCommand : EmailQueueCommand
 	{
 		public EmailQueueCommandHandler() { }
-		public abstract Task<ICommandEventsResult> ProcessCommandAsync(EmailQueueState state, TCommand command);
-		public abstract Task<ICommandValidationResult> ValidateCommandAsync(EmailQueueState state, TCommand command);
+		public abstract Task<ICommandEventsResult> ProcessCommandAsync(EmailQueueState state, TCommand c);
+		public abstract Task<ICommandValidationResult> ValidateForStateAsync(EmailQueueState state, TCommand c);
 	}
 }

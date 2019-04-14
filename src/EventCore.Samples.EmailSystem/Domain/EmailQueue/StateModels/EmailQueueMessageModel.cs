@@ -3,11 +3,11 @@ using System;
 
 namespace EventCore.Samples.EmailSystem.Domain.EmailQueue.StateModels
 {
-	public class EmailQueueMessage
+	public class EmailQueueMessageModel
 	{
 		public readonly Guid EmailId;
 		
-		public EmailQueueMessage(Guid emailId)
+		public EmailQueueMessageModel(Guid emailId)
 		{
 			EmailId = emailId;
 		}

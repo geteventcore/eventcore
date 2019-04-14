@@ -1,6 +1,4 @@
-﻿using EventCore.EventSourcing;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace EventCore.AggregateRoots
 {
@@ -8,7 +6,7 @@ namespace EventCore.AggregateRoots
 		where TState : IAggregateRootState
 		where TCommand : Command
 	{
-		Task<ICommandValidationResult> ValidateCommandAsync(TState state, TCommand command);
-		Task<ICommandEventsResult> ProcessCommandAsync(TState state, TCommand command);
+		Task<ICommandValidationResult> ValidateForStateAsync(TState state, TCommand c);
+		Task<ICommandEventsResult> ProcessCommandAsync(TState state, TCommand c);
 	}
 }

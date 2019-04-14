@@ -8,16 +8,16 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder.CommandHandlers
 {
 	public class EnqueueEmailHandler : EmailBuilderCommandHandler<BuildSalesOrderEmailCommand>
 	{
-		public override Task<ICommandValidationResult> ValidateCommandAsync(EmailBuilderState state, BuildSalesOrderEmailCommand command)
+		public override Task<ICommandValidationResult> ValidateForStateAsync(EmailBuilderState state, BuildSalesOrderEmailCommand c)
 		{
 			// if (state.Message != null) return CommandValidationResult.FromErrorAsync("Duplicate email id.");
 			// else return CommandValidationResult.FromValidAsync();
 			return CommandValidationResult.FromValidAsync();
 		}
 
-		public override Task<ICommandEventsResult> ProcessCommandAsync(EmailBuilderState state, BuildSalesOrderEmailCommand command)
+		public override Task<ICommandEventsResult> ProcessCommandAsync(EmailBuilderState state, BuildSalesOrderEmailCommand c)
 		{
-			// return CommandEventsResult.FromEventAsync(new EmailEnqueuedEvent(BusinessEventMetadata.FromCausalId(command.Metadata.CommandId), command.EmailId));
+			// return CommandEventsResult.FromEventAsync(new EmailEnqueuedEvent(BusinessEventMetadata.FromCausalId(c.Metadata.CommandId), c.EmailId));
 			return CommandEventsResult.FromEventsAsync(new BusinessEvent[] { });
 		}
 	}

@@ -1,23 +1,23 @@
-﻿using EventCore.Samples.EmailSystem.Domain.EmailQueue.StateModels;
+﻿using EventCore.Samples.EmailSystem.Domain.SalesOrder.StateModels;
 using EventCore.Samples.EmailSystem.Events;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.EmailSystem.Domain.EmailQueue
+namespace EventCore.Samples.EmailSystem.Domain.SalesOrder
 {
-	public class EmailQueueState : SerializeableAggregateRootState,
+	public class SalesOrderState : SerializeableAggregateRootState,
 		IApplyBusinessEvent<EmailEnqueuedEvent>
 	{
-		public EmailQueueMessageModel Message { get; private set; }
+		public SalesOrderModel SalesOrder { get; private set; }
 
 		public Task ApplyBusinessEventAsync(EmailEnqueuedEvent e, CancellationToken cancellationToken)
 		{
-			if (Message != null)
+			if (SalesOrder != null)
 			{
 				return Task.CompletedTask;
 			}
 
-			Message = new EmailQueueMessageModel(e.EmailId);
+			SalesOrder = new StateModels.SalesOrderModel(e.EmailId);
 			return Task.CompletedTask;
 		}
 	}

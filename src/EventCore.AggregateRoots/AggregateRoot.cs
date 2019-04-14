@@ -65,7 +65,7 @@ namespace EventCore.AggregateRoots
 
 				var handler = _handlerFactory.Create<TCommand>();
 
-				var validationResult = await handler.ValidateCommandAsync(state, command);
+				var validationResult = await handler.ValidateForStateAsync(state, command);
 				if (!validationResult.IsValid)
 				{
 					return HandledCommandResult.FromValidationErrors(validationResult.Errors.ToList());

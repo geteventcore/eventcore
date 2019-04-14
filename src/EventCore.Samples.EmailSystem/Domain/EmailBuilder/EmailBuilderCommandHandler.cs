@@ -8,7 +8,7 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder
 		where TCommand : EmailBuilderCommand
 	{
 		public EmailBuilderCommandHandler() { }
-		public abstract Task<ICommandEventsResult> ProcessCommandAsync(EmailBuilderState state, TCommand command);
-		public abstract Task<ICommandValidationResult> ValidateCommandAsync(EmailBuilderState state, TCommand command);
+		public abstract Task<ICommandEventsResult> ProcessCommandAsync(EmailBuilderState state, TCommand c);
+		public abstract Task<ICommandValidationResult> ValidateForStateAsync(EmailBuilderState state, TCommand c);
 	}
 }
