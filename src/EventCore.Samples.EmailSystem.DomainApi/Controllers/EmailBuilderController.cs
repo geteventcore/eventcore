@@ -1,4 +1,5 @@
-﻿using EventCore.Samples.EmailSystem.Domain.EmailBuilder;
+﻿using EventCore.AggregateRoots;
+using EventCore.Samples.EmailSystem.Domain.EmailBuilder;
 using EventCore.Samples.EmailSystem.Domain.EmailBuilder.Commands;
 using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
 using Microsoft.AspNetCore.Http;
@@ -11,9 +12,9 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 	[ApiController]
 	public class EmailBuilderController : ControllerBase
 	{
-		private readonly EmailBuilderAggregate _ar;
+		private readonly IAggregateRoot _ar;
 
-		public EmailBuilderController(EmailBuilderAggregate ar)
+		public EmailBuilderController(IAggregateRoot ar)
 		{
 			_ar = ar;
 		}
@@ -22,6 +23,6 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public Task<IActionResult> Post([FromBody] BuildSalesOrderEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
+		public Task<IActionResult> BuildSalesOrderEmail([FromBody] BuildSalesOrderEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
 	}
 }

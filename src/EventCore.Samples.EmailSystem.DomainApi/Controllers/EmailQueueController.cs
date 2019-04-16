@@ -1,4 +1,4 @@
-﻿using EventCore.Samples.EmailSystem.Domain.EmailQueue;
+﻿using EventCore.AggregateRoots;
 using EventCore.Samples.EmailSystem.Domain.EmailQueue.Commands;
 using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
 using Microsoft.AspNetCore.Http;
@@ -11,17 +11,17 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 	[ApiController]
 	public class EmailQueueController : ControllerBase
 	{
-		private readonly EmailQueueAggregate _ar;
+		private readonly IAggregateRoot _ar;
 
-		public EmailQueueController(EmailQueueAggregate ar)
+		public EmailQueueController(IAggregateRoot ar)
 		{
 			_ar = ar;
 		}
 
 		// POST api/emailQueue/enqueueEmail
-		[HttpPost]
+		[HttpPost()]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public Task<IActionResult> Post([FromBody] EnqueueEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
+		public Task<IActionResult> EnqueueEmail([FromBody] EnqueueEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
 	}
 }

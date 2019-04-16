@@ -1,5 +1,5 @@
-﻿using EventCore.Samples.EmailSystem.Domain.SalesOrder;
-using EventCore.Samples.EmailSystem.Domain.SalesOrder.Commands;
+﻿using EventCore.AggregateRoots;
+using EventCore.Samples.EmailSystem.Domain.SalesOrder;
 using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +11,9 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 	[ApiController]
 	public class SalesOrderController : ControllerBase
 	{
-		private readonly SalesOrderAggregate _ar;
+		private readonly IAggregateRoot _ar;
 
-		public SalesOrderController(SalesOrderAggregate ar)
+		public SalesOrderController(IAggregateRoot ar)
 		{
 			_ar = ar;
 		}
@@ -22,6 +22,6 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 		[HttpPost]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public Task<IActionResult> Post([FromBody] SalesOrderCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
+		public Task<IActionResult> RaiseSalesOrder([FromBody] SalesOrderCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
 	}
 }

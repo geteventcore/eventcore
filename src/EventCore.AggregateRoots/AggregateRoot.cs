@@ -50,18 +50,7 @@ namespace EventCore.AggregateRoots
 				var aggregateRootId = command.GetAggregateRootId();
 				var streamId = _streamIdBuilder.Build(regionId, _context, _aggregateRootName, aggregateRootId);
 
-				string serializedState = null;
-				if (SupportsSerializeableState)
-				{
-					try
-					{
-						serializedState = await _serializedAggregateRootStateRepo.LoadStateAsync(_aggregateRootName, aggregateRootId);
-					}
-					catch (Exception ex)
-					{
-						_logger.LogWarning(ex, "Unable to load serialized state. This is a non-critical error.");
-					}
-				}
+				string serializedState = await TryLoadSerializeStateAsync(SupportsSerializeableState, _aggregateRootName, aggregateRootId, _serializedAggregateRootStateRepo, _logger);
 
 				var state = _stateFactory.Create(serializedState);
 				await state.HydrateAsync(_streamClient, streamId);
@@ -81,34 +70,9 @@ namespace EventCore.AggregateRoots
 				}
 
 				var eventsResult = await handler.ProcessCommandAsync(state, command);
-				if (eventsResult.Events.Count > 0)
-				{
-					var commitEvents = new List<CommitEvent>();
-					foreach (var businessEvent in eventsResult.Events)
-					{
-						if (!_resolver.CanUnresolve(businessEvent))
-						{
-							throw new InvalidOperationException("Unable to unresolve business event.");
-						}
-						var unresolvedEvent = _resolver.UnresolveEvent(businessEvent);
-						commitEvents.Add(new CommitEvent(unresolvedEvent.EventType, unresolvedEvent.Data));
-					}
+				await ProcessEventsResultAsync(eventsResult, regionId, streamId, state, _resolver, _streamClient);
 
-					await _streamClient.CommitEventsToStreamAsync(regionId, streamId, state.StreamPositionCheckpoint + 1, commitEvents);
-				}
-
-				if (SupportsSerializeableState && state.SupportsSerialization)
-				{
-					try
-					{
-						var newSerializedState = await state.SerializeAsync();
-						await _serializedAggregateRootStateRepo.SaveStateAsync(_aggregateRootName, aggregateRootId, newSerializedState);
-					}
-					catch (Exception ex)
-					{
-						_logger.LogWarning(ex, "Unable to save serialized state. This is a non-critical error.");
-					}
-				}
+				await TrySaveSerializeStateAsync(state, SupportsSerializeableState, _aggregateRootName, aggregateRootId, _serializedAggregateRootStateRepo, _logger);
 
 				return HandledCommandResult.FromSuccess();
 			}
@@ -116,6 +80,57 @@ namespace EventCore.AggregateRoots
 			{
 				_logger.LogError(ex, "Exception while handling generic command.");
 				throw;
+			}
+		}
+
+		public static async Task<string> TryLoadSerializeStateAsync(bool supportsSerializeableState, string aggregateRootName, string aggregateRootId, ISerializedAggregateRootStateRepo repo, IStandardLogger logger)
+		{
+			if (supportsSerializeableState)
+			{
+				try
+				{
+					return await repo.LoadStateAsync(aggregateRootName, aggregateRootId);
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Unable to load serialized state. This is a non-critical error.");
+				}
+			}
+			return null;
+		}
+
+		public static async Task TrySaveSerializeStateAsync(TState state, bool supportsSerializeableState, string aggregateRootName, string aggregateRootId, ISerializedAggregateRootStateRepo repo, IStandardLogger logger)
+		{
+			if (supportsSerializeableState && state.SupportsSerialization)
+			{
+				try
+				{
+					var newSerializedState = await state.SerializeAsync();
+					await repo.SaveStateAsync(aggregateRootName, aggregateRootId, newSerializedState);
+				}
+				catch (Exception ex)
+				{
+					logger.LogWarning(ex, "Unable to save serialized state. This is a non-critical error.");
+				}
+			}
+		}
+
+		public static async Task ProcessEventsResultAsync(ICommandEventsResult eventsResult, string regionId, string streamId, TState state, IBusinessEventResolver resolver, IStreamClient streamClient)
+		{
+			if (eventsResult.Events.Count > 0)
+			{
+				var commitEvents = new List<CommitEvent>();
+				foreach (var businessEvent in eventsResult.Events)
+				{
+					if (!resolver.CanUnresolve(businessEvent))
+					{
+						throw new InvalidOperationException("Unable to unresolve business event.");
+					}
+					var unresolvedEvent = resolver.UnresolveEvent(businessEvent);
+					commitEvents.Add(new CommitEvent(unresolvedEvent.EventType, unresolvedEvent.Data));
+				}
+
+				await streamClient.CommitEventsToStreamAsync(regionId, streamId, state.StreamPositionCheckpoint + 1, commitEvents);
 			}
 		}
 	}
