@@ -11,6 +11,6 @@ namespace EventCore.AggregateRoots
 		Task HydrateAsync(IStreamClient streamClient, string streamId);
 		Task ApplyGenericBusinessEventAsync<TEvent>(TEvent e, CancellationToken cancellationToken) where TEvent : BusinessEvent;
 		Task<string> SerializeAsync();
-		bool IsCausalIdInRecentHistory(string causalId);
+		bool IsCausalIdInRecentHistory(string causalId); // Implementing class decides what "recent" means.
 	}
 }

@@ -14,6 +14,6 @@ namespace EventCore.Samples.EmailSystem.Domain
 			TimestampUtc = DateTime.UtcNow;
 		}
 
-		public static CommandMetadata Empty { get => new CommandMetadata(null); }
+		public static ICommandMetadata Empty { get => new CommandMetadata(null); }
 	}
 }
