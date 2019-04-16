@@ -8,7 +8,7 @@ namespace EventCore.AggregateRoots
 	{
 		public bool IsSuccess { get; }
 		public IImmutableList<string> ValidationErrors { get; }
-		public string SerializedState { get; }
+		public string SerializedState { get; } // Agg root may want to preserve serialized state event if command has validation errors.
 
 		public HandledCommandResult(IList<string> errors, string serializedState = null)
 		{

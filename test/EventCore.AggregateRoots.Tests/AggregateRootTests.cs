@@ -3,7 +3,7 @@ using Xunit;
 
 namespace EventCore.AggregateRoots.Tests
 {
-	public class UnitTest1
+	public class AggregateRootTests
 	{
 		[Fact]
 		public void Test1()
