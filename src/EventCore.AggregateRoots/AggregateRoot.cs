@@ -15,7 +15,7 @@ namespace EventCore.AggregateRoots
 		private readonly IStreamClient _streamClient;
 		private readonly IBusinessEventResolver _resolver;
 		private readonly ICommandHandlerFactory<TState> _handlerFactory;
-		private readonly ISerializedAggregateRootStateRepo _serializedAggregateRootStateRepo;
+		private readonly ISerializedAggregateRootStateRepo _serializedStateRepo;
 
 		private readonly string _context;
 		private readonly string _aggregateRootName;
@@ -30,7 +30,7 @@ namespace EventCore.AggregateRoots
 			_streamClient = dependencies.StreamClient;
 			_resolver = dependencies.Resolver;
 			_handlerFactory = dependencies.HandlerFactory;
-			_serializedAggregateRootStateRepo = dependencies.SerializedAggregateRootStateRepo;
+			_serializedStateRepo = dependencies.SerializedStateRepo;
 			_context = context;
 			_aggregateRootName = aggregateRootName;
 		}
@@ -50,7 +50,7 @@ namespace EventCore.AggregateRoots
 				var aggregateRootId = command.GetAggregateRootId();
 				var streamId = _streamIdBuilder.Build(regionId, _context, _aggregateRootName, aggregateRootId);
 
-				string serializedState = await TryLoadSerializeStateAsync(SupportsSerializeableState, _aggregateRootName, aggregateRootId, _serializedAggregateRootStateRepo, _logger);
+				string serializedState = await TryLoadSerializeStateAsync(SupportsSerializeableState, _aggregateRootName, aggregateRootId, _serializedStateRepo, _logger);
 
 				var state = _stateFactory.Create(serializedState);
 				await state.HydrateAsync(_streamClient, streamId);
@@ -72,7 +72,7 @@ namespace EventCore.AggregateRoots
 				var eventsResult = await handler.ProcessCommandAsync(state, command);
 				await ProcessEventsResultAsync(eventsResult, regionId, streamId, state, _resolver, _streamClient);
 
-				await TrySaveSerializeStateAsync(state, SupportsSerializeableState, _aggregateRootName, aggregateRootId, _serializedAggregateRootStateRepo, _logger);
+				await TrySaveSerializeStateAsync(state, SupportsSerializeableState, _aggregateRootName, aggregateRootId, _serializedStateRepo, _logger);
 
 				return HandledCommandResult.FromSuccess();
 			}

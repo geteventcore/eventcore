@@ -6,9 +6,9 @@ namespace EventCore.AggregateRoots.Tests
 	public class AggregateRootTests
 	{
 		[Fact]
-		public void Test1()
+		public void missing_tests()
 		{
-
+			throw new NotImplementedException();
 		}
 	}
 }

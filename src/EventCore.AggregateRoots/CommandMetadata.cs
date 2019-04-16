@@ -1,7 +1,7 @@
 ﻿using EventCore.AggregateRoots;
 using System;
 
-namespace EventCore.Samples.EmailSystem.Domain
+namespace EventCore.AggregateRoots
 {
 	public class CommandMetadata : ICommandMetadata
 	{

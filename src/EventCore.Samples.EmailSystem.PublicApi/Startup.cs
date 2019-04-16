@@ -22,7 +22,7 @@ namespace EventCore.Samples.EmailSystem.PublicApi
 
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "Sample Email System API", Version = "v1" });
+				c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "Sample Email System - Public API", Version = "v1" });
 			});
 		}
 
@@ -52,7 +52,7 @@ namespace EventCore.Samples.EmailSystem.PublicApi
 			{
 				c.DocumentTitle = "Sample Email System API Docs";
 				c.RoutePrefix = "openapi";
-				c.SwaggerEndpoint("/openapi/v1/openapi.json", "EventStore API v1");
+				c.SwaggerEndpoint("/openapi/v1/openapi.json", "Sample Email System - Public API v1");
 			});
 
 			// app.UseHttpsRedirection();

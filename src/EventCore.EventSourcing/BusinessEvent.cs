@@ -2,7 +2,7 @@
 
 namespace EventCore.EventSourcing
 {
-	public class BusinessEvent
+	public abstract class BusinessEvent
 	{
 		public readonly BusinessEventMetadata Metadata;
 

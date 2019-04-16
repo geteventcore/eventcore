@@ -8,7 +8,7 @@ namespace EventCore.AggregateRoots.Tests
 	public class HandledCommandResultTests
 	{
 		[Fact]
-		public void should_construct_with_validation_errors_and_serialized_state()
+		public void construct_with_validation_errors_and_serialized_state()
 		{
 			var errors = new List<string>() { "error" };
 			var state = "{}";
@@ -19,7 +19,7 @@ namespace EventCore.AggregateRoots.Tests
 		}
 
 		[Fact]
-		public void should_construct_with_serialized_state()
+		public void construct_with_serialized_state()
 		{
 			var state = "{}";
 			var result = new HandledCommandResult(state);
@@ -28,7 +28,7 @@ namespace EventCore.AggregateRoots.Tests
 		}
 
 		[Fact]
-		public void should_create_instance_from_success()
+		public void create_instance_from_success()
 		{
 			var result = HandledCommandResult.FromSuccess();
 			var resultAsync = HandledCommandResult.FromSuccessAsync().Result;
@@ -37,7 +37,7 @@ namespace EventCore.AggregateRoots.Tests
 		}
 
 		[Fact]
-		public void should_create_instance_from_validation_errors()
+		public void create_instance_from_validation_errors()
 		{
 			var error = "error";
 			var errors = new List<string>() { error };

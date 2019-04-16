@@ -11,13 +11,13 @@ namespace EventCore.AggregateRoots
 		public readonly IStreamClient StreamClient;
 		public readonly IBusinessEventResolver Resolver;
 		public readonly ICommandHandlerFactory<TState> HandlerFactory;
-		public readonly ISerializedAggregateRootStateRepo SerializedAggregateRootStateRepo;
+		public readonly ISerializedAggregateRootStateRepo SerializedStateRepo;
 
 		public AggregateRootDependencies(
 			IStandardLogger logger,
 			IAggregateRootStateFactory<TState> stateFactory, IStreamIdBuilder streamIdBuilder, IStreamClient streamClient,
 			IBusinessEventResolver resolver, ICommandHandlerFactory<TState> handlerFactory,
-			ISerializedAggregateRootStateRepo serializedAggregateRootStateRepo)
+			ISerializedAggregateRootStateRepo serializedStateRepo)
 		{
 			Logger = logger;
 			StateFactory = stateFactory;
@@ -25,7 +25,7 @@ namespace EventCore.AggregateRoots
 			StreamClient = streamClient;
 			Resolver = resolver;
 			HandlerFactory = handlerFactory;
-			SerializedAggregateRootStateRepo = serializedAggregateRootStateRepo;
+			SerializedStateRepo = serializedStateRepo;
 		}
 	}
 }

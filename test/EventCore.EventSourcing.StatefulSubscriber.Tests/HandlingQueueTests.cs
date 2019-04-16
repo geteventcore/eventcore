@@ -11,6 +11,11 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 {
 	public class HandlingQueueTests
 	{
+		private class TestBusinessEvent : BusinessEvent
+		{
+			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
+		}
+
 		[Fact]
 		public async Task enqueue_and_dequeue_items_with_correct_parallel_keys()
 		{
@@ -20,8 +25,8 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var queue = new HandlingQueue(mockQueueAwaiter.Object, maxQueueSize);
 			var parallelKey1 = "pk1";
 			var parallelKey2 = "pk2";
-			var subscriberEvent1 = new SubscriberEvent("s", 1, new BusinessEvent(BusinessEventMetadata.Empty));
-			var subscriberEvent2 = new SubscriberEvent("s", 2, new BusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent1 = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent2 = new SubscriberEvent("s", 2, new TestBusinessEvent(BusinessEventMetadata.Empty));
 
 			Assert.False(queue.IsEventsAvailable);
 
@@ -48,7 +53,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var cts = new CancellationTokenSource(10000);
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
 			var queue = new HandlingQueue(mockQueueAwaiter.Object, 1);
-			var subscriberEvent = new SubscriberEvent("s", 1, new BusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
 			var parallelKey = "pk";
 			var notInParallelKeys = new List<string>() { parallelKey };
 
@@ -65,7 +70,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
 			var queue = new HandlingQueue(mockQueueAwaiter.Object, maxQueueSize);
-			var subscriberEvent = new SubscriberEvent("s", 1, new BusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
 			var parallelKey = "pk";
 
 			queue.TryDequeue(new string[] { });
@@ -102,9 +107,9 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var parallelKey1 = "pk1";
 			var parallelKey2 = "pk2";
 			var parallelKey3 = "pk3";
-			var subscriberEvent1 = new SubscriberEvent("s", 1, new BusinessEvent(BusinessEventMetadata.Empty));
-			var subscriberEvent2 = new SubscriberEvent("s", 1, new BusinessEvent(BusinessEventMetadata.Empty));
-			var subscriberEvent3 = new SubscriberEvent("s", 1, new BusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent1 = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent2 = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent3 = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
 			var enqueueuSignalSetCount = 0;
 			var awaitingDequeueSignal = new ManualResetEventSlim(true);
 			var mockDequeueSignal = new ManualResetEventSlim(false);

@@ -10,6 +10,11 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 {
 	public class ResolutionManagerTests
 	{
+		private class TestBusinessEvent : BusinessEvent
+		{
+			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
+		}
+
 		private class TestException : Exception { }
 
 		[Fact]
@@ -63,7 +68,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var eventType = "x";
 			var data = new byte[] { };
 			var streamEvent = new StreamEvent(streamId, position, null, eventType, data);
-			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
+			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
 
 			mockResolver.Setup(x => x.ResolveEvent(eventType, data)).Returns(businessEvent);
 			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
@@ -99,7 +104,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var eventType = "x";
 			var data = new byte[] { };
 			var streamEvent = new StreamEvent(subStreamId, subPosition, new StreamEventLink(streamId, position), eventType, data);
-			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
+			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
 
 			mockResolver.Setup(x => x.ResolveEvent(eventType, data)).Returns(businessEvent);
 			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
@@ -133,7 +138,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 			var eventType = "x";
 			var data = new byte[] { };
 			var streamEvent = new StreamEvent(streamId, position, null, eventType, data);
-			var businessEvent = new BusinessEvent(BusinessEventMetadata.Empty);
+			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
 
