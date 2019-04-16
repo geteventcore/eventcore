@@ -7,11 +7,12 @@ using System.Text;
 namespace EventCore.EventSourcing
 {
 	// Generic resolver that uses business event class names as event type.
+	// Type names are case insensitive.
 	public class BusinessEventResolver : IBusinessEventResolver
 	{
 		private readonly IStandardLogger _logger;
 
-		private readonly Dictionary<string, Type> _typeNamesToStrongTypes = new Dictionary<string, Type>();
+		private readonly Dictionary<string, Type> _typeNamesToStrongTypes = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
 		private readonly Dictionary<Type, string> _strongTypesToTypeNames = new Dictionary<Type, string>();
 
 		public bool CanResolve(string type) => _typeNamesToStrongTypes.ContainsKey(type);
