@@ -29,7 +29,7 @@ namespace EventCore.EventSourcing.EventStore
 
 		public async Task<CommitResult> CommitEventsToStreamAsync(string regionId, string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events)
 		{
-			if (!StreamIdBuilder.ValidateStreamIdFragment(streamId))
+			if (!StreamIdBuilder.ValidateStreamIdChars(streamId))
 			{
 				throw new ArgumentException("Invalid character(s) in stream id.");
 			}

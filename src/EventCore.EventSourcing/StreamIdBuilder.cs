@@ -10,11 +10,11 @@ namespace EventCore.EventSourcing
 		// - ASCII letters and numbers
 		// - underscore ("_")
 		// - short dash / minus sign ("-")
-		private const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9_-]";
+		public const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9_-]";
 		
-		private const string SEPARATOR = "_";
+		public const string SEPARATOR = "-";
 
-		public static bool ValidateStreamIdFragment(string fragment) => !Regex.IsMatch(fragment, INVALID_STREAM_ID_REGEX);
+		public static bool ValidateStreamIdChars(string chars) => !Regex.IsMatch(chars, INVALID_STREAM_ID_REGEX);
 
 		public string Build(string regionId, string context, string aggregateRootName, string aggregateRootId)
 		{
@@ -23,7 +23,7 @@ namespace EventCore.EventSourcing
 				throw new ArgumentNullException("Aggregate root name is required.");
 			}
 
-			if (!ValidateStreamIdFragment(regionId + context + aggregateRootName + aggregateRootId))
+			if (!ValidateStreamIdChars(regionId + context + aggregateRootName + aggregateRootId))
 			{
 				throw new ArgumentException("Invalid character(s) in stream id input.");
 			}
@@ -37,7 +37,7 @@ namespace EventCore.EventSourcing
 
 			if (!string.IsNullOrWhiteSpace(context))
 			{
-				composite.Add(aggregateRootName);
+				composite.Add(context);
 			}
 
 			composite.Add(aggregateRootName); // Required.
