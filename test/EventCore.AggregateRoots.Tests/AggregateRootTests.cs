@@ -109,9 +109,21 @@ namespace EventCore.AggregateRoots.Tests
 		}
 
 		[Fact]
-		public void try_save_serialized_state_should_save_given_state()
+		public async Task try_save_serialized_state_should_save_given_state()
 		{
-			throw new NotImplementedException();
+			var aggregateRootName = "ar";
+			var aggregateRootId = "1";
+			var serializedState = "{}";
+			var mockState = new Mock<IAggregateRootState>();
+			var mockRepo = new Mock<ISerializedAggregateRootStateRepo>();
+
+			mockState.Setup(x => x.SupportsSerialization).Returns(true);
+			mockState.Setup(x => x.SerializeAsync()).ReturnsAsync(serializedState);
+			mockRepo.Setup(x => x.SaveStateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
+
+			await AggregateRoot<IAggregateRootState>.TrySaveSerializeStateAsync(mockState.Object, true, aggregateRootName, aggregateRootId, mockRepo.Object, NullStandardLogger.Instance);
+
+			mockRepo.Verify(x => x.SaveStateAsync(aggregateRootName, aggregateRootId, serializedState));
 		}
 
 		[Fact]
