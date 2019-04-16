@@ -11,26 +11,26 @@ namespace EventCore.AggregateRoots.Tests
 		[Fact]
 		public void construct()
 		{
-			var logger = new Mock<IStandardLogger>();
-			var stateFactory = new Mock<IAggregateRootStateFactory<IAggregateRootState>>();
-			var streamIdBuilder = new Mock<IStreamIdBuilder>();
-			var streamClient = new Mock<IStreamClient>();
-			var resolver = new Mock<IBusinessEventResolver>();
-			var handlerFactory = new Mock<ICommandHandlerFactory<IAggregateRootState>>();
-			var serializedStateRepo = new Mock<ISerializedAggregateRootStateRepo>();
+			var mockLogger = new Mock<IStandardLogger>();
+			var mockStateFactory = new Mock<IAggregateRootStateFactory<IAggregateRootState>>();
+			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
+			var mockStreamClient = new Mock<IStreamClient>();
+			var mockResolver = new Mock<IBusinessEventResolver>();
+			var mockHandlerFactory = new Mock<ICommandHandlerFactory<IAggregateRootState>>();
+			var mockSerializedStateRepo = new Mock<ISerializedAggregateRootStateRepo>();
 
 			var dependencies = new AggregateRootDependencies<IAggregateRootState>(
-				logger.Object, stateFactory.Object, streamIdBuilder.Object, streamClient.Object,
-				resolver.Object, handlerFactory.Object, serializedStateRepo.Object
+				mockLogger.Object, mockStateFactory.Object, mockStreamIdBuilder.Object, mockStreamClient.Object,
+				mockResolver.Object, mockHandlerFactory.Object, mockSerializedStateRepo.Object
 			);
 
-			Assert.Equal(logger.Object, dependencies.Logger);
-			Assert.Equal(stateFactory.Object, dependencies.StateFactory);
-			Assert.Equal(streamIdBuilder.Object, dependencies.StreamIdBuilder);
-			Assert.Equal(streamClient.Object, dependencies.StreamClient);
-			Assert.Equal(resolver.Object, dependencies.Resolver);
-			Assert.Equal(handlerFactory.Object, dependencies.HandlerFactory);
-			Assert.Equal(serializedStateRepo.Object, dependencies.SerializedStateRepo);
+			Assert.Equal(mockLogger.Object, dependencies.Logger);
+			Assert.Equal(mockStateFactory.Object, dependencies.StateFactory);
+			Assert.Equal(mockStreamIdBuilder.Object, dependencies.StreamIdBuilder);
+			Assert.Equal(mockStreamClient.Object, dependencies.StreamClient);
+			Assert.Equal(mockResolver.Object, dependencies.Resolver);
+			Assert.Equal(mockHandlerFactory.Object, dependencies.HandlerFactory);
+			Assert.Equal(mockSerializedStateRepo.Object, dependencies.SerializedStateRepo);
 		}
 	}
 }

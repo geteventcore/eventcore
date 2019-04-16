@@ -105,8 +105,8 @@ namespace EventCore.AggregateRoots
 			{
 				try
 				{
-					var newSerializedState = await state.SerializeAsync();
-					await repo.SaveStateAsync(aggregateRootName, aggregateRootId, newSerializedState);
+					var serializedState = await state.SerializeAsync();
+					await repo.SaveStateAsync(aggregateRootName, aggregateRootId, serializedState);
 				}
 				catch (Exception ex)
 				{
@@ -130,7 +130,12 @@ namespace EventCore.AggregateRoots
 					commitEvents.Add(new CommitEvent(unresolvedEvent.EventType, unresolvedEvent.Data));
 				}
 
-				await streamClient.CommitEventsToStreamAsync(regionId, streamId, state.StreamPositionCheckpoint + 1, commitEvents);
+				var result = await streamClient.CommitEventsToStreamAsync(regionId, streamId, state.StreamPositionCheckpoint, commitEvents);
+
+				if (result != CommitResult.Success)
+				{
+					throw new InvalidOperationException("Concurrency conflict while committing events.");
+				}
 			}
 		}
 	}
