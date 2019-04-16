@@ -6,6 +6,6 @@ namespace EventCore.AggregateRoots
 {
 	public interface ICommandHandlerFactory<TState> where TState : IAggregateRootState
 	{
-		ICommandHandler<TState, TCommand> Create<TCommand>() where TCommand : Command;
+		ICommandHandler<TState, TCommand> Create<TCommand>() where TCommand : ICommand;
 	}
 }

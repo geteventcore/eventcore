@@ -1,16 +1,18 @@
-﻿namespace EventCore.AggregateRoots
-{
-	public abstract class Command
-	{
-		public readonly CommandMetadata Metadata;
+﻿using System;
 
-		public Command(CommandMetadata metadata)
+namespace EventCore.AggregateRoots
+{
+	public abstract class Command : ICommand
+	{
+		public ICommandMetadata _Metadata { get; }
+
+		public Command(ICommandMetadata _metadata)
 		{
-			Metadata = metadata;
+			_Metadata = _metadata;
 		}
 
-		public abstract string RegionId();
-		public abstract string AggregateRootId();
+		public abstract string GetRegionId();
+		public abstract string GetAggregateRootId();
 
 		public virtual ICommandValidationResult ValidateSemantics()
 		{

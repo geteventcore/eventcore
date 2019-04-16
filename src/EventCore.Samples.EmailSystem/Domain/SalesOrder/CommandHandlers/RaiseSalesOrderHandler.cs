@@ -17,7 +17,7 @@ namespace EventCore.Samples.EmailSystem.Domain.SalesOrder.CommandHandlers
 		public override Task<ICommandEventsResult> ProcessCommandAsync(SalesOrderState state, RaiseSalesOrderCommand c)
 		{
 			var e = new SalesOrderRaisedEvent(
-				BusinessEventMetadata.FromCausalId(c.Metadata.CommandId),
+				BusinessEventMetadata.FromCausalId(c._Metadata.CommandId),
 				c.SalesOrderId, c.CustomerName, c.CustomerEmail, c.TotalPrice
 				);
 			return CommandEventsResult.FromEventAsync(e);

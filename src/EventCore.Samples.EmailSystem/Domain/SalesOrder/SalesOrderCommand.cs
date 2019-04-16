@@ -14,7 +14,7 @@ namespace EventCore.Samples.EmailSystem.Domain.SalesOrder
 			SalesOrderId = salesOrderId;
 		}
 
-		public override string RegionId() => null;
-		public override string AggregateRootId() => SalesOrderId;
+		public override string GetRegionId() => null;
+		public override string GetAggregateRootId() => SalesOrderId;
 	}
 }

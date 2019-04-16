@@ -35,7 +35,7 @@ namespace EventCore.AggregateRoots
 			_aggregateRootName = aggregateRootName;
 		}
 
-		public async Task<IHandledCommandResult> HandleGenericCommandAsync<TCommand>(TCommand command) where TCommand : Command
+		public async Task<IHandledCommandResult> HandleGenericCommandAsync<TCommand>(TCommand command) where TCommand : ICommand
 		{
 			try
 			{
@@ -46,8 +46,8 @@ namespace EventCore.AggregateRoots
 					return HandledCommandResult.FromValidationErrors(semanticValidationResult.Errors.ToList());
 				}
 
-				var regionId = command.RegionId();
-				var aggregateRootId = command.AggregateRootId();
+				var regionId = command.GetRegionId();
+				var aggregateRootId = command.GetAggregateRootId();
 				var streamId = _streamIdBuilder.Build(regionId, _context, _aggregateRootName, aggregateRootId);
 
 				string serializedState = null;
@@ -67,7 +67,7 @@ namespace EventCore.AggregateRoots
 				await state.HydrateAsync(_streamClient, streamId);
 
 				// Check for duplicate command id.
-				if (state.IsCausalIdInRecentHistory(command.Metadata.CommandId))
+				if (state.IsCausalIdInRecentHistory(command._Metadata.CommandId))
 				{
 					return HandledCommandResult.FromValidationError("Duplicate command id.");
 				}

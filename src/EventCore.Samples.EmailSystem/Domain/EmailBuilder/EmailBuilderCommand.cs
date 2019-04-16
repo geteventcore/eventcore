@@ -14,7 +14,7 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder
 			EmailId = emailId;
 		}
 
-		public override string RegionId() => null;
-		public override string AggregateRootId() => EmailId.ToString();
+		public override string GetRegionId() => null;
+		public override string GetAggregateRootId() => EmailId.ToString();
 	}
 }

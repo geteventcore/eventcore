@@ -17,7 +17,7 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailQueue.CommandHandlers
 		public override Task<ICommandEventsResult> ProcessCommandAsync(EmailQueueState state, EnqueueEmailCommand c)
 		{
 			var e = new EmailEnqueuedEvent(
-				BusinessEventMetadata.FromCausalId(c.Metadata.CommandId),
+				BusinessEventMetadata.FromCausalId(c._Metadata.CommandId),
 				c.EmailId, c.FromAddress, c.ToAddress, c.Subject, c.Body, c.IsHtml
 			);
 			return CommandEventsResult.FromEventAsync(e);

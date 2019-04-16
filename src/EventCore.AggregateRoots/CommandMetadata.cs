@@ -1,11 +1,12 @@
-﻿using System;
+﻿using EventCore.AggregateRoots;
+using System;
 
-namespace EventCore.AggregateRoots
+namespace EventCore.Samples.EmailSystem.Domain
 {
-	public class CommandMetadata
+	public class CommandMetadata : ICommandMetadata
 	{
-		public readonly string CommandId;
-		public readonly DateTime TimestampUtc;
+		public string CommandId { get; }
+		public DateTime TimestampUtc { get; }
 
 		public CommandMetadata(string commandId)
 		{

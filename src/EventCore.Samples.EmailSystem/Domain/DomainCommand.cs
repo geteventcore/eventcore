@@ -5,8 +5,10 @@ namespace EventCore.Samples.EmailSystem.Domain
 {
 	public abstract class DomainCommand : Command
 	{
-		// Use of underscore breaks naming conventions but this is special case
-		// to avoid naming collisions with subclasses.
+		// Use of underscore breaks naming conventions but since commands are
+		// simple data transfer objects we want to make it clear which properties/methods are
+		// for the system and which are for the data represented in subclasses.
+		
 		public string _CommandName
 		{
 			get
