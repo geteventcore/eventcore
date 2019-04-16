@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("[controller]")]
 	[ApiController]
 	public class EmailBuilderController : ControllerBase
 	{
@@ -19,10 +19,9 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 			_ar = ar;
 		}
 
-		// POST api/emailBuilder/buildSalesOrderEmail
-		[HttpPost]
+		[HttpPost("BuildSalesOrderEmail")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public Task<IActionResult> BuildSalesOrderEmail([FromBody] BuildSalesOrderEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
+		public Task<IActionResult> BuildSalesOrderEmailAsync([FromBody] BuildSalesOrderEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
 	}
 }

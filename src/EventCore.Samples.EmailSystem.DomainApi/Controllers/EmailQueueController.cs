@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("[controller]")]
 	[ApiController]
 	public class EmailQueueController : ControllerBase
 	{
@@ -18,10 +18,9 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 			_ar = ar;
 		}
 
-		// POST api/emailQueue/enqueueEmail
-		[HttpPost()]
+		[HttpPost("EnqueueEmail")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public Task<IActionResult> EnqueueEmail([FromBody] EnqueueEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
+		public Task<IActionResult> EnqueueEmailAsync([FromBody] EnqueueEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
 	}
 }

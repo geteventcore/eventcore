@@ -13,6 +13,6 @@ namespace EventCore.Samples.EmailSystem.PublicApi
 		public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
 				WebHost.CreateDefaultBuilder(args)
 						.UseStartup<Startup>()
-						.UseUrls("http://localhost:95001/");
+						.UseUrls("http://localhost:9501/");
 	}
 }

@@ -43,7 +43,7 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 
 			// Enable middleware to serve generated Swagger as a JSON endpoint.
 			app.UseSwagger(c =>
-				c.RouteTemplate = "openapi/{documentName}/openapi.json"
+				c.RouteTemplate = "_openapi/{documentName}/openapi.json"
 			);
 
 			// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), 
@@ -51,8 +51,8 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 			app.UseSwaggerUI(c =>
 			{
 				c.DocumentTitle = "Sample Email System API Docs";
-				c.RoutePrefix = "openapi";
-				c.SwaggerEndpoint("/openapi/v1/openapi.json", "EventStore API v1");
+				c.RoutePrefix = "_openapi";
+				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "EventStore API v1");
 			});
 
 			// app.UseHttpsRedirection();

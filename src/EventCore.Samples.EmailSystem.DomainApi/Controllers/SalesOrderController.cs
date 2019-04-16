@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 {
-	[Route("api/[controller]")]
+	[Route("[controller]")]
 	[ApiController]
 	public class SalesOrderController : ControllerBase
 	{
@@ -18,8 +18,7 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 			_ar = ar;
 		}
 
-		// POST api/salesOrder/raiseSalesOrder
-		[HttpPost]
+		[HttpPost("RaiseSalesOrder")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
 		public Task<IActionResult> RaiseSalesOrder([FromBody] SalesOrderCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
