@@ -1,11 +1,12 @@
+using EventCore.EventSourcing;
+using EventCore.Utilities;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using EventCore.EventSourcing;
-using Moq;
 using Xunit;
 
 namespace EventCore.AggregateRoots.Tests
@@ -54,15 +55,20 @@ namespace EventCore.AggregateRoots.Tests
 		}
 
 		[Fact]
-		public void try_load_serialized_state_should_return_null_when_not_support_serialization()
+		public async Task try_load_serialized_state_should_return_null_when_not_support_serialization()
 		{
-			throw new NotImplementedException();
+			// Will throw null reference if attempts to load state.
+			await AggregateRoot<IAggregateRootState>.TryLoadSerializeStateAsync(false, null, null, null, null);
 		}
 
 		[Fact]
-		public void try_load_serialized_state_should_return_null_when_exception()
+		public async Task try_load_serialized_state_should_return_null_when_exception()
 		{
-			throw new NotImplementedException();
+			var mockRepo = new Mock<ISerializedAggregateRootStateRepo>();
+			mockRepo.Setup(x => x.LoadStateAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception());
+
+			// Will throw null reference if attempts to save state.
+			await AggregateRoot<IAggregateRootState>.TryLoadSerializeStateAsync(false, null, null, mockRepo.Object, NullStandardLogger.Instance);
 		}
 
 		[Fact]
@@ -72,21 +78,34 @@ namespace EventCore.AggregateRoots.Tests
 		}
 
 		[Fact]
-		public void try_save_serialized_state_should_do_nothing_null_when_agg_root_not_support_serialization()
+		public async Task try_save_serialized_state_should_do_nothing_null_when_agg_root_not_support_serialization()
 		{
-			throw new NotImplementedException();
+			var mockState = new Mock<IAggregateRootState>();
+			mockState.Setup(x => x.SupportsSerialization).Returns(true);
+
+			// Will throw null reference if attempts to save state.
+			await AggregateRoot<IAggregateRootState>.TrySaveSerializeStateAsync(mockState.Object, false, null, null, null, null);
 		}
 
 		[Fact]
-		public void try_save_serialized_state_should_do_nothing_null_when_state_not_support_serialization()
+		public async Task try_save_serialized_state_should_do_nothing_null_when_state_not_support_serialization()
 		{
-			throw new NotImplementedException();
+			var mockState = new Mock<IAggregateRootState>();
+			mockState.Setup(x => x.SupportsSerialization).Returns(false);
+
+			// Will throw null reference if attempts to save state.
+			await AggregateRoot<IAggregateRootState>.TrySaveSerializeStateAsync(mockState.Object, true, null, null, null, null);
 		}
 
 		[Fact]
-		public void try_save_serialized_state_should_do_nothing_when_exception()
+		public async Task try_save_serialized_state_should_do_nothing_when_exception()
 		{
-			throw new NotImplementedException();
+			var mockState = new Mock<IAggregateRootState>();
+			mockState.Setup(x => x.SupportsSerialization).Returns(true);
+			mockState.Setup(x => x.SerializeAsync()).ThrowsAsync(new Exception());
+
+			// Will throw null reference if attempts to save state.
+			await AggregateRoot<IAggregateRootState>.TrySaveSerializeStateAsync(mockState.Object, true, null, null, null, NullStandardLogger.Instance);
 		}
 
 		[Fact]
