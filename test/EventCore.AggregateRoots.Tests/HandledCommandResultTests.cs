@@ -8,23 +8,19 @@ namespace EventCore.AggregateRoots.Tests
 	public class HandledCommandResultTests
 	{
 		[Fact]
-		public void construct_with_validation_errors_and_serialized_state()
+		public void construct_with_validation_errors()
 		{
 			var errors = new List<string>() { "error" };
-			var state = "{}";
-			var result = new HandledCommandResult(errors, state);
+			var result = new HandledCommandResult(errors);
 			Assert.False(result.IsSuccess);
 			Assert.Contains(errors[0], result.ValidationErrors);
-			Assert.Equal(state, result.SerializedState);
 		}
 
 		[Fact]
-		public void construct_with_serialized_state()
+		public void construct_with_defaults()
 		{
-			var state = "{}";
-			var result = new HandledCommandResult(state);
+			var result = new HandledCommandResult();
 			Assert.True(result.IsSuccess);
-			Assert.Equal(state, result.SerializedState);
 		}
 
 		[Fact]

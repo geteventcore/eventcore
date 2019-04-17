@@ -7,6 +7,5 @@ namespace EventCore.AggregateRoots
 	{
 		bool IsSuccess { get; }
 		IImmutableList<string> ValidationErrors { get; }
-		string SerializedState { get; }
 	}
 }
