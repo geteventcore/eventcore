@@ -9,8 +9,6 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailQueue
 	{
 		public const string NAME = "EmailQueue";
 
-		public override bool SupportsSerializeableState { get => true; }
-
 		public EmailQueueAggregate(AggregateRootDependencies<EmailQueueState> dependencies) : base(dependencies, null, NAME)
 		{
 		}

@@ -9,8 +9,6 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder
 	{
 		public const string NAME = "EmailBuilder";
 
-		public override bool SupportsSerializeableState { get => true; }
-
 		public EmailBuilderAggregate(AggregateRootDependencies<EmailBuilderState> dependencies) : base(dependencies, null, NAME)
 		{
 		}

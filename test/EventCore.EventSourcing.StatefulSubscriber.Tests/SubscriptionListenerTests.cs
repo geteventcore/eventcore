@@ -26,7 +26,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 
 			mockStreamClient.Setup(x => x.FirstPositionInStream).Returns(firstPositionInStream);
 			mockStreamClient
-				.Setup(x => x.SubscribeToStreamAsync(regionId, subscriptionStreamId, firstPositionInStream, It.IsAny<Func<StreamEvent, CancellationToken, Task>>(), cts.Token))
+				.Setup(x => x.SubscribeToStreamAsync(regionId, subscriptionStreamId, firstPositionInStream, It.IsAny<Func<StreamEvent, Task>>(), cts.Token))
 				.Callback(() => awaitingEnqueueSignal.Set())
 				.Returns(mockEnqueueSignal.WaitHandle.AsTask());
 
@@ -56,7 +56,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber.Tests
 
 			mockStreamClient.Setup(x => x.FirstPositionInStream).Returns(firstPositionInStream);
 			mockStreamClient
-				.Setup(x => x.SubscribeToStreamAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>(), It.IsAny<Func<StreamEvent, CancellationToken, Task>>(), It.IsAny<CancellationToken>()))
+				.Setup(x => x.SubscribeToStreamAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>(), It.IsAny<Func<StreamEvent, Task>>(), It.IsAny<CancellationToken>()))
 				.Throws(new TestException());
 
 			await Assert.ThrowsAsync<TestException>(() => listener.ListenAsync(regionId, subscriptionStreamId, cts.Token));

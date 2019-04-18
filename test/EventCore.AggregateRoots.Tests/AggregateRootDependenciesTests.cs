@@ -17,11 +17,10 @@ namespace EventCore.AggregateRoots.Tests
 			var mockStreamClient = new Mock<IStreamClient>();
 			var mockResolver = new Mock<IBusinessEventResolver>();
 			var mockHandlerFactory = new Mock<ICommandHandlerFactory<IAggregateRootState>>();
-			var mockSerializedStateRepo = new Mock<ISerializedAggregateRootStateRepo>();
 
 			var dependencies = new AggregateRootDependencies<IAggregateRootState>(
 				mockLogger.Object, mockStateFactory.Object, mockStreamIdBuilder.Object, mockStreamClient.Object,
-				mockResolver.Object, mockHandlerFactory.Object, mockSerializedStateRepo.Object
+				mockResolver.Object, mockHandlerFactory.Object
 			);
 
 			Assert.Equal(mockLogger.Object, dependencies.Logger);
@@ -30,7 +29,6 @@ namespace EventCore.AggregateRoots.Tests
 			Assert.Equal(mockStreamClient.Object, dependencies.StreamClient);
 			Assert.Equal(mockResolver.Object, dependencies.Resolver);
 			Assert.Equal(mockHandlerFactory.Object, dependencies.HandlerFactory);
-			Assert.Equal(mockSerializedStateRepo.Object, dependencies.SerializedStateRepo);
 		}
 	}
 }

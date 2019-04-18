@@ -20,8 +20,6 @@ namespace EventCore.AggregateRoots
 		private readonly string _context;
 		private readonly string _aggregateRootName;
 
-		public abstract bool SupportsSerializeableState { get; }
-
 		public AggregateRoot(AggregateRootDependencies<TState> dependencies, string context, string aggregateRootName)
 		{
 			_logger = dependencies.Logger;
@@ -92,38 +90,6 @@ namespace EventCore.AggregateRoots
 				throw;
 			}
 		}
-
-		// public static async Task<string> TryLoadSerializedStateAsync(bool supportsSerializeableState, string aggregateRootName, string aggregateRootId, ISerializedAggregateRootStateRepo repo, IStandardLogger logger)
-		// {
-		// 	if (supportsSerializeableState)
-		// 	{
-		// 		try
-		// 		{
-		// 			return await repo.LoadStateAsync(aggregateRootName, aggregateRootId);
-		// 		}
-		// 		catch (Exception ex)
-		// 		{
-		// 			logger.LogWarning(ex, "Unable to load serialized state. This is a non-critical error.");
-		// 		}
-		// 	}
-		// 	return null;
-		// }
-
-		// public static async Task TrySaveSerializedStateAsync(TState state, bool supportsSerializeableState, string aggregateRootName, string aggregateRootId, ISerializedAggregateRootStateRepo repo, IStandardLogger logger)
-		// {
-		// 	if (supportsSerializeableState && state.SupportsSerialization)
-		// 	{
-		// 		try
-		// 		{
-		// 			var serializedState = await state.SerializeAsync();
-		// 			await repo.SaveStateAsync(aggregateRootName, aggregateRootId, serializedState);
-		// 		}
-		// 		catch (Exception ex)
-		// 		{
-		// 			logger.LogWarning(ex, "Unable to save serialized state. This is a non-critical error.");
-		// 		}
-		// 	}
-		// }
 
 		public static async Task ProcessEventsResultAsync(ICommandEventsResult eventsResult, string regionId, string streamId, long? lastPositionHydrated, IBusinessEventResolver resolver, IStreamClient streamClient)
 		{

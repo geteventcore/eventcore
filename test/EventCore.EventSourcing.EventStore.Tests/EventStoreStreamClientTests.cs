@@ -234,7 +234,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION_ID)).Returns(new Mock<IEventStoreConnection>().Object);
 
-			await Assert.ThrowsAsync<ArgumentException>(() => client.LoadStreamEventsAsync(DEFAULT_REGION_ID, streamId, invalidPosition, (se, ct) => Task.CompletedTask, CancellationToken.None));
+			await Assert.ThrowsAsync<ArgumentException>(() => client.LoadStreamEventsAsync(DEFAULT_REGION_ID, streamId, invalidPosition, se => Task.CompletedTask, CancellationToken.None));
 		}
 
 		[Fact]
@@ -252,7 +252,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<bool>(), null))
 				.ThrowsAsync(ex);
 
-			await Assert.ThrowsAsync<TestException>(() => client.LoadStreamEventsAsync(DEFAULT_REGION_ID, streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, CancellationToken.None));
+			await Assert.ThrowsAsync<TestException>(() => client.LoadStreamEventsAsync(DEFAULT_REGION_ID, streamId, client.FirstPositionInStream, se => Task.CompletedTask, CancellationToken.None));
 		}
 
 		[Fact]
@@ -278,7 +278,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			await Assert.ThrowsAsync<TestException>(() => client.LoadStreamEventsAsync(
 				DEFAULT_REGION_ID, streamId, client.FirstPositionInStream,
-				(se, ct) => throw new TestException(),
+				se => throw new TestException(),
 				CancellationToken.None));
 		}
 
@@ -299,7 +299,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<bool>(), null))
 				.ReturnsAsync(mockSlice);
 
-			await client.LoadStreamEventsAsync(DEFAULT_REGION_ID, streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, CancellationToken.None);
+			await client.LoadStreamEventsAsync(DEFAULT_REGION_ID, streamId, client.FirstPositionInStream, se => Task.CompletedTask, CancellationToken.None);
 		}
 
 		[Fact]
@@ -317,7 +317,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 				.Setup(x => x.ReadStreamEventsForwardAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<int>(), It.IsAny<bool>(), null))
 				.ReturnsAsync(mockSlice);
 
-			await client.LoadStreamEventsAsync(DEFAULT_REGION_ID, streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, CancellationToken.None);
+			await client.LoadStreamEventsAsync(DEFAULT_REGION_ID, streamId, client.FirstPositionInStream, se => Task.CompletedTask, CancellationToken.None);
 
 			mockConn.Verify(x => x.ReadStreamEventsForwardAsync(streamId, client.FirstPositionInStream, It.IsAny<int>(), It.IsAny<bool>(), null));
 		}
@@ -361,7 +361,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			await client.LoadStreamEventsAsync(
 				DEFAULT_REGION_ID, streamId, client.FirstPositionInStream,
-				(se, ct) =>
+				se =>
 				{
 					calledCount++;
 
@@ -404,7 +404,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			mockConnFactory.Setup(x => x.Create(DEFAULT_REGION_ID)).Returns(new Mock<IEventStoreConnection>().Object);
 
-			await Assert.ThrowsAsync<ArgumentException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION_ID, streamId, invalidPosition, (se, ct) => Task.CompletedTask, CancellationToken.None));
+			await Assert.ThrowsAsync<ArgumentException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION_ID, streamId, invalidPosition, se => Task.CompletedTask, CancellationToken.None));
 		}
 
 		[Fact]
@@ -426,7 +426,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 					It.IsAny<Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception>>(), null))
 				.Throws(ex);
 
-			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION_ID, streamId, client.FirstPositionInStream, (se, ct) => Task.CompletedTask, new CancellationTokenSource(5000).Token));
+			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(DEFAULT_REGION_ID, streamId, client.FirstPositionInStream, se => Task.CompletedTask, new CancellationTokenSource(5000).Token));
 		}
 
 		[Fact]
@@ -471,7 +471,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			await Assert.ThrowsAsync<TestException>(() => client.SubscribeToStreamAsync(
 				DEFAULT_REGION_ID, streamId, client.FirstPositionInStream,
-				(se, ct) => throw new TestException(),
+				se => throw new TestException(),
 				cancelSource.Token));
 
 			if (cancelSource.IsCancellationRequested)
@@ -530,7 +530,7 @@ namespace EventCore.EventSourcing.EventStore.Tests
 
 			await client.SubscribeToStreamAsync(
 				DEFAULT_REGION_ID, streamId, client.FirstPositionInStream,
-				(se, ct) =>
+				se =>
 				{
 					calledCount++;
 

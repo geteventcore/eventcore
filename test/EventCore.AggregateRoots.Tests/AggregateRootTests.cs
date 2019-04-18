@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -23,10 +24,8 @@ namespace EventCore.AggregateRoots.Tests
 		private class TestAggregateRoot : AggregateRoot<IAggregateRootState>
 		{
 			private readonly bool _supportsSerializedState;
-			public override bool SupportsSerializeableState => _supportsSerializedState;
-			public TestAggregateRoot(AggregateRootDependencies<IAggregateRootState> dependencies, string context, string aggregateRootName, bool supportsSerializedState = false) : base(dependencies, context, aggregateRootName)
+			public TestAggregateRoot(AggregateRootDependencies<IAggregateRootState> dependencies, string context, string aggregateRootName) : base(dependencies, context, aggregateRootName)
 			{
-				_supportsSerializedState = supportsSerializedState;
 			}
 		}
 
@@ -34,12 +33,12 @@ namespace EventCore.AggregateRoots.Tests
 		public async Task handle_command_should_rethrow()
 		{
 			var mockCommand = new Mock<ICommand>();
-			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, null, null, null, null, null, null);
+			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, null, null, null, null, null);
 			var ar = new TestAggregateRoot(dependencies, null, null);
 
 			mockCommand.Setup(x => x.ValidateSemantics()).Throws(new TestException());
 
-			await Assert.ThrowsAsync<TestException>(() => ar.HandleGenericCommandAsync(mockCommand.Object));
+			await Assert.ThrowsAsync<TestException>(() => ar.HandleGenericCommandAsync(mockCommand.Object, CancellationToken.None));
 		}
 
 		[Fact]
@@ -49,14 +48,14 @@ namespace EventCore.AggregateRoots.Tests
 			var errors = new List<string>() { error }.ToImmutableList();
 			var mockCommand = new Mock<ICommand>();
 			var mockCommandValidationResult = new Mock<ICommandValidationResult>();
-			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, null, null, null, null, null, null);
+			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, null, null, null, null, null);
 			var ar = new TestAggregateRoot(dependencies, null, null);
 
 			mockCommandValidationResult.Setup(x => x.IsValid).Returns(false);
 			mockCommandValidationResult.Setup(x => x.Errors).Returns(errors);
 			mockCommand.Setup(x => x.ValidateSemantics()).Returns(mockCommandValidationResult.Object);
 
-			var result = await ar.HandleGenericCommandAsync(mockCommand.Object);
+			var result = await ar.HandleGenericCommandAsync(mockCommand.Object, CancellationToken.None);
 
 			Assert.False(result.IsSuccess);
 			Assert.Contains(error, result.ValidationErrors);
@@ -74,7 +73,7 @@ namespace EventCore.AggregateRoots.Tests
 			var mockCommandValidationResult = new Mock<ICommandValidationResult>();
 			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
 
-			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, null, mockStreamIdBuilder.Object, null, null, null, null);
+			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, null, mockStreamIdBuilder.Object, null, null, null);
 			var ar = new TestAggregateRoot(dependencies, context, aggregateRootName);
 
 			mockCommandValidationResult.Setup(x => x.IsValid).Returns(true); ;
@@ -84,7 +83,7 @@ namespace EventCore.AggregateRoots.Tests
 
 			try
 			{
-				await ar.HandleGenericCommandAsync(mockCommand.Object);
+				await ar.HandleGenericCommandAsync(mockCommand.Object, CancellationToken.None);
 			}
 			catch (Exception)
 			{
@@ -95,38 +94,39 @@ namespace EventCore.AggregateRoots.Tests
 		}
 
 		[Fact]
-		public async Task handle_command_should_create_state_from_serialized_data()
+		public async Task handle_command_should_create_state()
 		{
+			var regionId = "x";
+			var context = "ctx";
 			var aggregateRootName = "ar";
+			var aggregateRootId = "1";
 			var streamId = "sId";
-			var serializedState = "{}";
 
 			var mockCommand = new Mock<ICommand>();
 			var mockCommandValidationResult = new Mock<ICommandValidationResult>();
 			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
 			var mockStateFactory = new Mock<IAggregateRootStateFactory<IAggregateRootState>>();
-			var mockStateRepo = new Mock<ISerializedAggregateRootStateRepo>();
+			var cancelSource = new CancellationTokenSource();
 
-			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, null, null, null, mockStateRepo.Object);
-			var ar = new TestAggregateRoot(dependencies, null, aggregateRootName, true); // Supports serialized state.
+			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, null, null, null);
+			var ar = new TestAggregateRoot(dependencies, context, aggregateRootName); // Supports serialized state.
 
 			mockCommandValidationResult.Setup(x => x.IsValid).Returns(true); ;
 			mockCommand.Setup(x => x.ValidateSemantics()).Returns(mockCommandValidationResult.Object);
-			mockCommand.Setup(x => x.GetRegionId()).Returns((string)null);
-			mockCommand.Setup(x => x.GetAggregateRootId()).Returns((string)null);
+			mockCommand.Setup(x => x.GetRegionId()).Returns(regionId);
+			mockCommand.Setup(x => x.GetAggregateRootId()).Returns(aggregateRootId);
 			mockStreamIdBuilder.Setup(x => x.Build(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(streamId);
-			mockStateRepo.Setup(x => x.LoadStateAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(serializedState);
 
 			try
 			{
-				await ar.HandleGenericCommandAsync(mockCommand.Object);
+				await ar.HandleGenericCommandAsync(mockCommand.Object, cancelSource.Token);
 			}
 			catch (Exception)
 			{
 				// Ignore exception.
 			}
 
-			mockStateFactory.Verify(x => x.Create(serializedState));
+			mockStateFactory.Verify(x => x.CreateAndLoadToCheckpointAsync(regionId, context, aggregateRootName, aggregateRootId, cancelSource.Token));
 		}
 
 		[Fact]
@@ -138,19 +138,18 @@ namespace EventCore.AggregateRoots.Tests
 			var mockCommand = new Mock<ICommand>();
 			var mockCommandValidationResult = new Mock<ICommandValidationResult>();
 			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
-			var mockStreamClient = new Mock<IStreamClient>();
 			var mockStateFactory = new Mock<IAggregateRootStateFactory<IAggregateRootState>>();
 			var mockState = new Mock<IAggregateRootState>();
 
-			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, mockStreamClient.Object, null, null, null);
-			var ar = new TestAggregateRoot(dependencies, null, aggregateRootName, false);
+			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, null, null, null);
+			var ar = new TestAggregateRoot(dependencies, null, aggregateRootName);
 
 			mockCommandValidationResult.Setup(x => x.IsValid).Returns(true); ;
 			mockCommand.Setup(x => x.ValidateSemantics()).Returns(mockCommandValidationResult.Object);
 			mockCommand.Setup(x => x.GetRegionId()).Returns((string)null);
 			mockCommand.Setup(x => x.GetAggregateRootId()).Returns((string)null);
 			mockStreamIdBuilder.Setup(x => x.Build(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(streamId);
-			mockStateFactory.Setup(x => x.Create(null)).Returns(mockState.Object);
+			mockStateFactory.Setup(x => x.CreateAndLoadToCheckpointAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(mockState.Object);
 
 			try
 			{
@@ -307,86 +306,6 @@ namespace EventCore.AggregateRoots.Tests
 		}
 
 		[Fact]
-		public async Task try_load_serialized_state_should_return_null_when_not_support_serialization()
-		{
-			// Will throw null reference if attempts to load state.
-			await AggregateRoot<IAggregateRootState>.TryLoadSerializedStateAsync(false, null, null, null, null);
-		}
-
-		[Fact]
-		public async Task try_load_serialized_state_should_return_null_when_exception()
-		{
-			var mockRepo = new Mock<ISerializedAggregateRootStateRepo>();
-			mockRepo.Setup(x => x.LoadStateAsync(It.IsAny<string>(), It.IsAny<string>())).ThrowsAsync(new Exception());
-
-			// Will throw null reference if attempts to save state.
-			await AggregateRoot<IAggregateRootState>.TryLoadSerializedStateAsync(false, null, null, mockRepo.Object, NullStandardLogger.Instance);
-		}
-
-		[Fact]
-		public async Task try_load_serialized_state_should_return_loaded_state()
-		{
-			var expectedSerializedState = "{}";
-			var aggregateRootName = "ar";
-			var aggregateRootId = "1";
-			var mockRepo = new Mock<ISerializedAggregateRootStateRepo>();
-
-			mockRepo.Setup(x => x.LoadStateAsync(aggregateRootName, aggregateRootId)).ReturnsAsync(expectedSerializedState);
-
-			var actualSerializedState = await AggregateRoot<IAggregateRootState>.TryLoadSerializedStateAsync(true, aggregateRootName, aggregateRootId, mockRepo.Object, NullStandardLogger.Instance);
-
-			Assert.Equal(expectedSerializedState, actualSerializedState);
-		}
-
-		[Fact]
-		public async Task try_save_serialized_state_should_do_nothing_null_when_agg_root_not_support_serialization()
-		{
-			var mockState = new Mock<IAggregateRootState>();
-			mockState.Setup(x => x.SupportsSerialization).Returns(true);
-
-			// Will throw null reference if attempts to save state.
-			await AggregateRoot<IAggregateRootState>.TrySaveSerializedStateAsync(mockState.Object, false, null, null, null, null);
-		}
-
-		[Fact]
-		public async Task try_save_serialized_state_should_do_nothing_null_when_state_not_support_serialization()
-		{
-			var mockState = new Mock<IAggregateRootState>();
-			mockState.Setup(x => x.SupportsSerialization).Returns(false);
-
-			// Will throw null reference if attempts to save state.
-			await AggregateRoot<IAggregateRootState>.TrySaveSerializedStateAsync(mockState.Object, true, null, null, null, null);
-		}
-
-		[Fact]
-		public async Task try_save_serialized_state_should_do_nothing_when_exception()
-		{
-			var mockState = new Mock<IAggregateRootState>();
-			mockState.Setup(x => x.SupportsSerialization).Returns(true);
-
-			// Will throw null reference if attempts to save state.
-			await AggregateRoot<IAggregateRootState>.TrySaveSerializedStateAsync(mockState.Object, true, null, null, null, NullStandardLogger.Instance);
-		}
-
-		[Fact]
-		public async Task try_save_serialized_state_should_save_given_state()
-		{
-			var aggregateRootName = "ar";
-			var aggregateRootId = "1";
-			var serializedState = "{}";
-			var mockState = new Mock<IAggregateRootState>();
-			var mockRepo = new Mock<ISerializedAggregateRootStateRepo>();
-
-			mockState.Setup(x => x.SupportsSerialization).Returns(true);
-			mockState.Setup(x => x.SerializeAsync()).ReturnsAsync(serializedState);
-			mockRepo.Setup(x => x.SaveStateAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-
-			await AggregateRoot<IAggregateRootState>.TrySaveSerializedStateAsync(mockState.Object, true, aggregateRootName, aggregateRootId, mockRepo.Object, NullStandardLogger.Instance);
-
-			mockRepo.Verify(x => x.SaveStateAsync(aggregateRootName, aggregateRootId, serializedState));
-		}
-
-		[Fact]
 		public async Task process_events_result_should_do_nothing_with_empty_events()
 		{
 			var mockEventsResult = new Mock<ICommandEventsResult>();
@@ -413,9 +332,6 @@ namespace EventCore.AggregateRoots.Tests
 		[Fact]
 		public async Task process_events_result_should_throw_when_concurrency_conflict()
 		{
-			var regionId = "x";
-			var streamId = "s";
-			var streamPositionCheckpoint = 0;
 			var e = new TestBusinessEvent(BusinessEventMetadata.Empty);
 			var events = new List<BusinessEvent>() { e }.ToImmutableList();
 			var eventType = typeof(TestBusinessEvent).Name;
@@ -431,10 +347,9 @@ namespace EventCore.AggregateRoots.Tests
 			mockEventsResult.Setup(x => x.Events).Returns(events);
 			mockResolver.Setup(x => x.CanUnresolve(e)).Returns(true);
 			mockResolver.Setup(x => x.Unresolve(e)).Returns(unresolvedEvent);
-			mockState.Setup(x => x.StreamPositionCheckpoint).Returns(streamPositionCheckpoint);
 			mockStreamClient.Setup(x => x.CommitEventsToStreamAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<IEnumerable<CommitEvent>>())).ReturnsAsync(CommitResult.ConcurrencyConflict);
 
-			await Assert.ThrowsAsync<InvalidOperationException>(() => AggregateRoot<IAggregateRootState>.ProcessEventsResultAsync(mockEventsResult.Object, regionId, streamId, mockState.Object, mockResolver.Object, mockStreamClient.Object));
+			await Assert.ThrowsAsync<InvalidOperationException>(() => AggregateRoot<IAggregateRootState>.ProcessEventsResultAsync(mockEventsResult.Object, null, null, null, mockResolver.Object, mockStreamClient.Object));
 		}
 
 		[Fact]
@@ -452,16 +367,14 @@ namespace EventCore.AggregateRoots.Tests
 
 			var mockEventsResult = new Mock<ICommandEventsResult>();
 			var mockResolver = new Mock<IBusinessEventResolver>();
-			var mockState = new Mock<IAggregateRootState>();
 			var mockStreamClient = new Mock<IStreamClient>();
 
 			mockEventsResult.Setup(x => x.Events).Returns(events);
 			mockResolver.Setup(x => x.CanUnresolve(e)).Returns(true);
 			mockResolver.Setup(x => x.Unresolve(e)).Returns(unresolvedEvent);
-			mockState.Setup(x => x.StreamPositionCheckpoint).Returns(streamPositionCheckpoint);
 			mockStreamClient.Setup(x => x.CommitEventsToStreamAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<IEnumerable<CommitEvent>>())).ReturnsAsync(CommitResult.Success);
 
-			await AggregateRoot<IAggregateRootState>.ProcessEventsResultAsync(mockEventsResult.Object, regionId, streamId, mockState.Object, mockResolver.Object, mockStreamClient.Object);
+			await AggregateRoot<IAggregateRootState>.ProcessEventsResultAsync(mockEventsResult.Object, regionId, streamId, streamPositionCheckpoint, mockResolver.Object, mockStreamClient.Object);
 
 			mockStreamClient.Verify(x =>
 				x.CommitEventsToStreamAsync(
