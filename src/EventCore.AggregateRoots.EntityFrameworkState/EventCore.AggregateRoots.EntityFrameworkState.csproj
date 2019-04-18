@@ -5,11 +5,13 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\EventCore.AggregateRoots.EntityFrameworkState\EventCore.AggregateRoots.EntityFrameworkState.csproj" />
-		<ProjectReference Include="..\EventCore.AggregateRoots.SerializableState\EventCore.AggregateRoots.SerializableState.csproj" />
 		<ProjectReference Include="..\EventCore.AggregateRoots\EventCore.AggregateRoots.csproj" />
 		<ProjectReference Include="..\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
     <ProjectReference Include="..\EventCore.Utilities\EventCore.Utilities.csproj" />
   </ItemGroup>
+
+	<ItemGroup>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.1.1" />
+	</ItemGroup>
 
 </Project>

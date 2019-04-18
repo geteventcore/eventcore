@@ -35,7 +35,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber
 					var streamEvent = _resolutionQueue.TryDequeue();
 					if (streamEvent != null)
 					{
-						var businessEvent = _resolver.ResolveEvent(streamEvent.EventType, streamEvent.Data);
+						var businessEvent = _resolver.Resolve(streamEvent.EventType, streamEvent.Data);
 
 						// Stream events may (will for subscription streams) have links to original events.
 						// We want the original event as the core event and the subscription event info as secondary.

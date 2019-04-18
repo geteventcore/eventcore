@@ -1,16 +1,24 @@
-﻿using EventCore.Samples.EmailSystem.Domain.SalesOrder.StateModels;
+﻿using EventCore.AggregateRoots.SerializableState;
+using EventCore.EventSourcing;
+using EventCore.Samples.EmailSystem.Domain.SalesOrder.StateModels;
 using EventCore.Samples.EmailSystem.Events;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventCore.Samples.EmailSystem.Domain.SalesOrder
 {
-	public class SalesOrderState : SerializeableAggregateRootState,
+	public class SalesOrderState : SerializableAggregateRootState<SalesOrderModel>,
 		IApplyBusinessEvent<EmailEnqueuedEvent>
 	{
+		protected override SalesOrderModel _internalState { get => SalesOrder; set => SalesOrder = value; }
+
 		public SalesOrderModel SalesOrder { get; private set; }
 
-		public Task ApplyBusinessEventAsync(EmailEnqueuedEvent e, CancellationToken cancellationToken)
+		public SalesOrderState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+		{
+		}
+
+		public Task ApplyBusinessEventAsync(string streamId, long position, EmailEnqueuedEvent e, CancellationToken cancellationToken)
 		{
 			if (SalesOrder != null)
 			{

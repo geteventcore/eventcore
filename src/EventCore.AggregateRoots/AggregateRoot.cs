@@ -3,6 +3,7 @@ using EventCore.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventCore.AggregateRoots
@@ -15,7 +16,6 @@ namespace EventCore.AggregateRoots
 		private readonly IStreamClient _streamClient;
 		private readonly IBusinessEventResolver _resolver;
 		private readonly ICommandHandlerFactory<TState> _handlerFactory;
-		private readonly ISerializedAggregateRootStateRepo _serializedStateRepo;
 
 		private readonly string _context;
 		private readonly string _aggregateRootName;
@@ -30,12 +30,11 @@ namespace EventCore.AggregateRoots
 			_streamClient = dependencies.StreamClient;
 			_resolver = dependencies.Resolver;
 			_handlerFactory = dependencies.HandlerFactory;
-			_serializedStateRepo = dependencies.SerializedStateRepo;
 			_context = context;
 			_aggregateRootName = aggregateRootName;
 		}
 
-		public async Task<IHandledCommandResult> HandleGenericCommandAsync<TCommand>(TCommand command) where TCommand : ICommand
+		public async Task<IHandledCommandResult> HandleGenericCommandAsync<TCommand>(TCommand command, CancellationToken cancellationToken) where TCommand : ICommand
 		{
 			try
 			{
@@ -50,13 +49,24 @@ namespace EventCore.AggregateRoots
 				var aggregateRootId = command.GetAggregateRootId();
 				var streamId = _streamIdBuilder.Build(regionId, _context, _aggregateRootName, aggregateRootId);
 
-				string serializedState = await TryLoadSerializeStateAsync(SupportsSerializeableState, _aggregateRootName, aggregateRootId, _serializedStateRepo, _logger);
+				var state = await _stateFactory.CreateAndLoadToCheckpointAsync(regionId, _context, _aggregateRootName, aggregateRootId, cancellationToken);
 
-				var state = _stateFactory.Create(serializedState);
-				await state.HydrateAsync(_streamClient, streamId);
+				var loadStreamFromPosition = state.StreamPositionCheckpoint.GetValueOrDefault(_streamClient.FirstPositionInStream - 1) + 1;
+				long? lastPositionHydrated = null;
+				
+				await state.HydrateFromCheckpointAsync(
+					receiverAsync => _streamClient.LoadStreamEventsAsync(
+						regionId, streamId, loadStreamFromPosition,
+						async se => {
+							await receiverAsync(se);
+							lastPositionHydrated = se.Position;
+						},
+						cancellationToken),
+					cancellationToken
+					);
 
 				// Check for duplicate command id.
-				if (state.IsCausalIdInRecentHistory(command._Metadata.CommandId))
+				if (await state.IsCausalIdInHistoryAsync(command._Metadata.CommandId))
 				{
 					return HandledCommandResult.FromValidationError("Duplicate command id.");
 				}
@@ -70,9 +80,9 @@ namespace EventCore.AggregateRoots
 				}
 
 				var eventsResult = await handler.ProcessCommandAsync(state, command);
-				await ProcessEventsResultAsync(eventsResult, regionId, streamId, state, _resolver, _streamClient);
+				await ProcessEventsResultAsync(eventsResult, regionId, streamId, lastPositionHydrated, _resolver, _streamClient);
 
-				await TrySaveSerializeStateAsync(state, SupportsSerializeableState, _aggregateRootName, aggregateRootId, _serializedStateRepo, _logger);
+				await state.AddCausalIdToHistoryAsync(command._Metadata.CommandId);
 
 				return HandledCommandResult.FromSuccess();
 			}
@@ -83,39 +93,39 @@ namespace EventCore.AggregateRoots
 			}
 		}
 
-		public static async Task<string> TryLoadSerializeStateAsync(bool supportsSerializeableState, string aggregateRootName, string aggregateRootId, ISerializedAggregateRootStateRepo repo, IStandardLogger logger)
-		{
-			if (supportsSerializeableState)
-			{
-				try
-				{
-					return await repo.LoadStateAsync(aggregateRootName, aggregateRootId);
-				}
-				catch (Exception ex)
-				{
-					logger.LogWarning(ex, "Unable to load serialized state. This is a non-critical error.");
-				}
-			}
-			return null;
-		}
+		// public static async Task<string> TryLoadSerializedStateAsync(bool supportsSerializeableState, string aggregateRootName, string aggregateRootId, ISerializedAggregateRootStateRepo repo, IStandardLogger logger)
+		// {
+		// 	if (supportsSerializeableState)
+		// 	{
+		// 		try
+		// 		{
+		// 			return await repo.LoadStateAsync(aggregateRootName, aggregateRootId);
+		// 		}
+		// 		catch (Exception ex)
+		// 		{
+		// 			logger.LogWarning(ex, "Unable to load serialized state. This is a non-critical error.");
+		// 		}
+		// 	}
+		// 	return null;
+		// }
 
-		public static async Task TrySaveSerializeStateAsync(TState state, bool supportsSerializeableState, string aggregateRootName, string aggregateRootId, ISerializedAggregateRootStateRepo repo, IStandardLogger logger)
-		{
-			if (supportsSerializeableState && state.SupportsSerialization)
-			{
-				try
-				{
-					var serializedState = await state.SerializeAsync();
-					await repo.SaveStateAsync(aggregateRootName, aggregateRootId, serializedState);
-				}
-				catch (Exception ex)
-				{
-					logger.LogWarning(ex, "Unable to save serialized state. This is a non-critical error.");
-				}
-			}
-		}
+		// public static async Task TrySaveSerializedStateAsync(TState state, bool supportsSerializeableState, string aggregateRootName, string aggregateRootId, ISerializedAggregateRootStateRepo repo, IStandardLogger logger)
+		// {
+		// 	if (supportsSerializeableState && state.SupportsSerialization)
+		// 	{
+		// 		try
+		// 		{
+		// 			var serializedState = await state.SerializeAsync();
+		// 			await repo.SaveStateAsync(aggregateRootName, aggregateRootId, serializedState);
+		// 		}
+		// 		catch (Exception ex)
+		// 		{
+		// 			logger.LogWarning(ex, "Unable to save serialized state. This is a non-critical error.");
+		// 		}
+		// 	}
+		// }
 
-		public static async Task ProcessEventsResultAsync(ICommandEventsResult eventsResult, string regionId, string streamId, TState state, IBusinessEventResolver resolver, IStreamClient streamClient)
+		public static async Task ProcessEventsResultAsync(ICommandEventsResult eventsResult, string regionId, string streamId, long? lastPositionHydrated, IBusinessEventResolver resolver, IStreamClient streamClient)
 		{
 			if (eventsResult.Events.Count > 0)
 			{
@@ -126,11 +136,11 @@ namespace EventCore.AggregateRoots
 					{
 						throw new InvalidOperationException("Unable to unresolve business event.");
 					}
-					var unresolvedEvent = resolver.UnresolveEvent(businessEvent);
+					var unresolvedEvent = resolver.Unresolve(businessEvent);
 					commitEvents.Add(new CommitEvent(unresolvedEvent.EventType, unresolvedEvent.Data));
 				}
 
-				var result = await streamClient.CommitEventsToStreamAsync(regionId, streamId, state.StreamPositionCheckpoint, commitEvents);
+				var result = await streamClient.CommitEventsToStreamAsync(regionId, streamId, lastPositionHydrated, commitEvents);
 
 				if (result != CommitResult.Success)
 				{

@@ -69,7 +69,7 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		public async Task LoadStreamEventsAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
+		public async Task LoadStreamEventsAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken)
 		{
 			if (fromPosition < FirstPositionInStream)
 			{
@@ -114,7 +114,7 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		public async Task SubscribeToStreamAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, CancellationToken, Task> receiverAsync, CancellationToken cancellationToken)
+		public async Task SubscribeToStreamAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken)
 		{
 			if (fromPosition < FirstPositionInStream)
 			{
@@ -169,7 +169,7 @@ namespace EventCore.EventSourcing.EventStore
 			}
 		}
 
-		private async Task ReceiveResolvedEventAsync(Func<StreamEvent, CancellationToken, Task> receiverAsync, ResolvedEvent resolvedEvent, CancellationToken cancellationToken)
+		private async Task ReceiveResolvedEventAsync(Func<StreamEvent, Task> receiverAsync, ResolvedEvent resolvedEvent, CancellationToken cancellationToken)
 		{
 			if (!cancellationToken.IsCancellationRequested)
 			{
@@ -187,7 +187,7 @@ namespace EventCore.EventSourcing.EventStore
 				var streamEvent = new StreamEvent(resolvedEvent.OriginalStreamId, resolvedEvent.OriginalEventNumber, link, resolvedEvent.Event.EventType, resolvedEvent.Event.Data);
 
 				// Send the assembled stream event to the receiver.
-				await receiverAsync(streamEvent, cancellationToken);
+				await receiverAsync(streamEvent);
 			}
 		}
 

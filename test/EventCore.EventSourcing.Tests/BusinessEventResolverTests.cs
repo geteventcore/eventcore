@@ -77,7 +77,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			var types = new HashSet<Type>() { typeof(TestBusinessEvent1) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
-			Assert.ThrowsAny<Exception>(() => resolver.ResolveEvent("x", new byte[] { }));
+			Assert.ThrowsAny<Exception>(() => resolver.Resolve("x", new byte[] { }));
 		}
 
 		[Fact]
@@ -85,7 +85,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			var types = new HashSet<Type>() { typeof(TestBusinessEvent1) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
-			var e = resolver.ResolveEvent(typeof(TestBusinessEvent1).Name, Encoding.Unicode.GetBytes("/"));
+			var e = resolver.Resolve(typeof(TestBusinessEvent1).Name, Encoding.Unicode.GetBytes("/"));
 			Assert.Null(e);
 		}
 
@@ -95,7 +95,7 @@ namespace EventCore.EventSourcing.Tests
 			var types = new HashSet<Type>() { typeof(TestBusinessEvent1) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
 			var e = new TestBusinessEvent2(BusinessEventMetadata.Empty);
-			Assert.ThrowsAny<Exception>(() => resolver.UnresolveEvent(e));
+			Assert.ThrowsAny<Exception>(() => resolver.Unresolve(e));
 		}
 
 		[Fact]
@@ -104,7 +104,7 @@ namespace EventCore.EventSourcing.Tests
 			var types = new HashSet<Type>() { typeof(ErrorBusinessEvent) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
 			var e = new ErrorBusinessEvent(BusinessEventMetadata.Empty, "test value");
-			var unresolvedEvent = resolver.UnresolveEvent(e);
+			var unresolvedEvent = resolver.Unresolve(e);
 			Assert.Null(unresolvedEvent);
 		}
 
@@ -115,7 +115,7 @@ namespace EventCore.EventSourcing.Tests
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
 			var e = new TestBusinessEvent1(BusinessEventMetadata.Empty);
 			var data = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(e));
-			var resolvedEvent = resolver.ResolveEvent(typeof(TestBusinessEvent1).Name, data);
+			var resolvedEvent = resolver.Resolve(typeof(TestBusinessEvent1).Name, data);
 			Assert.NotNull(resolvedEvent);
 		}
 
@@ -126,7 +126,7 @@ namespace EventCore.EventSourcing.Tests
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
 			var e = new TestBusinessEvent1(BusinessEventMetadata.Empty);
 			var expectedData = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(e));
-			var unresolvedEvent = resolver.UnresolveEvent(e);
+			var unresolvedEvent = resolver.Unresolve(e);
 
 			Assert.NotNull(unresolvedEvent);
 			Assert.Equal(typeof(TestBusinessEvent1).Name, unresolvedEvent.EventType);

@@ -1,4 +1,5 @@
 ﻿using EventCore.EventSourcing;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,11 +7,9 @@ namespace EventCore.AggregateRoots
 {
 	public interface IAggregateRootState
 	{
-		bool SupportsSerialization {get;}
 		long? StreamPositionCheckpoint { get; }
-		Task HydrateAsync(IStreamClient streamClient, string streamId);
-		Task ApplyGenericBusinessEventAsync<TEvent>(TEvent e, CancellationToken cancellationToken) where TEvent : BusinessEvent;
-		Task<string> SerializeAsync();
-		bool IsCausalIdInRecentHistory(string causalId); // Implementing class decides what "recent" means.
+		Task HydrateFromCheckpointAsync(Func<Func<StreamEvent, Task>, Task> streamLoaderAsync, CancellationToken cancellationToken);
+		Task<bool> IsCausalIdInHistoryAsync(string causalId);
+		Task AddCausalIdToHistoryAsync(string causalId);
 	}
 }

@@ -18,7 +18,7 @@ namespace EventCore.EventSourcing
 		public bool CanResolve(string type) => _typeNamesToStrongTypes.ContainsKey(type);
 		public bool CanUnresolve(BusinessEvent e) => _strongTypesToTypeNames.ContainsKey(e.GetType());
 
-		public BusinessEventResolver(IStandardLogger logger, HashSet<Type> businessEventTypes)
+		public BusinessEventResolver(IStandardLogger logger, ISet<Type> businessEventTypes)
 		{
 			_logger = logger;
 
@@ -33,7 +33,7 @@ namespace EventCore.EventSourcing
 			}
 		}
 
-		public BusinessEvent ResolveEvent(string type, byte[] data)
+		public BusinessEvent Resolve(string type, byte[] data)
 		{
 			var strongType = _typeNamesToStrongTypes[type]; // Allow to throw unhandled exception.
 
@@ -49,7 +49,7 @@ namespace EventCore.EventSourcing
 			}
 		}
 
-		public UnresolvedBusinessEvent UnresolveEvent(BusinessEvent e)
+		public UnresolvedBusinessEvent Unresolve(BusinessEvent e)
 		{
 			var typeName = _strongTypesToTypeNames[e.GetType()]; // Allow to throw unhandled exception.
 

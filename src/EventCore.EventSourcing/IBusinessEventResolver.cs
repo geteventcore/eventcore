@@ -6,7 +6,7 @@ namespace EventCore.EventSourcing
 	{
 		bool CanResolve(string type);
 		bool CanUnresolve(BusinessEvent e);
-		BusinessEvent ResolveEvent(string type, byte[] data);
-		UnresolvedBusinessEvent UnresolveEvent(BusinessEvent e);
+		BusinessEvent Resolve(string type, byte[] data);
+		UnresolvedBusinessEvent Unresolve(BusinessEvent e);
 	}
 }
