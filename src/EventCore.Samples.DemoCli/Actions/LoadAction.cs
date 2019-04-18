@@ -30,7 +30,7 @@ namespace EventCore.Samples.DemoCli.Actions
 
 			await streamClient.LoadStreamEventsAsync(
 				Constants.EVENTSTORE_DEFAULT_REGION, streamId, _options.FromPosition,
-				(se, ct) =>
+				(se) =>
 				{
 					Console.WriteLine($"Event {se.EventType} received from stream {se.StreamId} ({se.Position}).");
 					return Task.CompletedTask;

@@ -30,7 +30,7 @@ namespace EventCore.EventSourcing.StatefulSubscriber
 					// Streams states will be read to skip previously processed events.
 					var listenerTask = _streamClient.SubscribeToStreamAsync(
 						regionId, subscriptionStreamId, _streamClient.FirstPositionInStream,
-						(se, ct) => _resolutionManager.ReceiveStreamEventAsync(se, _streamClient.FirstPositionInStream, ct),
+						(se) => _resolutionManager.ReceiveStreamEventAsync(se, _streamClient.FirstPositionInStream, cancellationToken),
 						cancellationToken
 					);
 					await Task.WhenAny(new[] { listenerTask, cancellationToken.WaitHandle.AsTask() });
