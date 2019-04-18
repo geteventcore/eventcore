@@ -33,7 +33,7 @@ namespace EventCore.AggregateRoots.SerializableState
 
 		public virtual async Task InitializeAsync(CancellationToken cancellationToken)
 		{
-			var stateObj = await _repo.LoadAsync(_regionId, _context, _aggregateRootName, _aggregateRootId, typeof(TInternalState));
+			var stateObj = await _repo.LoadAsync<TInternalState>(_regionId, _context, _aggregateRootName, _aggregateRootId);
 
 			if (stateObj != null)
 			{
@@ -53,7 +53,7 @@ namespace EventCore.AggregateRoots.SerializableState
 			await base.HydrateFromCheckpointAsync(streamLoaderAsync, cancellationToken);
 
 			// Save state.
-			var stateObj = new SerializableAggregateRootStateObject(StreamPositionCheckpoint, _causalIdHistory, _internalState);
+			var stateObj = new SerializableAggregateRootStateObject<TInternalState>(StreamPositionCheckpoint, _causalIdHistory, _internalState);
 			await _repo.SaveAsync(_regionId, _context, _aggregateRootName, _aggregateRootId, stateObj);
 		}
 
