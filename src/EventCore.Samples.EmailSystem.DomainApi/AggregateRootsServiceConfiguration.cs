@@ -1,20 +1,20 @@
 ﻿using EventCore.AggregateRoots;
 using EventCore.AggregateRoots.SerializableState;
+using EventCore.Samples.EmailSystem.Domain.EmailBuilder.StateModels;
 using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
 using EventCore.Samples.EmailSystem.DomainApi.Options;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using System;
 
 namespace EventCore.Samples.EmailSystem.DomainApi
 {
 	public static class AggregateRootsServiceConfiguration
 	{
-		public static void ConfigureAggregateRoots(IConfiguration config, IServiceCollection services, IOptionsSnapshot<EventSourcingOptions> eventSourcingOptions)
+		public static void ConfigureAggregateRoots(IConfiguration config, IServiceCollection services, EventSourcingOptions eventSourcingOptions)
 		{
-			ConfigureSerializableStateRepo(services, eventSourcingOptions);
+			ConfigureSerializableStateRepo(services);
 
 			ConfigureGenericAggregateRoot<Domain.EmailBuilder.EmailBuilderAggregate, Domain.EmailBuilder.EmailBuilderState>(services);
 			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services);
@@ -24,7 +24,7 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 			ConfigureEmailQueue(services);
 		}
 
-		private static void ConfigureSerializableStateRepo(IServiceCollection services, IOptionsSnapshot<EventSourcingOptions> eventSourcingOptions)
+		private static void ConfigureSerializableStateRepo(IServiceCollection services)
 		{
 			services.AddScoped<ISerializableAggregateRootStateObjectRepo, SerializableAggregateRootStateObjectRepo>();
 		}
@@ -74,8 +74,18 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 		}
 
 		// Cheap way to reuse database context object for different connection strings.
-		private class RegionAEmailBuilderDbContext : Domain.EmailBuilder.StateModels.EmailBuilderDbContext { }
-		private class RegionBEmailBuilderDbContext : Domain.EmailBuilder.StateModels.EmailBuilderDbContext { }
+		private class RegionAEmailBuilderDbContext : Domain.EmailBuilder.StateModels.EmailBuilderDbContext
+		{
+			public RegionAEmailBuilderDbContext(DbContextOptions<EmailBuilderDbContext> options) : base(options)
+			{
+			}
+		}
+		private class RegionBEmailBuilderDbContext : Domain.EmailBuilder.StateModels.EmailBuilderDbContext
+		{
+			public RegionBEmailBuilderDbContext(DbContextOptions<EmailBuilderDbContext> options) : base(options)
+			{
+			}
+		}
 
 		private static void ConfigureEmailQueue(IServiceCollection services)
 		{

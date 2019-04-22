@@ -9,10 +9,12 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 {
 	public static class AppServiceConfiguration
 	{
-		public static void ConfigureServices(IConfiguration config, IServiceCollection services, IOptionsSnapshot<EventSourcingOptions> eventSourcingOptions)
+		public static void ConfigureServices(IConfiguration config, IServiceCollection services)
 		{
 			// Set up strongly typed configuration options.
 			// services.Configure<EventSourcingOptions>(Configuration.GetSection("EventSourcing")); // Note: Nothing outside of startup needs access to event sourcing options.
+
+			var eventSourcingOptions = config.GetSection("EventSourcing").Get<EventSourcingOptions>();
 
 			// Set up basic app dependencies.
 			services.AddScoped<Utilities.IStandardLogger, Utilities.StandardLogger>();
@@ -23,7 +25,7 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 		}
 
 
-		private static void ConfigureStreamClient(IConfiguration config, IServiceCollection services, IOptionsSnapshot<EventSourcingOptions> eventSourcingOptions)
+		private static void ConfigureStreamClient(IConfiguration config, IServiceCollection services, EventSourcingOptions eventSourcingOptions)
 		{
 			var connectionBuilders = new Dictionary<string, Func<EventStore.ClientAPI.IEventStoreConnection>>();
 
@@ -42,7 +44,7 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 				sp => new EventSourcing.EventStore.EventStoreStreamClient(
 					sp.GetRequiredService<Utilities.IStandardLogger>(),
 					sp.GetRequiredService<EventSourcing.EventStore.IEventStoreConnectionFactory>(),
-					new EventSourcing.EventStore.EventStoreStreamClientOptions(eventSourcingOptions.Value.StreamReadBatchSize)
+					new EventSourcing.EventStore.EventStoreStreamClientOptions(eventSourcingOptions.StreamReadBatchSize)
 				)
 			);
 		}

@@ -13,6 +13,10 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder.StateModels
 		public DbSet<CausalIdHistoryDbModel> CausalIdHistory { get; set; }
 		public DbSet<EmailDbModel> Email { get; set; }
 
+		public EmailBuilderDbContext(DbContextOptions<EmailBuilderDbContext> options) : base(options)
+		{
+		}
+
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
 			builder.ApplyConfiguration(new EmailDbModelConfig());
