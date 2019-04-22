@@ -2,12 +2,15 @@
 using EventCore.Samples.EmailSystem.Domain.EmailBuilder.StateModels.Config;
 using EventCore.Samples.EmailSystem.Domain.EmailBuilder.StateModels.DbModels;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder.StateModels
 {
 	public class EmailBuilderDbContext : DbContext, IStoreCausalIdHistory
 	{
+		public DbSet<CausalIdHistoryDbModel> CausalIdHistory { get; set; }
 		public DbSet<EmailDbModel> Email { get; set; }
 
 		protected override void OnModelCreating(ModelBuilder builder)
@@ -15,14 +18,21 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder.StateModels
 			builder.ApplyConfiguration(new EmailDbModelConfig());
 		}
 
-		public Task AddCausalIdToHistoryIfNotExistsAsync(string causalId)
+		public async Task AddCausalIdToHistoryIfNotExistsAsync(string causalId)
 		{
-			throw new System.NotImplementedException();
+			if (await GetCausalIdHistoryOrDefaultAsync(this, causalId) == null)
+			{
+				CausalIdHistory.Add(new CausalIdHistoryDbModel() { CausalId = causalId });
+				await SaveChangesAsync();
+			}
 		}
 
-		public Task<bool> ExistsCausalIdInHistoryAsync(string causalId)
-		{
-			throw new System.NotImplementedException();
-		}
+		public async Task<bool> ExistsCausalIdInHistoryAsync(string causalId) => (await GetCausalIdHistoryOrDefaultAsync(this, causalId)) != null;
+
+		private static Func<EmailBuilderDbContext, string, Task<CausalIdHistoryDbModel>> GetCausalIdHistoryOrDefaultAsync =
+			EF.CompileAsyncQuery((EmailBuilderDbContext context, string causalId) =>
+				context.CausalIdHistory
+					.Where(x => x.CausalId == causalId) // No string transformation (i.e. ToUpper) assuming db is case insensitive by default.
+					.FirstOrDefault());
 	}
 }
