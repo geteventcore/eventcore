@@ -8,7 +8,7 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder.StateModels.Config
 	{
 		public void Configure(EntityTypeBuilder<CausalIdHistoryDbModel> builder)
 		{
-			builder.HasKey(x => x.CausalId);
+			builder.HasKey(x => x.CausalId); // Expecting database to treat this as case insensitive.
 		}
 	}
 }
