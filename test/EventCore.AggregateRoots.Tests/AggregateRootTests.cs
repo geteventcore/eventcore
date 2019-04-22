@@ -137,11 +137,12 @@ namespace EventCore.AggregateRoots.Tests
 			var mockCommand = new Mock<ICommand>();
 			var mockCommandValidationResult = new Mock<ICommandValidationResult>();
 			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
+			var mockStreamClient = new Mock<IStreamClient>();
 			var mockStateFactory = new Mock<IAggregateRootStateFactory<IAggregateRootState>>();
 			var mockState = new Mock<IAggregateRootState>();
 			var cancelSource = new CancellationTokenSource();
 
-			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, null, null, null);
+			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, mockStreamClient.Object, null, null);
 			var ar = new TestAggregateRoot(dependencies, null, aggregateRootName);
 
 			mockCommandValidationResult.Setup(x => x.IsValid).Returns(true); ;
@@ -149,6 +150,7 @@ namespace EventCore.AggregateRoots.Tests
 			mockCommand.Setup(x => x.GetRegionId()).Returns((string)null);
 			mockCommand.Setup(x => x.GetAggregateRootId()).Returns((string)null);
 			mockStreamIdBuilder.Setup(x => x.Build(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(streamId);
+			mockStreamClient.Setup(x => x.FirstPositionInStream).Returns(0);
 			mockStateFactory.Setup(x => x.CreateAndLoadToCheckpointAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(mockState.Object);
 
 			try
@@ -174,11 +176,12 @@ namespace EventCore.AggregateRoots.Tests
 			var mockCommandMetadata = new Mock<ICommandMetadata>();
 			var mockCommandValidationResult = new Mock<ICommandValidationResult>();
 			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
+			var mockStreamClient = new Mock<IStreamClient>();
 			var mockStateFactory = new Mock<IAggregateRootStateFactory<IAggregateRootState>>();
 			var mockState = new Mock<IAggregateRootState>();
 			var cancelSource = new CancellationTokenSource();
 
-			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, null, null, null);
+			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, mockStreamClient.Object, null, null);
 			var ar = new TestAggregateRoot(dependencies, null, aggregateRootName);
 
 			mockCommandValidationResult.Setup(x => x.IsValid).Returns(true);
@@ -188,6 +191,7 @@ namespace EventCore.AggregateRoots.Tests
 			mockCommand.Setup(x => x.GetAggregateRootId()).Returns((string)null);
 			mockCommand.Setup(x => x._Metadata).Returns(mockCommandMetadata.Object);
 			mockStreamIdBuilder.Setup(x => x.Build(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(streamId);
+			mockStreamClient.Setup(x => x.FirstPositionInStream).Returns(0);
 			mockStateFactory.Setup(x => x.CreateAndLoadToCheckpointAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(mockState.Object);
 			mockState.Setup(x => x.HydrateFromCheckpointAsync(It.IsAny<Func<Func<StreamEvent, Task>, Task>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			mockState.Setup(x => x.IsCausalIdInHistoryAsync(commandId)).ReturnsAsync(true);
@@ -212,13 +216,14 @@ namespace EventCore.AggregateRoots.Tests
 			var mockCommandValidationResultForSemantics = new Mock<ICommandValidationResult>();
 			var mockCommandValidationResultForState = new Mock<ICommandValidationResult>();
 			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
+			var mockStreamClient = new Mock<IStreamClient>();
 			var mockStateFactory = new Mock<IAggregateRootStateFactory<IAggregateRootState>>();
 			var mockState = new Mock<IAggregateRootState>();
 			var mockHandlerFactory = new Mock<ICommandHandlerFactory<IAggregateRootState>>();
 			var mockHandler = new Mock<ICommandHandler<IAggregateRootState, ICommand>>();
 			var cancelSource = new CancellationTokenSource();
 
-			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, null, null, mockHandlerFactory.Object);
+			var dependencies = new AggregateRootDependencies<IAggregateRootState>(NullStandardLogger.Instance, mockStateFactory.Object, mockStreamIdBuilder.Object, mockStreamClient.Object, null, mockHandlerFactory.Object);
 			var ar = new TestAggregateRoot(dependencies, null, aggregateRootName);
 
 			mockCommandValidationResultForSemantics.Setup(x => x.IsValid).Returns(true);
@@ -228,6 +233,7 @@ namespace EventCore.AggregateRoots.Tests
 			mockCommand.Setup(x => x.GetAggregateRootId()).Returns((string)null);
 			mockCommand.Setup(x => x._Metadata).Returns(mockCommandMetadata.Object);
 			mockStreamIdBuilder.Setup(x => x.Build(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(streamId);
+			mockStreamClient.Setup(x => x.FirstPositionInStream).Returns(0);
 			mockStateFactory.Setup(x => x.CreateAndLoadToCheckpointAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(mockState.Object);
 			mockState.Setup(x => x.HydrateFromCheckpointAsync(It.IsAny<Func<Func<StreamEvent, Task>, Task>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			mockState.Setup(x => x.IsCausalIdInHistoryAsync(commandId)).ReturnsAsync(false);
@@ -257,7 +263,7 @@ namespace EventCore.AggregateRoots.Tests
 			var eventDataBytes = Encoding.Unicode.GetBytes(eventDataText);
 			var unresolvedEvent = new UnresolvedBusinessEvent(eventType, eventDataBytes);
 			var firstPositionInStream = 1;
-			var streamPositionCheckpoint = 1;
+			var hydratedStreamEvent = new StreamEvent(streamId, firstPositionInStream, null, "whatever", new byte[] {});
 			var commitResult = CommitResult.Success;
 
 			var mockCommand = new Mock<ICommand>();
@@ -285,9 +291,12 @@ namespace EventCore.AggregateRoots.Tests
 			mockCommand.Setup(x => x._Metadata).Returns(mockCommandMetadata.Object);
 			mockStreamIdBuilder.Setup(x => x.Build(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(streamId);
 			mockStateFactory.Setup(x => x.CreateAndLoadToCheckpointAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).ReturnsAsync(mockState.Object);
-			mockState.Setup(x => x.HydrateFromCheckpointAsync(It.IsAny<Func<Func<StreamEvent, Task>, Task>>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+			mockState
+				.Setup(x => x.HydrateFromCheckpointAsync(It.IsAny<Func<Func<StreamEvent, Task>, Task>>(), It.IsAny<CancellationToken>()))
+				.Callback<Func<Func<StreamEvent, Task>, Task>, CancellationToken>((fx, ct) => fx(se => Task.CompletedTask).Wait()) // Simulate callback from stream client to event receiver.
+				.Returns(Task.CompletedTask);
 			mockState.Setup(x => x.IsCausalIdInHistoryAsync(commandId)).ReturnsAsync(false);
-			mockState.Setup(x => x.StreamPositionCheckpoint).Returns(streamPositionCheckpoint);
+			mockState.Setup(x => x.StreamPositionCheckpoint).Returns((long?)null); // Simulate no previously hydrated events.
 			mockHandlerFactory.Setup(x => x.Create<ICommand>()).Returns(mockHandler.Object);
 			mockCommandValidationResultForState.Setup(x => x.IsValid).Returns(true);
 			mockHandler.Setup(x => x.ValidateForStateAsync(mockState.Object, mockCommand.Object)).ReturnsAsync(mockCommandValidationResultForState.Object);
@@ -295,14 +304,17 @@ namespace EventCore.AggregateRoots.Tests
 			mockCommandEventsResult.Setup(x => x.Events).Returns(events);
 			mockResolver.Setup(x => x.CanUnresolve(e)).Returns(true);
 			mockResolver.Setup(x => x.Unresolve(e)).Returns(unresolvedEvent);
-			mockStreamClient.Setup(x => x.FirstPositionInStream).Returns(1);
-			mockStreamClient.Setup(x => x.LoadStreamEventsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>(), It.IsAny<Func<StreamEvent, Task>>(), It.IsAny<CancellationToken>()));
+			mockStreamClient.Setup(x => x.FirstPositionInStream).Returns(firstPositionInStream);
+			mockStreamClient
+				.Setup(x => x.LoadStreamEventsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>(), It.IsAny<Func<StreamEvent, Task>>(), It.IsAny<CancellationToken>()))
+				.Callback<string, string, long, Func<StreamEvent, Task>, CancellationToken>((_1, _2, _3, receiverAsync, ct) => receiverAsync(hydratedStreamEvent).Wait()) // Simulate loaded event during hydration.
+				.Returns(Task.CompletedTask);
 			mockStreamClient.Setup(x => x.CommitEventsToStreamAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<IEnumerable<CommitEvent>>())).ReturnsAsync(commitResult);
 
 			var result = await ar.HandleGenericCommandAsync(mockCommand.Object, cancelSource.Token);
 
-			mockStreamClient.Verify(x => x.LoadStreamEventsAsync(regionId, streamId, firstPositionInStream + 1, It.IsAny<Func<StreamEvent, Task>>(), cancelSource.Token));
-			mockStreamClient.Verify(x => x.CommitEventsToStreamAsync(regionId, streamId, streamPositionCheckpoint, It.IsAny<IEnumerable<CommitEvent>>()));
+			mockStreamClient.Verify(x => x.LoadStreamEventsAsync(regionId, streamId, firstPositionInStream, It.IsAny<Func<StreamEvent, Task>>(), cancelSource.Token));
+			mockStreamClient.Verify(x => x.CommitEventsToStreamAsync(regionId, streamId, firstPositionInStream, It.IsAny<IEnumerable<CommitEvent>>()));
 			Assert.True(result.IsSuccess);
 		}
 
