@@ -23,7 +23,6 @@ namespace EventCore.AggregateRoots.Tests
 
 		private class TestAggregateRoot : AggregateRoot<IAggregateRootState>
 		{
-			private readonly bool _supportsSerializedState;
 			public TestAggregateRoot(AggregateRootDependencies<IAggregateRootState> dependencies, string context, string aggregateRootName) : base(dependencies, context, aggregateRootName)
 			{
 			}

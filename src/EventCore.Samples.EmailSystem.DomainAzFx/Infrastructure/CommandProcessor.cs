@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventCore.Samples.EmailSystem.DomainAzFx.Infrastructure
@@ -31,7 +32,7 @@ namespace EventCore.Samples.EmailSystem.DomainAzFx.Infrastructure
 						var body = await reader.ReadToEndAsync();
 						var c = (TCommand)JsonConvert.DeserializeObject(body);
 
-						result = await ar.HandleGenericCommandAsync(c);
+						result = await ar.HandleGenericCommandAsync(c, CancellationToken.None);
 					}
 				}
 
