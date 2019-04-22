@@ -1,14 +1,12 @@
-﻿using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
+﻿using EventCore.AggregateRoots;
+using EventCore.AggregateRoots.SerializableState;
+using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
 using EventCore.Samples.EmailSystem.DomainApi.Options;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 
 namespace EventCore.Samples.EmailSystem.DomainApi
 {
@@ -28,16 +26,31 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 
 		private static void ConfigureSerializableStateRepo(IServiceCollection services, IOptionsSnapshot<EventSourcingOptions> eventSourcingOptions)
 		{
-			services.AddScoped<AggregateRoots.SerializableState.ISerializableAggregateRootStateObjectRepo, SerializableAggregateRootStateObjectRepo>();
+			services.AddScoped<ISerializableAggregateRootStateObjectRepo, SerializableAggregateRootStateObjectRepo>();
 		}
 
 		private static void ConfigureGenericAggregateRoot<TAggregate, TState>(IServiceCollection services)
-			where TAggregate : AggregateRoots.AggregateRoot<TState>
-			where TState : AggregateRoots.IAggregateRootState
+			where TAggregate : AggregateRoot<TState>
+			where TState : IAggregateRootState
 		{
 			services.AddScoped<TAggregate>();
-			services.AddScoped<AggregateRoots.AggregateRootDependencies<TState>>();
-			services.AddScoped<AggregateRoots.AggregateRootStateBusinessEventResolver<TState>>();
+			services.AddScoped<AggregateRootDependencies<TState>>();
+			services.AddScoped<AggregateRootStateBusinessEventResolver<TState>>();
+		}
+
+		private static void ConfigureSerializableState<TState, TInternalState>(
+			IServiceCollection services,
+			Func<AggregateRootStateBusinessEventResolver<TState>, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
+			where TState : SerializableAggregateRootState<TInternalState>
+		{
+			services.AddScoped<SerializableAggregateRootStateFactory<TState, TInternalState>>(
+				sp => new SerializableAggregateRootStateFactory<TState, TInternalState>(
+					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<TState>>(),
+					sp.GetRequiredService<ISerializableAggregateRootStateObjectRepo>(),
+					(resolver, repo, regionId, context, aggregateRootName, aggregateRootId) =>
+						stateConstructor((AggregateRootStateBusinessEventResolver<TState>)resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+				)
+			);
 		}
 
 		private static void ConfigureEmailBuilder(IConfiguration config, IServiceCollection services)
@@ -49,7 +62,7 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 
 			services.AddScoped<Domain.EmailBuilder.EmailBuilderStateFactory>(
 				sp => new Domain.EmailBuilder.EmailBuilderStateFactory(
-					sp.GetRequiredService<AggregateRoots.AggregateRootStateBusinessEventResolver<Domain.EmailBuilder.EmailBuilderState>>(),
+					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailBuilder.EmailBuilderState>>(),
 					(regionId) =>
 					{
 						if (string.Equals(regionId, "RegionA", StringComparison.OrdinalIgnoreCase)) return sp.GetRequiredService<RegionAEmailBuilderDbContext>();
@@ -60,35 +73,25 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 			);
 		}
 
+		// Cheap way to reuse database context object for different connection strings.
 		private class RegionAEmailBuilderDbContext : Domain.EmailBuilder.StateModels.EmailBuilderDbContext { }
 		private class RegionBEmailBuilderDbContext : Domain.EmailBuilder.StateModels.EmailBuilderDbContext { }
 
 		private static void ConfigureEmailQueue(IServiceCollection services)
 		{
-			services.AddScoped<AggregateRoots.SerializableState.SerializableAggregateRootStateFactory<Domain.EmailQueue.EmailQueueState, Domain.EmailQueue.StateModels.EmailQueueMessageModel>>(
-				sp => new AggregateRoots.SerializableState.SerializableAggregateRootStateFactory<Domain.EmailQueue.EmailQueueState, Domain.EmailQueue.StateModels.EmailQueueMessageModel>(
-					sp.GetRequiredService<AggregateRoots.AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>>(),
-					sp.GetRequiredService<AggregateRoots.SerializableState.ISerializableAggregateRootStateObjectRepo>(),
-					null
-				)
+			ConfigureSerializableState<Domain.EmailQueue.EmailQueueState, Domain.EmailQueue.StateModels.EmailQueueMessageModel>(
+				services,
+				(resolver, repo, regionId, context, aggregateRootName, aggregateRootId) =>
+					new Domain.EmailQueue.EmailQueueState((AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>)resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
 			);
 		}
 
-		private static void ConfigureSerializableState<TState, TInternalState>(
-			IServiceCollection services,
-			Func<string, string, string, string, AggregateRoots.AggregateRootStateBusinessEventResolver<TState>, AggregateRoots.SerializableState.ISerializableAggregateRootStateObjectRepo, TState> stateConstructor)
-			where TState : AggregateRoots.SerializableState.SerializableAggregateRootState<TInternalState>
+		private static void ConfigureSalesOrder(IServiceCollection services)
 		{
-			services.AddScoped<AggregateRoots.SerializableState.SerializableAggregateRootStateFactory<TState, TInternalState>>(
-				sp => new AggregateRoots.SerializableState.SerializableAggregateRootStateFactory<TState, TInternalState>(
-					sp.GetRequiredService<AggregateRoots.AggregateRootStateBusinessEventResolver<TState>>(),
-					sp.GetRequiredService<AggregateRoots.SerializableState.ISerializableAggregateRootStateObjectRepo>(),
-					(regionId, context, aggregateRootName, aggregateRootId, resolver, repo) =>
-						stateConstructor(
-							regionId, context, aggregateRootName, aggregateRootId,
-							(AggregateRoots.AggregateRootStateBusinessEventResolver<TState>)resolver,
-							repo)
-				)
+			ConfigureSerializableState<Domain.SalesOrder.SalesOrderState, Domain.SalesOrder.StateModels.SalesOrderModel>(
+				services,
+				(resolver, repo, regionId, context, aggregateRootName, aggregateRootId) =>
+					new Domain.SalesOrder.SalesOrderState((AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>)resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
 			);
 		}
 	}
