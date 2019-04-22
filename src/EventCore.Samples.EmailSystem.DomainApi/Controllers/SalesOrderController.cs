@@ -1,5 +1,4 @@
-﻿using EventCore.AggregateRoots;
-using EventCore.Samples.EmailSystem.Domain.SalesOrder;
+﻿using EventCore.Samples.EmailSystem.Domain.SalesOrder;
 using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -11,9 +10,9 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 	[ApiController]
 	public class SalesOrderController : ControllerBase
 	{
-		private readonly IAggregateRoot _ar;
+		private readonly SalesOrderAggregate _ar;
 
-		public SalesOrderController(IAggregateRoot ar)
+		public SalesOrderController(SalesOrderAggregate ar)
 		{
 			_ar = ar;
 		}

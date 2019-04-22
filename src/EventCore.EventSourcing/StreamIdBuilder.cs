@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 
 namespace EventCore.EventSourcing
 {
-	public class StreamIdBuilder
+	public class StreamIdBuilder : IStreamIdBuilder
 	{
 		// Valid stream characters:
 		// - ASCII letters and numbers

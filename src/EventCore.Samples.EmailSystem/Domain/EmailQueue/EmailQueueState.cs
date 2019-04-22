@@ -1,4 +1,5 @@
-﻿using EventCore.AggregateRoots.SerializableState;
+﻿using EventCore.AggregateRoots;
+using EventCore.AggregateRoots.SerializableState;
 using EventCore.EventSourcing;
 using EventCore.Samples.EmailSystem.Domain.EmailQueue.StateModels;
 using EventCore.Samples.EmailSystem.Events;
@@ -15,7 +16,7 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailQueue
 
 		public EmailQueueMessageModel Message { get; private set; }
 
-		public EmailQueueState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+		public EmailQueueState(AggregateRootStateBusinessEventResolver<EmailQueueState> resolver, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
 		{
 		}
 

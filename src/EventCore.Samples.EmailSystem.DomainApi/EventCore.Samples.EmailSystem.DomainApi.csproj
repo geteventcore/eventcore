@@ -7,12 +7,15 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="2.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
   </ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\EventCore.AggregateRoots\EventCore.AggregateRoots.csproj" />
+		<ProjectReference Include="..\EventCore.AggregateRoots.SerializableState\EventCore.AggregateRoots.SerializableState.csproj" />
 		<ProjectReference Include="..\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
+		<ProjectReference Include="..\EventCore.EventSourcing.EventStore\EventCore.EventSourcing.EventStore.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.EmailSystem\EventCore.Samples.EmailSystem.csproj" />
     <ProjectReference Include="..\EventCore.Utilities\EventCore.Utilities.csproj" />
   </ItemGroup>

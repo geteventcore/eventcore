@@ -1,4 +1,5 @@
-﻿using EventCore.AggregateRoots.SerializableState;
+﻿using EventCore.AggregateRoots;
+using EventCore.AggregateRoots.SerializableState;
 using EventCore.EventSourcing;
 using EventCore.Samples.EmailSystem.Domain.SalesOrder.StateModels;
 using EventCore.Samples.EmailSystem.Events;
@@ -14,7 +15,7 @@ namespace EventCore.Samples.EmailSystem.Domain.SalesOrder
 
 		public SalesOrderModel SalesOrder { get; private set; }
 
-		public SalesOrderState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+		public SalesOrderState(AggregateRootStateBusinessEventResolver<SalesOrderState> resolver, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
 		{
 		}
 

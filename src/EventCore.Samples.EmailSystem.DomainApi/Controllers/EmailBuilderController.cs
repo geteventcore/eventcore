@@ -1,5 +1,4 @@
-﻿using EventCore.AggregateRoots;
-using EventCore.Samples.EmailSystem.Domain.EmailBuilder;
+﻿using EventCore.Samples.EmailSystem.Domain.EmailBuilder;
 using EventCore.Samples.EmailSystem.Domain.EmailBuilder.Commands;
 using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
 using Microsoft.AspNetCore.Http;
@@ -12,9 +11,9 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 	[ApiController]
 	public class EmailBuilderController : ControllerBase
 	{
-		private readonly IAggregateRoot _ar;
+		private readonly EmailBuilderAggregate _ar;
 
-		public EmailBuilderController(IAggregateRoot ar)
+		public EmailBuilderController(EmailBuilderAggregate ar)
 		{
 			_ar = ar;
 		}

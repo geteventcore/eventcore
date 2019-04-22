@@ -1,4 +1,4 @@
-﻿using EventCore.AggregateRoots;
+﻿using EventCore.Samples.EmailSystem.Domain.EmailQueue;
 using EventCore.Samples.EmailSystem.Domain.EmailQueue.Commands;
 using EventCore.Samples.EmailSystem.DomainApi.Infrastructure;
 using Microsoft.AspNetCore.Http;
@@ -11,9 +11,9 @@ namespace EventCore.Samples.EmailSystem.DomainApi.Controllers
 	[ApiController]
 	public class EmailQueueController : ControllerBase
 	{
-		private readonly IAggregateRoot _ar;
+		private readonly EmailQueueAggregate _ar;
 
-		public EmailQueueController(IAggregateRoot ar)
+		public EmailQueueController(EmailQueueAggregate ar)
 		{
 			_ar = ar;
 		}

@@ -6,7 +6,7 @@ namespace EventCore.AggregateRoots.SerializableState
 	{
 		public readonly long? StreamPositionCheckpoint;
 		public readonly IList<string> CausalIdHistory;
-		public readonly object InternalState;
+		public readonly TInternalState InternalState;
 
 		public SerializableAggregateRootStateObject(long? streamPositionCheckpoint, IList<string> causalIdHistory, TInternalState internalState)
 		{

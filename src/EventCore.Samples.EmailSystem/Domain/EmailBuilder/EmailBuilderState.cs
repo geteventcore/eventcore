@@ -1,5 +1,5 @@
-﻿using EventCore.AggregateRoots.EntityFrameworkState;
-using EventCore.EventSourcing;
+﻿using EventCore.AggregateRoots;
+using EventCore.AggregateRoots.EntityFrameworkState;
 using EventCore.Samples.EmailSystem.Domain.EmailBuilder.StateModels;
 using EventCore.Samples.EmailSystem.Events;
 using System.Threading;
@@ -10,7 +10,7 @@ namespace EventCore.Samples.EmailSystem.Domain.EmailBuilder
 	public class EmailBuilderState : DbContextAggregateRootState<EmailBuilderDbContext>,
 		IApplyBusinessEvent<EmailEnqueuedEvent>
 	{
-		public EmailBuilderState(IBusinessEventResolver resolver, EmailBuilderDbContext db) : base(resolver, db)
+		public EmailBuilderState(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, EmailBuilderDbContext db) : base(resolver, db)
 		{
 		}
 
