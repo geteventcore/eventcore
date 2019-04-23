@@ -45,7 +45,7 @@ namespace EventCore.AggregateRoots
 		public static async Task ApplyGenericBusinessEventAsync<TEvent>(AggregateRootState state, string streamId, long position, TEvent e, CancellationToken cancellationToken) where TEvent : BusinessEvent
 		{
 			// Expects IApplyBusinessEvent<TEvent> for the type of event given.
-			await (Task)state.GetType().InvokeMember("ApplyBusinessEventAsync", BindingFlags.InvokeMethod, null, state, new object[] { e, cancellationToken });
+			await (Task)state.GetType().InvokeMember("ApplyBusinessEventAsync", BindingFlags.InvokeMethod, null, state, new object[] { streamId, position, e, cancellationToken });
 		}
 	}
 }
