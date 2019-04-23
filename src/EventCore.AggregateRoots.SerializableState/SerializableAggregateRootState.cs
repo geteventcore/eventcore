@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.AggregateRoots.SerializableState
 {
-	public abstract class SerializableAggregateRootState<TInternalState> : AggregateRootState
+	public abstract class SerializableAggregateRootState<TInternalState> : AggregateRootState, ISerializableAggregateRootState<TInternalState>
 	{
 		private readonly ISerializableAggregateRootStateObjectRepo _repo;
 		private readonly string _regionId;
@@ -15,8 +15,8 @@ namespace EventCore.AggregateRoots.SerializableState
 		private readonly string _aggregateRootName;
 		private readonly string _aggregateRootId;
 		
-		protected virtual int _maxCausalIdHistory { get; } = 1000;
-		protected readonly List<string> _causalIdHistory = new List<string>();
+		protected virtual int _maxCausalIdHistory { get; } = 100; // Limits the number of causal ids stored in memory.
+		protected readonly List<string> _causalIdHistory = new List<string>(); // List, not Set - need ordering so we can remove overflow.
 		protected abstract TInternalState _internalState { get; set; }
 
 		public SerializableAggregateRootState(
@@ -61,7 +61,7 @@ namespace EventCore.AggregateRoots.SerializableState
 		{
 			// Prevents large aggregate streams from accumulating too much history.
 			// Causal id tracking is used for preventing duplicate commands, which
-			// usually happens in quick succession.
+			// usually happens in quick succession, so we don't need a long history.
 			if (_causalIdHistory.Count >= _maxCausalIdHistory)
 			{
 				_causalIdHistory.Remove(_causalIdHistory.First());

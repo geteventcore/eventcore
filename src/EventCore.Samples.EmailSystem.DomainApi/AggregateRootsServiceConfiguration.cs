@@ -26,7 +26,7 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 
 		private static void ConfigureSerializableStateRepo(IServiceCollection services)
 		{
-			services.AddScoped<ISerializableAggregateRootStateObjectRepo, SerializableAggregateRootStateObjectRepo>();
+			services.AddScoped<ISerializableAggregateRootStateObjectRepo, FileSerializableAggregateRootStateObjectRepo>();
 		}
 
 		private static void ConfigureGenericAggregateRoot<TAggregate, TState>(IServiceCollection services)

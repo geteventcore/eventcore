@@ -14,7 +14,7 @@ namespace EventCore.AggregateRoots
 		
 		protected readonly IBusinessEventResolver _resolver;
 
-		public long? StreamPositionCheckpoint { get; protected set; }
+		public virtual long? StreamPositionCheckpoint { get; protected set; }
 
 		public AggregateRootState(IBusinessEventResolver resolver)
 		{

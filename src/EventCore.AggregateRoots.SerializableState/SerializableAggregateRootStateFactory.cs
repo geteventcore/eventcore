@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace EventCore.AggregateRoots.SerializableState
 {
 	public class SerializableAggregateRootStateFactory<TState, TInternalState> : IAggregateRootStateFactory<TState>
-		where TState : SerializableAggregateRootState<TInternalState>
+		where TState : ISerializableAggregateRootState<TInternalState>
 	{
 		private readonly IBusinessEventResolver _resolver;
 		private readonly ISerializableAggregateRootStateObjectRepo _repo;
