@@ -11,8 +11,8 @@ namespace EventCore.Samples.EmailSystem.DomainApi
 		}
 
 		public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
-				WebHost.CreateDefaultBuilder(args)
-						.UseStartup<Startup>()
-						.UseUrls("http://localhost:9502/");
+			WebHost.CreateDefaultBuilder(args)
+				.UseStartup<Startup>()
+				.UseUrls("http://localhost:9502/");
 	}
 }

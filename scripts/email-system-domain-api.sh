@@ -1,0 +1,1 @@
+dotnet run -p ../src/EventCore.Samples.EmailSystem.DomainApi -- ${1}
