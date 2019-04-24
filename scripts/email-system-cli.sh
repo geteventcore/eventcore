@@ -1,1 +1,1 @@
-dotnet run -p ../src/EventCore.Samples.EmailSystem.Cli -- ${1}
+dotnet run -p ../src/EventCore.Samples.Ecommerce.Cli -- ${1}
