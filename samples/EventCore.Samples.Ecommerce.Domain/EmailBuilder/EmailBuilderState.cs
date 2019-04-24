@@ -1,17 +1,19 @@
-﻿using EventCore.EventSourcing;
-using Microsoft.EntityFrameworkCore;
+﻿using EventCore.AggregateRoots;
+using EventCore.EventSourcing;
+using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels;
+using EventCore.Samples.Ecommerce.Events;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.AggregateRoots.EntityFrameworkState
+namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 {
-	public class DbContextAggregateRootState<TContext> : AggregateRootState
-		where TContext : DbContext, IStoreCausalIdHistory
+	public class EmailBuilderState : AggregateRootState,
+		IApplyBusinessEvent<EmailEnqueuedEvent>
 	{
-		private readonly TContext _db;
+		private readonly EmailBuilderDbContext _db;
 
-		public DbContextAggregateRootState(IBusinessEventResolver resolver, TContext db) : base(resolver)
+		public EmailBuilderState(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, EmailBuilderDbContext db) : base(resolver)
 		{
 			_db = db;
 		}
@@ -22,7 +24,7 @@ namespace EventCore.AggregateRoots.EntityFrameworkState
 			await streamLoaderAsync(se => ReceiveHydrationEventAsync(this, _resolver, _db, se, cancellationToken));
 		}
 
-		private static async Task<long> ReceiveHydrationEventAsync(DbContextAggregateRootState<TContext> state, IBusinessEventResolver resolver, TContext db, StreamEvent streamEvent, CancellationToken cancellationToken)
+		private static async Task<long> ReceiveHydrationEventAsync(EmailBuilderState state, IBusinessEventResolver resolver, EmailBuilderDbContext db, StreamEvent streamEvent, CancellationToken cancellationToken)
 		{
 			if (resolver.CanResolve(streamEvent.EventType))
 			{
@@ -38,5 +40,10 @@ namespace EventCore.AggregateRoots.EntityFrameworkState
 
 		public override Task AddCausalIdToHistoryAsync(string causalId) => _db.AddCausalIdToHistoryIfNotExistsAsync(causalId);
 		public override Task<bool> IsCausalIdInHistoryAsync(string causalId) => _db.ExistsCausalIdInHistoryAsync(causalId);
+
+		public Task ApplyBusinessEventAsync(string streamId, long position, EmailEnqueuedEvent e, CancellationToken cancellationToken)
+		{
+			return Task.CompletedTask;
+		}
 	}
 }

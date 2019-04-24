@@ -1,5 +1,4 @@
-﻿using EventCore.AggregateRoots.EntityFrameworkState;
-using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.Config;
+﻿using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.Config;
 using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.DbModels;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -8,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels
 {
-	public class EmailBuilderDbContext : DbContext, IStoreCausalIdHistory
+	public class EmailBuilderDbContext : DbContext
 	{
 		public DbSet<CausalIdHistoryDbModel> CausalIdHistory { get; set; }
 		public DbSet<EmailDbModel> Email { get; set; }

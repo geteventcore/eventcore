@@ -12,10 +12,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-		<ProjectReference Include="..\..\src\EventCore.AggregateRoots\EventCore.AggregateRoots.csproj" />
-		<ProjectReference Include="..\..\src\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
-		<ProjectReference Include="..\EventCore.Samples.Ecommerce\EventCore.Samples.Ecommerce.csproj" />
-		<ProjectReference Include="..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.Clients\EventCore.Samples.Ecommerce.Domain.Clients.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
