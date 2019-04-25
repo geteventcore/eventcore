@@ -18,7 +18,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.CommandHandlers
 		public override Task<ICommandEventsResult> ProcessCommandAsync(EmailBuilderState state, BuildSalesOrderEmailCommand c)
 		{
 			// return CommandEventsResult.FromEventAsync(new EmailEnqueuedEvent(BusinessEventMetadata.FromCausalId(c.Metadata.CommandId), c.EmailId));
-			return CommandEventsResult.FromEventsAsync(new BusinessEvent[] { });
+			return CommandEventsResult.FromEventsAsync(new IBusinessEvent[] { });
 		}
 	}
 }

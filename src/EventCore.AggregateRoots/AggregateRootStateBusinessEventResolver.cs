@@ -16,7 +16,13 @@ namespace EventCore.AggregateRoots
 
 		public static ISet<Type> GetAppliedBusinessEventTypes()
 		{
-			return new HashSet<Type>(typeof(TState).GetInterfaces().Where(x => x == typeof(IApplyBusinessEvent<>)).Select(x => x.GetGenericArguments()[0]).Distinct());
+			var genericType = typeof(IApplyBusinessEvent<>);
+			var interfaces = typeof(TState).GetInterfaces();
+			var genericArgs = interfaces
+				.Where(x => x.IsGenericType &&  x.GetGenericTypeDefinition() == genericType)
+				.Select(x => x.GetGenericArguments()[0]).Distinct();
+			
+			return new HashSet<Type>(genericArgs);
 		}
 	}
 }

@@ -14,6 +14,6 @@ namespace EventCore.AggregateRoots
 			TimestampUtc = DateTime.UtcNow;
 		}
 
-		public static ICommandMetadata Empty { get => new CommandMetadata(null); }
+		public static CommandMetadata Empty { get => new CommandMetadata(null); }
 	}
 }

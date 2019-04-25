@@ -10,11 +10,6 @@ namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class HandlingManagerHandlerRunnerTests
 	{
-		private class TestBusinessEvent : BusinessEvent
-		{
-			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
-		}
-
 		[Fact]
 		public async Task run_handler_and_save_stream_state_with_success()
 		{
@@ -25,8 +20,8 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var runner = new HandlingManagerHandlerRunner(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockHandler.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var mockBusinessEvent = new Mock<IBusinessEvent>();
+			var subscriberEvent = new SubscriberEvent(streamId, position, mockBusinessEvent.Object);
 
 			mockHandler.Setup(x => x.HandleAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			mockStreamStateRepo.Setup(x => x.SaveStreamStateAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
@@ -47,8 +42,8 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var runner = new HandlingManagerHandlerRunner(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockHandler.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var mockBusinessEvent = new Mock<IBusinessEvent>();
+			var subscriberEvent = new SubscriberEvent(streamId, position, mockBusinessEvent.Object);
 
 			mockHandler.Setup(x => x.HandleAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Throws(new Exception());
 			mockStreamStateRepo.Setup(x => x.SaveStreamStateAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
@@ -68,8 +63,8 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var runner = new HandlingManagerHandlerRunner(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockHandler.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var mockBusinessEvent = new Mock<IBusinessEvent>();
+			var subscriberEvent = new SubscriberEvent(streamId, position, mockBusinessEvent.Object);
 
 			mockHandler.Setup(x => x.HandleAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 			mockStreamStateRepo.Setup(x => x.SaveStreamStateAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<bool>())).Returns(Task.CompletedTask);
@@ -90,8 +85,8 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var runner = new HandlingManagerHandlerRunner(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockHandler.Object);
 			var streamId = "s";
 			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var mockBusinessEvent = new Mock<IBusinessEvent>();
+			var subscriberEvent = new SubscriberEvent(streamId, position, mockBusinessEvent.Object);
 
 			mockHandler.Setup(x => x.HandleAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Throws(new Exception());
 			mockStreamStateRepo.Setup(x => x.SaveStreamStateAsync(It.IsAny<string>(), It.IsAny<long>(), It.IsAny<bool>())).Returns(Task.CompletedTask);

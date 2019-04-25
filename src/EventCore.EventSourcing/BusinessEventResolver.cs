@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace EventCore.EventSourcing
@@ -16,40 +17,39 @@ namespace EventCore.EventSourcing
 		private readonly Dictionary<Type, string> _strongTypesToTypeNames = new Dictionary<Type, string>();
 
 		public bool CanResolve(string type) => _typeNamesToStrongTypes.ContainsKey(type);
-		public bool CanUnresolve(BusinessEvent e) => _strongTypesToTypeNames.ContainsKey(e.GetType());
+		public bool CanUnresolve(IBusinessEvent e) => _strongTypesToTypeNames.ContainsKey(e.GetType());
 
 		public BusinessEventResolver(IStandardLogger logger, ISet<Type> businessEventTypes)
 		{
 			_logger = logger;
 
-			var baseType = typeof(BusinessEvent);
 			foreach (var type in businessEventTypes)
 			{
-				if (!type.IsSubclassOf(baseType))
-					throw new ArgumentException("Type must be subclass of business event.");
+				if (!type.GetInterfaces().Contains(typeof(IBusinessEvent)))
+					throw new ArgumentException("Type must be of IBusinessEvent.");
 
 				_typeNamesToStrongTypes.Add(type.Name, type);
 				_strongTypesToTypeNames.Add(type, type.Name);
 			}
 		}
 
-		public BusinessEvent Resolve(string type, byte[] data)
+		public IBusinessEvent Resolve(string type, byte[] data)
 		{
 			var strongType = _typeNamesToStrongTypes[type]; // Allow to throw unhandled exception.
 
 			try
 			{
 				var json = Encoding.Unicode.GetString(data);
-				return (BusinessEvent)JsonConvert.DeserializeObject(json, strongType);
+				return (IBusinessEvent)JsonConvert.DeserializeObject(json, strongType);
 			}
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Exception while resolving business event.");
-				return null;
+				return null; // Intentionally resolve to null when serialization or encoding exception.
 			}
 		}
 
-		public UnresolvedBusinessEvent Unresolve(BusinessEvent e)
+		public UnresolvedBusinessEvent Unresolve(IBusinessEvent e)
 		{
 			var typeName = _strongTypesToTypeNames[e.GetType()]; // Allow to throw unhandled exception.
 
@@ -63,7 +63,7 @@ namespace EventCore.EventSourcing
 			catch (Exception ex)
 			{
 				_logger.LogError(ex, "Exception while unresolving business event.");
-				return null;
+				return null; // Intentionally resolve to null when serialization or encoding exception.
 			}
 		}
 	}

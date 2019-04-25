@@ -10,11 +10,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class SortingManagerTests
 	{
-		private class TestBusinessEvent : BusinessEvent
-		{
-			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
-		}
-		
+	
 		private class TestException : Exception { }
 
 		[Fact]
@@ -62,10 +58,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var mockQueue = new Mock<ISortingQueue>();
 			var mockSorter = new Mock<ISubscriberEventSorter>();
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, null);
-			var streamId = "s";
-			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 			var parallelKey = ""; // Must be empty (or null).
 
 			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
@@ -82,10 +75,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var mockSorter = new Mock<ISubscriberEventSorter>();
 			var mockHandlingManager = new Mock<IHandlingManager>();
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, mockHandlingManager.Object);
-			var streamId = "s";
-			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 			var parallelKey = "x";
 
 			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
@@ -108,10 +98,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var mockSorter = new Mock<ISubscriberEventSorter>();
 			var mockHandlingManager = new Mock<IHandlingManager>();
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, mockHandlingManager.Object);
-			var streamId = "s";
-			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 			var parallelKey = "x";
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
@@ -133,11 +120,8 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		{
 			var cts = new CancellationTokenSource(10000);
 			var mockQueue = new Mock<ISortingQueue>();
-			var streamId = "s";
-			var position = 1;
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, null, null);
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 
 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 

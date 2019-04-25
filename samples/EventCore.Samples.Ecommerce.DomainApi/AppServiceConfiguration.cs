@@ -14,18 +14,18 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			// Set up strongly typed configuration options.
 			// services.Configure<EventSourcingOptions>(Configuration.GetSection("EventSourcing")); // Note: Nothing outside of startup needs access to event sourcing options.
 
-			var eventSourcingOptions = config.GetSection("EventSourcing").Get<EventSourcingOptions>();
+			var options = config.GetSection("Infrastructure").Get<InfrastructureOptions>();
 
 			// Set up basic app dependencies.
 			services.AddScoped<Utilities.IStandardLogger, Utilities.StandardLogger>();
 			services.AddScoped<EventSourcing.IStreamIdBuilder, EventSourcing.StreamIdBuilder>();
-			ConfigureStreamClient(config, services, eventSourcingOptions);
+			ConfigureStreamClient(config, services, options);
 
-			AggregateRootsServiceConfiguration.ConfigureAggregateRoots(config, services, eventSourcingOptions);
+			AggregateRootsServiceConfiguration.ConfigureAggregateRoots(config, services, options);
 		}
 
 
-		private static void ConfigureStreamClient(IConfiguration config, IServiceCollection services, EventSourcingOptions eventSourcingOptions)
+		private static void ConfigureStreamClient(IConfiguration config, IServiceCollection services, InfrastructureOptions options)
 		{
 			var connectionBuilders = new Dictionary<string, Func<EventStore.ClientAPI.IEventStoreConnection>>();
 
@@ -44,7 +44,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 				sp => new EventSourcing.EventStore.EventStoreStreamClient(
 					sp.GetRequiredService<Utilities.IStandardLogger>(),
 					sp.GetRequiredService<EventSourcing.EventStore.IEventStoreConnectionFactory>(),
-					new EventSourcing.EventStore.EventStoreStreamClientOptions(eventSourcingOptions.StreamReadBatchSize)
+					new EventSourcing.EventStore.EventStoreStreamClientOptions(options.StreamReadBatchSize)
 				)
 			);
 		}

@@ -13,10 +13,9 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue
 	{
 		protected override EmailQueueMessageModel _internalState { get => Message; set => Message = value; }
 
-
 		public EmailQueueMessageModel Message { get; private set; }
 
-		public EmailQueueState(AggregateRootStateBusinessEventResolver<EmailQueueState> resolver, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+		public EmailQueueState(IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
 		{
 		}
 

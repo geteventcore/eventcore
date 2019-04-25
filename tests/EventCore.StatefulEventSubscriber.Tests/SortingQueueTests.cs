@@ -10,11 +10,6 @@ namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class SortingQueueTests
 	{
-		private class TestBusinessEvent : BusinessEvent
-		{
-			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
-		}
-
 		[Fact]
 		public async Task enqueue_and_dequeue_single_item()
 		{
@@ -22,7 +17,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
 			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
-			var subscriberEvent = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 
 			await queue.EnqueueWithWaitAsync(subscriberEvent, cts.Token);
 			var dequeuedSubscriberEvent = queue.TryDequeue();
@@ -37,7 +32,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
 			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
-			var subscriberEvent = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 
 			queue.TryDequeue();
 
@@ -70,9 +65,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var maxQueueSize = 2;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
 			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
-			var subscriberEvent1 = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
-			var subscriberEvent2 = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
-			var subscriberEvent3 = new SubscriberEvent("s", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent1 = new SubscriberEvent(null, 0, null);
+			var subscriberEvent2 = new SubscriberEvent(null, 0, null);
+			var subscriberEvent3 = new SubscriberEvent(null, 0, null);
 			var enqueueuSignalSetCount = 0;
 			var awaitingDequeueSignal = new ManualResetEventSlim(true);
 			var mockDequeueSignal = new ManualResetEventSlim(false);

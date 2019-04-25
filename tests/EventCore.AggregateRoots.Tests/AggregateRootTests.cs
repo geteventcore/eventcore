@@ -16,11 +16,6 @@ namespace EventCore.AggregateRoots.Tests
 	{
 		private class TestException : Exception { }
 
-		private class TestBusinessEvent : BusinessEvent
-		{
-			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
-		}
-
 		private class TestAggregateRoot : AggregateRoot<IAggregateRootState>
 		{
 			public TestAggregateRoot(AggregateRootDependencies<IAggregateRootState> dependencies, string context, string aggregateRootName) : base(dependencies, context, aggregateRootName)
@@ -256,9 +251,9 @@ namespace EventCore.AggregateRoots.Tests
 			var aggregateRootId = "1";
 			var streamId = "sId";
 			var commandId = "cId";
-			var e = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var events = new List<BusinessEvent>() { e }.ToImmutableList();
-			var eventType = e.GetType().Name;
+			var mockEvent = new Mock<IBusinessEvent>();
+			var events = new List<IBusinessEvent>() { mockEvent.Object }.ToImmutableList();
+			var eventType = mockEvent.Object.GetType().Name;
 			var eventDataText = "{}";
 			var eventDataBytes = Encoding.Unicode.GetBytes(eventDataText);
 			var unresolvedEvent = new UnresolvedBusinessEvent(eventType, eventDataBytes);
@@ -302,8 +297,8 @@ namespace EventCore.AggregateRoots.Tests
 			mockHandler.Setup(x => x.ValidateForStateAsync(mockState.Object, mockCommand.Object)).ReturnsAsync(mockCommandValidationResultForState.Object);
 			mockHandler.Setup(x => x.ProcessCommandAsync(mockState.Object, mockCommand.Object)).ReturnsAsync(mockCommandEventsResult.Object);
 			mockCommandEventsResult.Setup(x => x.Events).Returns(events);
-			mockResolver.Setup(x => x.CanUnresolve(e)).Returns(true);
-			mockResolver.Setup(x => x.Unresolve(e)).Returns(unresolvedEvent);
+			mockResolver.Setup(x => x.CanUnresolve(mockEvent.Object)).Returns(true);
+			mockResolver.Setup(x => x.Unresolve(mockEvent.Object)).Returns(unresolvedEvent);
 			mockStreamClient.Setup(x => x.FirstPositionInStream).Returns(firstPositionInStream);
 			mockStreamClient
 				.Setup(x => x.LoadStreamEventsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>(), It.IsAny<Func<StreamEvent, Task>>(), It.IsAny<CancellationToken>()))
@@ -322,7 +317,7 @@ namespace EventCore.AggregateRoots.Tests
 		public async Task process_events_result_should_do_nothing_with_empty_events()
 		{
 			var mockEventsResult = new Mock<ICommandEventsResult>();
-			mockEventsResult.Setup(x => x.Events).Returns(ImmutableList<BusinessEvent>.Empty);
+			mockEventsResult.Setup(x => x.Events).Returns(ImmutableList<IBusinessEvent>.Empty);
 
 			// Will throw null reference if attempts to process events.
 			await AggregateRoot<IAggregateRootState>.ProcessEventsResultAsync(mockEventsResult.Object, null, null, null, null, null);
@@ -331,13 +326,13 @@ namespace EventCore.AggregateRoots.Tests
 		[Fact]
 		public async Task process_events_result_should_throw_when_can_not_unresolve_event()
 		{
-			var e = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var events = new List<BusinessEvent>() { e }.ToImmutableList();
+			var mockEvent = new Mock<IBusinessEvent>();
+			var events = new List<IBusinessEvent>() { mockEvent.Object }.ToImmutableList();
 			var mockEventsResult = new Mock<ICommandEventsResult>();
 			var mockResolver = new Mock<IBusinessEventResolver>();
 
 			mockEventsResult.Setup(x => x.Events).Returns(events);
-			mockResolver.Setup(x => x.CanUnresolve(e)).Returns(false);
+			mockResolver.Setup(x => x.CanUnresolve(mockEvent.Object)).Returns(false);
 
 			await Assert.ThrowsAsync<InvalidOperationException>(() => AggregateRoot<IAggregateRootState>.ProcessEventsResultAsync(mockEventsResult.Object, null, null, null, mockResolver.Object, null));
 		}
@@ -345,9 +340,9 @@ namespace EventCore.AggregateRoots.Tests
 		[Fact]
 		public async Task process_events_result_should_throw_when_concurrency_conflict()
 		{
-			var e = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var events = new List<BusinessEvent>() { e }.ToImmutableList();
-			var eventType = typeof(TestBusinessEvent).Name;
+			var mockEvent = new Mock<IBusinessEvent>();
+			var events = new List<IBusinessEvent>() { mockEvent.Object }.ToImmutableList();
+			var eventType = mockEvent.Object.GetType().Name;
 			var dataText = "{}";
 			var dataBytes = Encoding.Unicode.GetBytes(dataText);
 			var unresolvedEvent = new UnresolvedBusinessEvent(eventType, dataBytes);
@@ -358,8 +353,8 @@ namespace EventCore.AggregateRoots.Tests
 			var mockStreamClient = new Mock<IStreamClient>();
 
 			mockEventsResult.Setup(x => x.Events).Returns(events);
-			mockResolver.Setup(x => x.CanUnresolve(e)).Returns(true);
-			mockResolver.Setup(x => x.Unresolve(e)).Returns(unresolvedEvent);
+			mockResolver.Setup(x => x.CanUnresolve(mockEvent.Object)).Returns(true);
+			mockResolver.Setup(x => x.Unresolve(mockEvent.Object)).Returns(unresolvedEvent);
 			mockStreamClient.Setup(x => x.CommitEventsToStreamAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<IEnumerable<CommitEvent>>())).ReturnsAsync(CommitResult.ConcurrencyConflict);
 
 			await Assert.ThrowsAsync<InvalidOperationException>(() => AggregateRoot<IAggregateRootState>.ProcessEventsResultAsync(mockEventsResult.Object, null, null, null, mockResolver.Object, mockStreamClient.Object));
@@ -371,9 +366,9 @@ namespace EventCore.AggregateRoots.Tests
 			var regionId = "x";
 			var streamId = "s";
 			var streamPositionCheckpoint = 0;
-			var e = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var events = new List<BusinessEvent>() { e }.ToImmutableList();
-			var eventType = typeof(TestBusinessEvent).Name;
+			var mockEvent = new Mock<IBusinessEvent>();
+			var events = new List<IBusinessEvent>() { mockEvent.Object }.ToImmutableList();
+			var eventType = mockEvent.Object.GetType().Name;
 			var dataText = "{}";
 			var dataBytes = Encoding.Unicode.GetBytes(dataText);
 			var unresolvedEvent = new UnresolvedBusinessEvent(eventType, dataBytes);
@@ -383,8 +378,8 @@ namespace EventCore.AggregateRoots.Tests
 			var mockStreamClient = new Mock<IStreamClient>();
 
 			mockEventsResult.Setup(x => x.Events).Returns(events);
-			mockResolver.Setup(x => x.CanUnresolve(e)).Returns(true);
-			mockResolver.Setup(x => x.Unresolve(e)).Returns(unresolvedEvent);
+			mockResolver.Setup(x => x.CanUnresolve(mockEvent.Object)).Returns(true);
+			mockResolver.Setup(x => x.Unresolve(mockEvent.Object)).Returns(unresolvedEvent);
 			mockStreamClient.Setup(x => x.CommitEventsToStreamAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long?>(), It.IsAny<IEnumerable<CommitEvent>>())).ReturnsAsync(CommitResult.Success);
 
 			await AggregateRoot<IAggregateRootState>.ProcessEventsResultAsync(mockEventsResult.Object, regionId, streamId, streamPositionCheckpoint, mockResolver.Object, mockStreamClient.Object);

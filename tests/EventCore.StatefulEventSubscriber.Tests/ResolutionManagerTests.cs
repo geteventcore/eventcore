@@ -10,11 +10,6 @@ namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class ResolutionManagerTests
 	{
-		private class TestBusinessEvent : BusinessEvent
-		{
-			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
-		}
-
 		private class TestException : Exception { }
 
 		[Fact]
@@ -68,9 +63,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var eventType = "x";
 			var data = new byte[] { };
 			var streamEvent = new StreamEvent(streamId, position, null, eventType, data);
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
+			var mockBusinessEvent = new Mock<IBusinessEvent>();
 
-			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(businessEvent);
+			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(mockBusinessEvent.Object);
 			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
 			mockSortingManager
 				.Setup(x => x.ReceiveSubscriberEventAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>()))
@@ -83,7 +78,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 				It.Is<SubscriberEvent>(e =>
 					e.StreamId == streamId && e.Position == position
 					&& e.SubscriptionStreamId == streamId && e.SubscriptionPosition == position
-					&& e.ResolvedEvent == businessEvent
+					&& e.ResolvedEvent == mockBusinessEvent.Object
 					),
 					cts.Token
 				));
@@ -104,9 +99,9 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var eventType = "x";
 			var data = new byte[] { };
 			var streamEvent = new StreamEvent(subStreamId, subPosition, new StreamEventLink(streamId, position), eventType, data);
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
+			var mockBusinessEvent = new Mock<IBusinessEvent>();
 
-			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(businessEvent);
+			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(mockBusinessEvent.Object);
 			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
 			mockSortingManager
 				.Setup(x => x.ReceiveSubscriberEventAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>()))
@@ -119,7 +114,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 				It.Is<SubscriberEvent>(e =>
 					e.StreamId == streamId && e.Position == position
 					&& e.SubscriptionStreamId == subStreamId && e.SubscriptionPosition == subPosition
-					&& e.ResolvedEvent == businessEvent
+					&& e.ResolvedEvent == mockBusinessEvent.Object
 					),
 					cts.Token
 				));
@@ -138,11 +133,11 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var eventType = "x";
 			var data = new byte[] { };
 			var streamEvent = new StreamEvent(streamId, position, null, eventType, data);
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
+			var mockBusinessEvent = new Mock<IBusinessEvent>();
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
 
-			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(businessEvent);
+			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(mockBusinessEvent.Object);
 			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
 			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockEnqueueSignal.WaitHandle.AsTask());
 

@@ -12,9 +12,9 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 {
 	public static class AggregateRootsServiceConfiguration
 	{
-		public static void ConfigureAggregateRoots(IConfiguration config, IServiceCollection services, EventSourcingOptions eventSourcingOptions)
+		public static void ConfigureAggregateRoots(IConfiguration config, IServiceCollection services, InfrastructureOptions options)
 		{
-			ConfigureSerializableStateRepo(services);
+			ConfigureSupportingServices(services, options);
 
 			ConfigureGenericAggregateRoot<Domain.EmailBuilder.EmailBuilderAggregate, Domain.EmailBuilder.EmailBuilderState>(services);
 			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services);
@@ -24,9 +24,12 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			ConfigureEmailQueue(services);
 		}
 
-		private static void ConfigureSerializableStateRepo(IServiceCollection services)
+		private static void ConfigureSupportingServices(IServiceCollection services, InfrastructureOptions options)
 		{
-			services.AddScoped<ISerializableAggregateRootStateObjectRepo, FileSerializableAggregateRootStateObjectRepo>();
+			services.AddScoped<IGenericBusinessEventHydrator, GenericBusinessEventHydrator>();
+			services.AddScoped<ISerializableAggregateRootStateObjectRepo>(
+				sp => new FileSerializableAggregateRootStateObjectRepo(options.AggregateRootStateBasePath)
+			);
 		}
 
 		private static void ConfigureGenericAggregateRoot<TAggregate, TState>(IServiceCollection services)
@@ -40,15 +43,16 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 
 		private static void ConfigureSerializableState<TState, TInternalState>(
 			IServiceCollection services,
-			Func<AggregateRootStateBusinessEventResolver<TState>, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
+			Func<AggregateRootStateBusinessEventResolver<TState>, IGenericBusinessEventHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
 			where TState : SerializableAggregateRootState<TInternalState>
 		{
 			services.AddScoped<SerializableAggregateRootStateFactory<TState, TInternalState>>(
 				sp => new SerializableAggregateRootStateFactory<TState, TInternalState>(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<TState>>(),
+					sp.GetRequiredService<IGenericBusinessEventHydrator>(),
 					sp.GetRequiredService<ISerializableAggregateRootStateObjectRepo>(),
-					(resolver, repo, regionId, context, aggregateRootName, aggregateRootId) =>
-						stateConstructor((AggregateRootStateBusinessEventResolver<TState>)resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+					(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId) =>
+						stateConstructor((AggregateRootStateBusinessEventResolver<TState>)resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
 				)
 			);
 		}
@@ -63,10 +67,11 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			services.AddScoped<Domain.EmailBuilder.EmailBuilderStateFactory>(
 				sp => new Domain.EmailBuilder.EmailBuilderStateFactory(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailBuilder.EmailBuilderState>>(),
+					sp.GetRequiredService<IGenericBusinessEventHydrator>(),
 					(regionId) =>
 					{
 						if (string.Equals(regionId, "RegionA", StringComparison.OrdinalIgnoreCase)) return sp.GetRequiredService<RegionAEmailBuilderDbContext>();
-						if (string.Equals(regionId, "RegionB", StringComparison.OrdinalIgnoreCase)) return sp.GetRequiredService<RegionAEmailBuilderDbContext>();
+						if (string.Equals(regionId, "RegionB", StringComparison.OrdinalIgnoreCase)) return sp.GetRequiredService<RegionBEmailBuilderDbContext>();
 						return null;
 					}
 				)
@@ -91,8 +96,10 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 		{
 			ConfigureSerializableState<Domain.EmailQueue.EmailQueueState, Domain.EmailQueue.StateModels.EmailQueueMessageModel>(
 				services,
-				(resolver, repo, regionId, context, aggregateRootName, aggregateRootId) =>
-					new Domain.EmailQueue.EmailQueueState((AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>)resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+				(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId) =>
+					new Domain.EmailQueue.EmailQueueState(
+						(AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>)resolver,
+						genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
 			);
 		}
 
@@ -100,8 +107,10 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 		{
 			ConfigureSerializableState<Domain.SalesOrder.SalesOrderState, Domain.SalesOrder.StateModels.SalesOrderModel>(
 				services,
-				(resolver, repo, regionId, context, aggregateRootName, aggregateRootId) =>
-					new Domain.SalesOrder.SalesOrderState((AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>)resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+				(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId) =>
+					new Domain.SalesOrder.SalesOrderState(
+						(AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>)resolver,
+						genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
 			);
 		}
 	}

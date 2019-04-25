@@ -20,7 +20,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 			public List<string> CausalIdHistory { get => _causalIdHistory; }
 			public int MaxCausalIdHistory { get => _maxCausalIdHistory; }
 
-			public TestState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, repo, regionId, context, aggregateRootName, aggregateRootId)
+			public TestState(IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
 			{
 			}
 
@@ -33,7 +33,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 			var causalIdLower = "abc";
 			var causalIdUpper = "ABC";
 
-			var state = new TestState(null, null, null, null, null, null);
+			var state = new TestState(null, null, null, null, null, null, null);
 
 			Assert.False(await state.IsCausalIdInHistoryAsync(causalIdLower));
 			await state.AddCausalIdToHistoryAsync(causalIdUpper);
@@ -43,7 +43,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 		[Fact]
 		public async Task honor_max_causal_id_history()
 		{
-			var state = new TestState(null, null, null, null, null, null);
+			var state = new TestState(null, null, null, null, null, null, null);
 			var causalIdNext = "next";
 
 			for (var i = 1; i <= state.MaxCausalIdHistory; i++)
@@ -71,7 +71,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 
 			Func<Func<StreamEvent, Task>, Task> streamLoaderAsync = (_1) => { baseHydrationCalled = true; return Task.CompletedTask; };
 
-			var state = new TestState(null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
+			var state = new TestState(null, null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
 
 			mockRepo
 				.Setup(x => x.SaveAsync(regionId, context, aggregateRootName, aggregateRootId, It.IsAny<SerializableAggregateRootStateObject<TestInternalState>>()))
@@ -101,7 +101,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 
 			mockRepo.Setup(x => x.LoadAsync<TestInternalState>(regionId, context, aggregateRootName, aggregateRootId)).ReturnsAsync((SerializableAggregateRootStateObject<TestInternalState>)null);
 
-			var state = new TestState(null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
+			var state = new TestState(null, null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
 
 			await state.InitializeAsync(CancellationToken.None); // Will throw null reference exception if proceeds into body code.
 		}
@@ -123,7 +123,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 				.Setup(x => x.LoadAsync<TestInternalState>(regionId, context, aggregateRootName, aggregateRootId))
 				.ReturnsAsync(stateObj);
 
-			var state = new TestState(null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
+			var state = new TestState(null, null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
 
 			await state.InitializeAsync(CancellationToken.None);
 

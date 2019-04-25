@@ -5,6 +5,6 @@ namespace EventCore.AggregateRoots
 {
 	public interface ICommandEventsResult
 	{
-		IImmutableList<BusinessEvent> Events { get; }
+		IImmutableList<IBusinessEvent> Events { get; }
 	}
 }

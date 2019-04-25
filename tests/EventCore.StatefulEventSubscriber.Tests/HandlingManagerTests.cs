@@ -11,10 +11,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class HandlingManagerTests
 	{
-		private class TestBusinessEvent : BusinessEvent
-		{
-			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
-		}
+		private class TestBusinessEvent : IBusinessEvent {}
 
 		private class TestException : Exception { }
 
@@ -66,10 +63,6 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var mockHandlerRunner = new Mock<IHandlingManagerHandlerRunner>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
-			var streamId = "s";
-			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var awaitingCompletionSignal = new ManualResetEventSlim(false);
 			var mockCompletionAndEnqueueSignal = new ManualResetEventSlim(false);
@@ -96,10 +89,7 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var cts = new CancellationTokenSource(10000);
 			var mockQueue = new Mock<IHandlingQueue>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
-			var streamId = "s";
-			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 			var parallelKey = "x";
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
@@ -120,11 +110,8 @@ namespace EventCore.StatefulEventSubscriber.Tests
 		{
 			var cts = new CancellationTokenSource(10000);
 			var mockQueue = new Mock<IHandlingQueue>();
-			var streamId = "s";
-			var position = 1;
 			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 			var parallelKey = "x";
 
 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(It.IsAny<string>(), It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
@@ -184,13 +171,11 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var mockHandlerRunner = new Mock<IHandlingManagerHandlerRunner>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
-			var streamId = "s";
-			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var businessEvent = new TestBusinessEvent();
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 			var parallelKey = "x";
 			var queueItem = new HandlingQueueItem(parallelKey, subscriberEvent);
-			var streamState = new StreamState(position, false); // Does NOT have error.
+			var streamState = new StreamState(0, false); // Does NOT have error.
 			var awaitingThrottleSignal = new ManualResetEventSlim(false);
 
 			mockQueue.Setup(x => x.IsEventsAvailable).Returns(true);
@@ -228,13 +213,10 @@ namespace EventCore.StatefulEventSubscriber.Tests
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var mockHandlerRunner = new Mock<IHandlingManagerHandlerRunner>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
-			var streamId = "s";
-			var position = 1;
-			var businessEvent = new TestBusinessEvent(BusinessEventMetadata.Empty);
-			var subscriberEvent = new SubscriberEvent(streamId, position, businessEvent);
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 			var parallelKey = "x";
 			var queueItem = new HandlingQueueItem(parallelKey, subscriberEvent);
-			var streamState = new StreamState(position, true); // Has error.
+			var streamState = new StreamState(0, true); // Has error.
 
 			mockQueue.Setup(x => x.IsEventsAvailable).Returns(true);
 			mockQueue.Setup(x => x.TryDequeue(It.IsAny<IList<string>>())).Returns(queueItem);

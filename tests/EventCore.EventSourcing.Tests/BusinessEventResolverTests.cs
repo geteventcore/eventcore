@@ -9,24 +9,14 @@ namespace EventCore.EventSourcing.Tests
 {
 	public class BusinessEventResolverTests
 	{
-		private class TestBusinessEvent1 : BusinessEvent
-		{
-			public TestBusinessEvent1(BusinessEventMetadata metadata) : base(metadata) { }
-		}
+		private class TestBusinessEvent1 : IBusinessEvent { }
+		private class TestBusinessEvent2 : IBusinessEvent { }
 
-		private class TestBusinessEvent2 : BusinessEvent
-		{
-			public TestBusinessEvent2(BusinessEventMetadata metadata) : base(metadata) { }
-		}
-
-		private class ErrorBusinessEvent : BusinessEvent
+		private class ErrorBusinessEvent : IBusinessEvent
 		{
 			private string _fieldWithError;
 			public string FieldWithError { get => throw new InvalidOperationException("Test"); set { _fieldWithError = value; } }
-			public ErrorBusinessEvent(BusinessEventMetadata metadata, string fieldWithError) : base(metadata)
-			{
-				_fieldWithError = fieldWithError;
-			}
+			public ErrorBusinessEvent(string fieldWithError) => _fieldWithError = fieldWithError;
 		}
 
 		private class NotABusinessEvent { }
@@ -59,7 +49,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			var types = new HashSet<Type>() { typeof(TestBusinessEvent1) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
-			var e = new TestBusinessEvent1(BusinessEventMetadata.Empty);
+			var e = new TestBusinessEvent1();
 			Assert.True(resolver.CanUnresolve(e));
 		}
 
@@ -68,7 +58,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			var types = new HashSet<Type>() { typeof(TestBusinessEvent1) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
-			var e = new TestBusinessEvent2(BusinessEventMetadata.Empty);
+			var e = new TestBusinessEvent2();
 			Assert.False(resolver.CanUnresolve(e));
 		}
 
@@ -94,7 +84,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			var types = new HashSet<Type>() { typeof(TestBusinessEvent1) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
-			var e = new TestBusinessEvent2(BusinessEventMetadata.Empty);
+			var e = new TestBusinessEvent2();
 			Assert.ThrowsAny<Exception>(() => resolver.Unresolve(e));
 		}
 
@@ -103,7 +93,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			var types = new HashSet<Type>() { typeof(ErrorBusinessEvent) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
-			var e = new ErrorBusinessEvent(BusinessEventMetadata.Empty, "test value");
+			var e = new ErrorBusinessEvent("test value");
 			var unresolvedEvent = resolver.Unresolve(e);
 			Assert.Null(unresolvedEvent);
 		}
@@ -113,7 +103,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			var types = new HashSet<Type>() { typeof(TestBusinessEvent1) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
-			var e = new TestBusinessEvent1(BusinessEventMetadata.Empty);
+			var e = new TestBusinessEvent1();
 			var data = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(e));
 			var resolvedEvent = resolver.Resolve(typeof(TestBusinessEvent1).Name, data);
 			Assert.NotNull(resolvedEvent);
@@ -124,7 +114,7 @@ namespace EventCore.EventSourcing.Tests
 		{
 			var types = new HashSet<Type>() { typeof(TestBusinessEvent1) };
 			var resolver = new BusinessEventResolver(NullStandardLogger.Instance, types);
-			var e = new TestBusinessEvent1(BusinessEventMetadata.Empty);
+			var e = new TestBusinessEvent1();
 			var expectedData = Encoding.Unicode.GetBytes(JsonConvert.SerializeObject(e));
 			var unresolvedEvent = resolver.Unresolve(e);
 

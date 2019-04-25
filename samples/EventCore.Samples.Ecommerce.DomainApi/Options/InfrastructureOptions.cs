@@ -1,11 +1,8 @@
 ﻿namespace EventCore.Samples.Ecommerce.DomainApi.Options
 {
-	public class EventSourcingOptions
+	public class InfrastructureOptions
 	{
 		public int StreamReadBatchSize { get; set; } = 100;
-
-		public EventSourcingOptions()
-		{
-		}
+		public string AggregateRootStateBasePath { get; set; }
 	}
 }

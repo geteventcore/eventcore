@@ -11,9 +11,9 @@ namespace EventCore.StatefulEventSubscriber
 		public readonly long SubscriptionPosition;
 		public readonly Type EventType;
 		public readonly bool IsResolved;
-		public readonly BusinessEvent ResolvedEvent;
+		public readonly IBusinessEvent ResolvedEvent;
 
-		public SubscriberEvent(string streamId, long position, BusinessEvent resolvedEvent)
+		public SubscriberEvent(string streamId, long position, IBusinessEvent resolvedEvent)
 		{
 			StreamId = streamId;
 			Position = position;
@@ -24,7 +24,7 @@ namespace EventCore.StatefulEventSubscriber
 			ResolvedEvent = resolvedEvent;
 		}
 
-		public SubscriberEvent(string streamId, long position, string subscriptionStreamId, long subscriptionPosition, BusinessEvent resolvedEvent)
+		public SubscriberEvent(string streamId, long position, string subscriptionStreamId, long subscriptionPosition, IBusinessEvent resolvedEvent)
 		{
 			StreamId = streamId;
 			Position = position;

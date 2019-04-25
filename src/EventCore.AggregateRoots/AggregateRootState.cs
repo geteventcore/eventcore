@@ -11,14 +11,15 @@ namespace EventCore.AggregateRoots
 	// Basic aggregate root state implementation.
 	public abstract class AggregateRootState : IAggregateRootState
 	{
-		
 		protected readonly IBusinessEventResolver _resolver;
+		protected readonly IGenericBusinessEventHydrator _genericHydrator;
 
 		public virtual long? StreamPositionCheckpoint { get; protected set; }
 
-		public AggregateRootState(IBusinessEventResolver resolver)
+		public AggregateRootState(IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator)
 		{
 			_resolver = resolver;
+			_genericHydrator = genericHydrator;
 		}
 
 		public virtual async Task HydrateFromCheckpointAsync(Func<Func<StreamEvent, Task>, Task> streamLoaderAsync, CancellationToken cancellationToken)
@@ -31,7 +32,7 @@ namespace EventCore.AggregateRoots
 					var resolvedEvent = _resolver.Resolve(se.EventType, se.Data);
 
 					// Expecting that agg root stream does not have link events.
-					await ApplyGenericBusinessEventAsync(this, se.StreamId, se.Position, resolvedEvent, cancellationToken);
+					await _genericHydrator.ApplyGenericBusinessEventAsync(this, se.StreamId, se.Position, resolvedEvent, cancellationToken);
 				}
 				
 				// Track the position even if we can't resolve the event.
@@ -41,11 +42,5 @@ namespace EventCore.AggregateRoots
 
 		public abstract Task<bool> IsCausalIdInHistoryAsync(string causalId);
 		public abstract Task AddCausalIdToHistoryAsync(string causalId);
-
-		public static async Task ApplyGenericBusinessEventAsync<TEvent>(AggregateRootState state, string streamId, long position, TEvent e, CancellationToken cancellationToken) where TEvent : BusinessEvent
-		{
-			// Expects IApplyBusinessEvent<TEvent> for the type of event given.
-			await (Task)state.GetType().InvokeMember("ApplyBusinessEventAsync", BindingFlags.InvokeMethod, null, state, new object[] { streamId, position, e, cancellationToken });
-		}
 	}
 }

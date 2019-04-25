@@ -9,15 +9,9 @@ namespace EventCore.AggregateRoots.Tests
 {
 	public class AggregateRootStateBusinessEventResolverTests
 	{
-		private class TestBusinessEvent1 : BusinessEvent
-		{
-			public TestBusinessEvent1(BusinessEventMetadata metadata) : base(metadata) { }
-		}
+		private class TestBusinessEvent1 : IBusinessEvent { }
 
-		private class TestBusinessEvent2 : BusinessEvent
-		{
-			public TestBusinessEvent2(BusinessEventMetadata metadata) : base(metadata) { }
-		}
+		private class TestBusinessEvent2 : IBusinessEvent { }
 
 		private class TestState : IAggregateRootState,
 			IApplyBusinessEvent<TestBusinessEvent1>,
@@ -36,8 +30,8 @@ namespace EventCore.AggregateRoots.Tests
 		public void construct_with_applied_business_event_types()
 		{
 			var resolver = new AggregateRootStateBusinessEventResolver<TestState>(NullStandardLogger.Instance);
-			var e1 = new TestBusinessEvent1(BusinessEventMetadata.Empty);
-			var e2 = new TestBusinessEvent1(BusinessEventMetadata.Empty);
+			var e1 = new TestBusinessEvent1();
+			var e2 = new TestBusinessEvent1();
 			Assert.True(resolver.CanUnresolve(e1));
 			Assert.True(resolver.CanUnresolve(e2));
 		}

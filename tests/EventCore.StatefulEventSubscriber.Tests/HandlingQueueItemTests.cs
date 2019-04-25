@@ -5,16 +5,11 @@ namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class HandlingQueueItemTests
 	{
-		private class TestBusinessEvent : BusinessEvent
-		{
-			public TestBusinessEvent(BusinessEventMetadata metadata) : base(metadata) { }
-		}
-
 		[Fact]
 		public void construct()
 		{
 			var parallelKey = "pk";
-			var subscriberEvent = new SubscriberEvent("sId", 1, new TestBusinessEvent(BusinessEventMetadata.Empty));
+			var subscriberEvent = new SubscriberEvent(null, 0, null);
 			
 			var item = new HandlingQueueItem(parallelKey, subscriberEvent);
 

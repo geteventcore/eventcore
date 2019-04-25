@@ -2,11 +2,11 @@
 
 namespace EventCore.EventSourcing
 {
-	public class BusinessEventMetadata
+	public class BusinessEventMetadata : IBusinessEventMetadata
 	{
-		public readonly string CausalId;
-		public readonly string CorrelationId;
-		public readonly DateTime TimestampUtc;
+		public string CausalId { get; }
+		public string CorrelationId { get; }
+		public DateTime TimestampUtc { get; }
 
 		public BusinessEventMetadata(string causalId, string correlationId)
 		{

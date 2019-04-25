@@ -7,21 +7,21 @@ namespace EventCore.AggregateRoots
 {
 	public class CommandEventsResult : ICommandEventsResult
 	{
-		public IImmutableList<BusinessEvent> Events { get; }
+		public IImmutableList<IBusinessEvent> Events { get; }
 
-		public CommandEventsResult() : this(new List<BusinessEvent>())
+		public CommandEventsResult() : this(new List<IBusinessEvent>())
 		{
 		}
 
-		public CommandEventsResult(IList<BusinessEvent> events)
+		public CommandEventsResult(IList<IBusinessEvent> events)
 		{
 			Events = events.ToImmutableList();
 		}
 
-		public static ICommandEventsResult FromEvent(BusinessEvent e) => new CommandEventsResult(new List<BusinessEvent>() { e });
-		public static Task<ICommandEventsResult> FromEventAsync(BusinessEvent e) => Task.FromResult<ICommandEventsResult>(FromEvent(e));
+		public static ICommandEventsResult FromEvent(IBusinessEvent e) => new CommandEventsResult(new List<IBusinessEvent>() { e });
+		public static Task<ICommandEventsResult> FromEventAsync(IBusinessEvent e) => Task.FromResult<ICommandEventsResult>(FromEvent(e));
 
-		public static ICommandEventsResult FromEvents(IList<BusinessEvent> events) => new CommandEventsResult(events);
-		public static Task<ICommandEventsResult> FromEventsAsync(IList<BusinessEvent> events) => Task.FromResult<ICommandEventsResult>(FromEvents(events));
+		public static ICommandEventsResult FromEvents(IList<IBusinessEvent> events) => new CommandEventsResult(events);
+		public static Task<ICommandEventsResult> FromEventsAsync(IList<IBusinessEvent> events) => Task.FromResult<ICommandEventsResult>(FromEvents(events));
 	}
 }

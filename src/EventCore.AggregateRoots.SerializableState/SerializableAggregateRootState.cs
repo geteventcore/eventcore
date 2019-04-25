@@ -14,15 +14,16 @@ namespace EventCore.AggregateRoots.SerializableState
 		private readonly string _context;
 		private readonly string _aggregateRootName;
 		private readonly string _aggregateRootId;
-		
+
 		protected virtual int _maxCausalIdHistory { get; } = 100; // Limits the number of causal ids stored in memory.
 		protected readonly List<string> _causalIdHistory = new List<string>(); // List, not Set - need ordering so we can remove overflow.
 		protected abstract TInternalState _internalState { get; set; }
 
 		public SerializableAggregateRootState(
-			IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo,
+			IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator,
+			ISerializableAggregateRootStateObjectRepo repo,
 			string regionId, string context, string aggregateRootName, string aggregateRootId)
-			: base(resolver)
+			: base(resolver, genericHydrator)
 		{
 			_repo = repo;
 			_regionId = regionId;
