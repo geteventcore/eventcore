@@ -8,6 +8,9 @@ HTTP REST interface exposed to public applications such as single page apps and 
 ### DomainApi
 RPC over HTTP interface for executing commands on aggregate roots. All commands are POSTed to this HTTP. Do not call directly, but instead use Domain.Clients to execute commands from client applications.
 
+### Cli
+Console application (command line interface) for driving demos and observing system output such as business events as they occur.
+
 ## Supporting Libraries
 
 ### Domain.Events

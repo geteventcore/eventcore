@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 
 namespace EventCore.Samples.Ecommerce.DomainApi
 {
@@ -12,7 +13,10 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 
 		public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
 			WebHost.CreateDefaultBuilder(args)
-				.UseStartup<Startup>()
-				.UseUrls("http://localhost:9502/");
+				// .UseConfiguration(new ConfigurationBuilder()
+				// 	.AddCommandLine(args)
+				// 	.Build()
+				// )
+				.UseStartup<Startup>();
 	}
 }

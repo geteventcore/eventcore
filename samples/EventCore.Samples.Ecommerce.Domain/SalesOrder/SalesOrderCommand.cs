@@ -9,12 +9,11 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder
 
 		public readonly string SalesOrderId;
 
-		public SalesOrderCommand(CommandMetadata metadata, string salesOrderId) : base(metadata)
+		public SalesOrderCommand(ICommandMetadata _metadata, string salesOrderId) : base(_metadata)
 		{
 			SalesOrderId = salesOrderId;
 		}
-
-		public override string GetRegionId() => null;
+		
 		public override string GetAggregateRootId() => SalesOrderId;
 	}
 }

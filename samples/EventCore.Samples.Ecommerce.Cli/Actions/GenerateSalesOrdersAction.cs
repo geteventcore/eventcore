@@ -28,7 +28,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 						new CommandMetadata(Guid.NewGuid().ToString()),
 						"SO-" + string.Format(i.ToString(), "0000000000"),
 						"Customer " + i,
-						"customer." + i + "@fake-email-goes-nowhere-abc.com",
+						"customer." + i + "@" + Guid.NewGuid() + ".com",
 						new Random().Next(1, 100000)
 					);
 

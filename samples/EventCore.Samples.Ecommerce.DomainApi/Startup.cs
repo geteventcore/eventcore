@@ -1,15 +1,15 @@
-﻿using EventCore.Samples.Ecommerce.DomainApi.Options;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace EventCore.Samples.Ecommerce.DomainApi
 {
 	public class Startup
 	{
+		public IConfiguration Configuration { get; }
+
 		public Startup(IConfiguration configuration)
 		{
 			Configuration = configuration;
@@ -22,7 +22,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "Sample Email System - Domain API", Version = "v1" });
+				c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "Ecommerce Sample - Domain API", Version = "v1" });
 			});
 
 			AppServiceConfiguration.ConfigureServices(Configuration, services);
@@ -41,7 +41,9 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 				app.UseHsts();
 			}
 
-			app.UseFileServer();
+			app.UseHttpsRedirection();
+
+			app.UseMvc();
 
 			// Enable middleware to serve generated Swagger as a JSON endpoint.
 			app.UseSwagger(c =>
@@ -52,15 +54,12 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			// specifying the Swagger JSON endpoint.
 			app.UseSwaggerUI(c =>
 			{
-				c.DocumentTitle = "Sample Email System API Docs";
-				c.RoutePrefix = "_openapi";
-				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "Sample Email System - Domain API v1");
+				c.DocumentTitle = "Ecommerce Sample API Docs";
+				// c.RoutePrefix = "_openapi";
+				c.RoutePrefix = string.Empty;
+				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "Ecommerce Sample- Domain API v1");
 			});
 
-			// app.UseHttpsRedirection();
-			app.UseMvc();
 		}
-
-		public IConfiguration Configuration { get; }
 	}
 }

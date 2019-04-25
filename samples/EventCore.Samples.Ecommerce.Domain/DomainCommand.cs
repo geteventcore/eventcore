@@ -5,7 +5,7 @@ namespace EventCore.Samples.Ecommerce.Domain
 {
 	public abstract class DomainCommand : Command
 	{
-		// Use of underscore breaks naming conventions but since commands are
+		// Use of underscore breaks naming conventions for pubilc fields but since commands are
 		// simple data transfer objects we want to clearly separate which properties/methods are
 		// for the system and which are for the data represented in subclasses.
 		
@@ -24,7 +24,9 @@ namespace EventCore.Samples.Ecommerce.Domain
 
 		public abstract string _AggregateRootName { get; }
 
-		public DomainCommand(CommandMetadata metadata) : base(metadata)
+		public override string GetRegionId() => Constants.DEFAULT_REGION_ID; // Only one region for now.
+
+		public DomainCommand(ICommandMetadata _metadata) : base(_metadata)
 		{
 		}
 	}

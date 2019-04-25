@@ -29,12 +29,8 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 		{
 			var connectionBuilders = new Dictionary<string, Func<EventStore.ClientAPI.IEventStoreConnection>>();
 
-			var connStrRegionA = config.GetConnectionString("EventStoreRegionA");
-			var connStrRegionB = config.GetConnectionString("EventStoreRegionB");
-
 			// Connection factory must be able to create a new connection for each region.
-			connectionBuilders.Add("RegionA", () => EventStore.ClientAPI.EventStoreConnection.Create("RegionA"));
-			connectionBuilders.Add("RegionB", () => EventStore.ClientAPI.EventStoreConnection.Create("RegionB"));
+			connectionBuilders.Add(Domain.Constants.DEFAULT_REGION_ID, () => EventStore.ClientAPI.EventStoreConnection.Create("EventStoreX"));
 
 			services.AddScoped<EventSourcing.EventStore.IEventStoreConnectionFactory>(
 				sp => new EventSourcing.EventStore.EventStoreConnectionFactory(connectionBuilders)

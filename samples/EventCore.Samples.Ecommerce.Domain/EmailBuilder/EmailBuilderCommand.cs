@@ -9,12 +9,11 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 
 		public readonly Guid EmailId;
 
-		public EmailBuilderCommand(CommandMetadata metadata, Guid emailId) : base(metadata)
+		public EmailBuilderCommand(ICommandMetadata _metadata, Guid emailId) : base(_metadata)
 		{
 			EmailId = emailId;
 		}
-
-		public override string GetRegionId() => null;
+		
 		public override string GetAggregateRootId() => EmailId.ToString();
 	}
 }

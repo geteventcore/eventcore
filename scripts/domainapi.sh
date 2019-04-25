@@ -1,1 +1,0 @@
-dotnet run -p ../src/EventCore.Samples.Ecommerce.DomainApi -- ${1}

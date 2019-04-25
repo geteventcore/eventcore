@@ -1,5 +1,5 @@
-. docker-reset-eventstore.sh
-. docker-run-eventstore.sh
+. docker_reset_eventstore.sh
+. docker_run_eventstore.sh
 
 echo "Waiting 10 seconds, then creating projection(s)..."
 sleep 10s

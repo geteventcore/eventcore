@@ -9,12 +9,11 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue
 
 		public readonly Guid EmailId;
 
-		public EmailQueueCommand(CommandMetadata metadata, Guid emailId) : base(metadata)
+		public EmailQueueCommand(ICommandMetadata _metadata, Guid emailId) : base(_metadata)
 		{
 			EmailId = emailId;
 		}
-
-		public override string GetRegionId() => null;
+		
 		public override string GetAggregateRootId() => EmailId.ToString();
 	}
 }
