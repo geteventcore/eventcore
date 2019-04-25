@@ -40,18 +40,24 @@ namespace EventCore.AggregateRoots.Tests
 
 			var resultFromError = HandledCommandResult.FromValidationError(error);
 			var resultFromErrorAsync = HandledCommandResult.FromValidationErrorAsync(error).Result;
+			var resultFromErrorIAsync = HandledCommandResult.FromValidationErrorIAsync(error).Result;
 			var resultFromErrors = HandledCommandResult.FromValidationErrors(errors);
 			var resultFromErrorsAsync = HandledCommandResult.FromValidationErrorsAsync(errors).Result;
+			var resultFromErrorsIAsync = HandledCommandResult.FromValidationErrorsIAsync(errors).Result;
 
 			Assert.False(resultFromError.IsSuccess);
 			Assert.False(resultFromErrorAsync.IsSuccess);
+			Assert.False(resultFromErrorIAsync.IsSuccess);
 			Assert.False(resultFromErrors.IsSuccess);
 			Assert.False(resultFromErrorsAsync.IsSuccess);
+			Assert.False(resultFromErrorsIAsync.IsSuccess);
 
 			Assert.Contains(error, resultFromError.ValidationErrors);
 			Assert.Contains(error, resultFromErrorAsync.ValidationErrors);
+			Assert.Contains(error, resultFromErrorIAsync.ValidationErrors);
 			Assert.Contains(error, resultFromErrors.ValidationErrors);
 			Assert.Contains(error, resultFromErrorsAsync.ValidationErrors);
+			Assert.Contains(error, resultFromErrorsIAsync.ValidationErrors);
 		}
 	}
 }

@@ -20,13 +20,16 @@ namespace EventCore.AggregateRoots
 			IsSuccess = true;
 		}
 
-		public static IHandledCommandResult FromSuccess() => new HandledCommandResult();
-		public static Task<IHandledCommandResult> FromSuccessAsync() => Task.FromResult<IHandledCommandResult>(FromSuccess());
+		public static HandledCommandResult FromSuccess() => new HandledCommandResult();
+		public static Task<HandledCommandResult> FromSuccessAsync() => Task.FromResult<HandledCommandResult>(FromSuccess());
+		public static Task<IHandledCommandResult> FromSuccessIsync() => Task.FromResult<IHandledCommandResult>(FromSuccess());
 
-		public static IHandledCommandResult FromValidationError(string error) => new HandledCommandResult(new List<string>() { error });
-		public static Task<IHandledCommandResult> FromValidationErrorAsync(string error) => Task.FromResult<IHandledCommandResult>(FromValidationError(error));
+		public static HandledCommandResult FromValidationError(string error) => new HandledCommandResult(new List<string>() { error });
+		public static Task<HandledCommandResult> FromValidationErrorAsync(string error) => Task.FromResult<HandledCommandResult>(FromValidationError(error));
+		public static Task<IHandledCommandResult> FromValidationErrorIAsync(string error) => Task.FromResult<IHandledCommandResult>(FromValidationError(error));
 
-		public static IHandledCommandResult FromValidationErrors(IList<string> errors) => new HandledCommandResult(errors);
-		public static Task<IHandledCommandResult> FromValidationErrorsAsync(IList<string> errors) => Task.FromResult<IHandledCommandResult>(FromValidationErrors(errors));
+		public static HandledCommandResult FromValidationErrors(IList<string> errors) => new HandledCommandResult(errors);
+		public static Task<HandledCommandResult> FromValidationErrorsAsync(IList<string> errors) => Task.FromResult<HandledCommandResult>(FromValidationErrors(errors));
+		public static Task<IHandledCommandResult> FromValidationErrorsIAsync(IList<string> errors) => Task.FromResult<IHandledCommandResult>(FromValidationErrors(errors));
 	}
 }

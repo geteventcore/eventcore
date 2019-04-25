@@ -12,13 +12,13 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.CommandHandlers
 		{
 			// if (state.Message != null) return CommandValidationResult.FromErrorAsync("Duplicate email id.");
 			// else return CommandValidationResult.FromValidAsync();
-			return CommandValidationResult.FromValidAsync();
+			return CommandValidationResult.FromValidIAsync();
 		}
 
 		public override Task<ICommandEventsResult> ProcessCommandAsync(EmailBuilderState state, BuildSalesOrderEmailCommand c)
 		{
 			// return CommandEventsResult.FromEventAsync(new EmailEnqueuedEvent(BusinessEventMetadata.FromCausalId(c.Metadata.CommandId), c.EmailId));
-			return CommandEventsResult.FromEventsAsync(new IBusinessEvent[] { });
+			return CommandEventsResult.FromEventsIAsync(new IBusinessEvent[] { });
 		}
 	}
 }

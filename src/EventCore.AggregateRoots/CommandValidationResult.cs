@@ -18,13 +18,16 @@ namespace EventCore.AggregateRoots
 			Errors = errors.ToImmutableList();
 		}
 
-		public static ICommandValidationResult FromValid() => new CommandValidationResult();
-		public static Task<ICommandValidationResult> FromValidAsync() => Task.FromResult<ICommandValidationResult>(FromValid());
+		public static CommandValidationResult FromValid() => new CommandValidationResult();
+		public static Task<CommandValidationResult> FromValidAsync() => Task.FromResult<CommandValidationResult>(FromValid());
+		public static Task<ICommandValidationResult> FromValidIAsync() => Task.FromResult<ICommandValidationResult>(FromValid());
 
-		public static ICommandValidationResult FromError(string error) => new CommandValidationResult(new List<string>() {error});
-		public static Task<ICommandValidationResult> FromErrorAsync(string error) => Task.FromResult<ICommandValidationResult>(FromError(error));
+		public static CommandValidationResult FromError(string error) => new CommandValidationResult(new List<string>() {error});
+		public static Task<CommandValidationResult> FromErrorAsync(string error) => Task.FromResult<CommandValidationResult>(FromError(error));
+		public static Task<ICommandValidationResult> FromErrorIAsync(string error) => Task.FromResult<ICommandValidationResult>(FromError(error));
 
-		public static ICommandValidationResult FromErrors(IList<string> errors) => new CommandValidationResult(errors);
-		public static Task<ICommandValidationResult> FromErrorsAsync(IList<string> errors) => Task.FromResult<ICommandValidationResult>(FromErrors(errors));
+		public static CommandValidationResult FromErrors(IList<string> errors) => new CommandValidationResult(errors);
+		public static Task<CommandValidationResult> FromErrorsAsync(IList<string> errors) => Task.FromResult<CommandValidationResult>(FromErrors(errors));
+		public static Task<ICommandValidationResult> FromErrorsIAsync(IList<string> errors) => Task.FromResult<ICommandValidationResult>(FromErrors(errors));
 	}
 }

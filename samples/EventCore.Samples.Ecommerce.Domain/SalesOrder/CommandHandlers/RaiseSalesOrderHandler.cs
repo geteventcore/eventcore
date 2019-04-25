@@ -10,8 +10,8 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder.CommandHandlers
 	{
 		public override Task<ICommandValidationResult> ValidateForStateAsync(SalesOrderState state, RaiseSalesOrderCommand c)
 		{
-			if (state.SalesOrder != null) return CommandValidationResult.FromErrorAsync("Duplicate sales order id.");
-			else return CommandValidationResult.FromValidAsync();
+			if (state.SalesOrder != null) return CommandValidationResult.FromErrorIAsync("Duplicate sales order id.");
+			else return CommandValidationResult.FromValidIAsync();
 		}
 
 		public override Task<ICommandEventsResult> ProcessCommandAsync(SalesOrderState state, RaiseSalesOrderCommand c)
@@ -20,7 +20,7 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder.CommandHandlers
 				BusinessEventMetadata.FromCausalId(c._Metadata.CommandId),
 				c.SalesOrderId, c.CustomerName, c.CustomerEmail, c.TotalPrice
 				);
-			return CommandEventsResult.FromEventAsync(e);
+			return CommandEventsResult.FromEventIAsync(e);
 		}
 	}
 }

@@ -32,13 +32,17 @@ namespace EventCore.AggregateRoots.Tests
 
 			var resultFromEvent = CommandEventsResult.FromEvent(mockEvent.Object);
 			var resultFromEventAsync = CommandEventsResult.FromEventAsync(mockEvent.Object).Result;
+			var resultFromEventIAsync = CommandEventsResult.FromEventIAsync(mockEvent.Object).Result;
 			var resultFromEvents = CommandEventsResult.FromEvents(events);
 			var resultFromEventsAsync = CommandEventsResult.FromEventsAsync(events).Result;
+			var resultFromEventsIAsync = CommandEventsResult.FromEventsIAsync(events).Result;
 
 			Assert.Contains(mockEvent.Object, resultFromEvent.Events);
 			Assert.Contains(mockEvent.Object, resultFromEventAsync.Events);
+			Assert.Contains(mockEvent.Object, resultFromEventIAsync.Events);
 			Assert.Contains(mockEvent.Object, resultFromEvents.Events);
 			Assert.Contains(mockEvent.Object, resultFromEventsAsync.Events);
+			Assert.Contains(mockEvent.Object, resultFromEventsIAsync.Events);
 		}
 	}
 }
