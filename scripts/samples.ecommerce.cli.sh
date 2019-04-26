@@ -1,1 +1,0 @@
-dotnet run -p ../samples/EventCore.Samples.Ecommerce.Cli -- ${1}
