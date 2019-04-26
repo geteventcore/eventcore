@@ -1,7 +1,7 @@
 ﻿using EventCore.AggregateRoots;
 using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels;
-using EventCore.Samples.Ecommerce.Events;
+using EventCore.Samples.Ecommerce.Domain.Events;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

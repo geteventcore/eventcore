@@ -1,8 +1,10 @@
 ﻿using EventCore.AggregateRoots;
 using EventCore.AggregateRoots.SerializableState;
+using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels;
 using EventCore.Samples.Ecommerce.DomainApi.Infrastructure;
 using EventCore.Samples.Ecommerce.DomainApi.Options;
+using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,12 +18,9 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 		{
 			ConfigureSupportingServices(services, options);
 
-			ConfigureGenericAggregateRoot<Domain.EmailBuilder.EmailBuilderAggregate, Domain.EmailBuilder.EmailBuilderState>(services);
-			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services);
-			ConfigureGenericAggregateRoot<Domain.SalesOrder.SalesOrderAggregate, Domain.SalesOrder.SalesOrderState>(services);
-
-			ConfigureEmailBuilder(config, services);
-			ConfigureEmailQueue(services);
+			// ConfigureEmailBuilder(config, services);
+			// ConfigureEmailQueue(services);
+			ConfigureSalesOrder(services);
 		}
 
 		private static void ConfigureSupportingServices(IServiceCollection services, InfrastructureOptions options)
@@ -36,17 +35,26 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			where TAggregate : AggregateRoot<TState>
 			where TState : IAggregateRootState
 		{
+			services.AddScoped<AggregateRootDependencies<TState>>(sp => new AggregateRootDependencies<TState>(
+				sp.GetRequiredService<IStandardLogger>(),
+				sp.GetRequiredService<IAggregateRootStateFactory<TState>>(),
+				sp.GetRequiredService<IStreamIdBuilder>(),
+				sp.GetRequiredService<IStreamClient>(),
+				new AggregateRootStateBusinessEventResolver<TState>(
+					sp.GetRequiredService<IStandardLogger>()
+				),
+				sp.GetRequiredService<ICommandHandlerFactory<TState>>()
+			));
+
 			services.AddScoped<TAggregate>();
-			services.AddScoped<AggregateRootDependencies<TState>>();
-			services.AddScoped<AggregateRootStateBusinessEventResolver<TState>>();
 		}
 
-		private static void ConfigureSerializableState<TState, TInternalState>(
+		private static void ConfigureGenericSerializableState<TState, TInternalState>(
 			IServiceCollection services,
 			Func<AggregateRootStateBusinessEventResolver<TState>, IGenericBusinessEventHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
 			where TState : SerializableAggregateRootState<TInternalState>
 		{
-			services.AddScoped<SerializableAggregateRootStateFactory<TState, TInternalState>>(
+			services.AddScoped<IAggregateRootStateFactory<TState>, SerializableAggregateRootStateFactory<TState, TInternalState>>(
 				sp => new SerializableAggregateRootStateFactory<TState, TInternalState>(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<TState>>(),
 					sp.GetRequiredService<IGenericBusinessEventHydrator>(),
@@ -94,7 +102,9 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 
 		private static void ConfigureEmailQueue(IServiceCollection services)
 		{
-			ConfigureSerializableState<Domain.EmailQueue.EmailQueueState, Domain.EmailQueue.StateModels.EmailQueueMessageModel>(
+			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services);
+
+			ConfigureGenericSerializableState<Domain.EmailQueue.EmailQueueState, Domain.EmailQueue.StateModels.EmailQueueMessageModel>(
 				services,
 				(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId) =>
 					new Domain.EmailQueue.EmailQueueState(
@@ -105,7 +115,9 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 
 		private static void ConfigureSalesOrder(IServiceCollection services)
 		{
-			ConfigureSerializableState<Domain.SalesOrder.SalesOrderState, Domain.SalesOrder.StateModels.SalesOrderModel>(
+			ConfigureGenericAggregateRoot<Domain.SalesOrder.SalesOrderAggregate, Domain.SalesOrder.SalesOrderState>(services);
+
+			ConfigureGenericSerializableState<Domain.SalesOrder.SalesOrderState, Domain.SalesOrder.StateModels.SalesOrderModel>(
 				services,
 				(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId) =>
 					new Domain.SalesOrder.SalesOrderState(

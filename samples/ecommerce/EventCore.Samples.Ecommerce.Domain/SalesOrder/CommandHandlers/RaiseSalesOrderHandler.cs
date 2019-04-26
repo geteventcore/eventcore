@@ -1,7 +1,7 @@
 ﻿using EventCore.AggregateRoots;
 using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.Domain.SalesOrder.Commands;
-using EventCore.Samples.Ecommerce.Events;
+using EventCore.Samples.Ecommerce.Domain.Events;
 using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.Domain.SalesOrder.CommandHandlers

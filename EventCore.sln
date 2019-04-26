@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6240FDEA-B
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.EventSourcing.Tests", "tests\EventCore.EventSourcing.Tests\EventCore.EventSourcing.Tests.csproj", "{04156CE5-2297-4C91-9D1F-F39EBDB87C9F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.DemoCli", "samples\EventCore.Samples.DemoCli\EventCore.Samples.DemoCli.csproj", "{21530563-A6ED-4691-A5BF-B6D186128088}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.DemoCli", "samples\cli\EventCore.Samples.DemoCli\EventCore.Samples.DemoCli.csproj", "{21530563-A6ED-4691-A5BF-B6D186128088}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.EventSourcing.EventStore", "src\EventCore.EventSourcing.EventStore\EventCore.EventSourcing.EventStore.csproj", "{17ED52AA-B216-47F2-90CD-4E29120C2F9A}"
 EndProject
@@ -45,7 +45,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.Domain.Clients", "samples\ecommerce\EventCore.Samples.Ecommerce.Domain.Clients\EventCore.Samples.Ecommerce.Domain.Clients.csproj", "{FFB2644A-A38A-4635-AE86-8A0A59AE8A42}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.Events", "samples\ecommerce\EventCore.Samples.Ecommerce.Events\EventCore.Samples.Ecommerce.Events.csproj", "{04143D6C-68D4-421E-A522-96A034EE2F60}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.Domain.Events", "samples\ecommerce\EventCore.Samples.Ecommerce.Domain.Events\EventCore.Samples.Ecommerce.Domain.Events.csproj", "{04143D6C-68D4-421E-A522-96A034EE2F60}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

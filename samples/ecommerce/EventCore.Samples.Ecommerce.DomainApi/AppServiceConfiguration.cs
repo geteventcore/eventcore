@@ -1,6 +1,8 @@
-﻿using EventCore.Samples.Ecommerce.DomainApi.Options;
+﻿using EventCore.Samples.Ecommerce.Domain;
+using EventCore.Samples.Ecommerce.DomainApi.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -17,9 +19,11 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			var options = config.GetSection("Infrastructure").Get<InfrastructureOptions>();
 
 			// Set up basic app dependencies.
-			services.AddScoped<Utilities.IStandardLogger, Utilities.StandardLogger>();
+			services.AddSingleton<Utilities.IStandardLogger>(sp => new Utilities.StandardLogger(sp.GetRequiredService<ILogger<Startup>>()));
 			services.AddScoped<EventSourcing.IStreamIdBuilder, EventSourcing.StreamIdBuilder>();
 			ConfigureStreamClient(config, services, options);
+
+			services.AddSingleton<EventSourcing.IBusinessEventResolver, AllBusinessEventsResolver>();
 
 			AggregateRootsServiceConfiguration.ConfigureAggregateRoots(config, services, options);
 		}
