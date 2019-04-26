@@ -9,6 +9,6 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder
 	{
 		public SalesOrderCommandHandler() { }
 		public abstract Task<ICommandEventsResult> ProcessCommandAsync(SalesOrderState state, TCommand c);
-		public abstract Task<ICommandValidationResult> ValidateForStateAsync(SalesOrderState state, TCommand c);
+		public abstract Task<ICommandValidationResult> ValidateStateAsync(SalesOrderState state, TCommand c);
 	}
 }

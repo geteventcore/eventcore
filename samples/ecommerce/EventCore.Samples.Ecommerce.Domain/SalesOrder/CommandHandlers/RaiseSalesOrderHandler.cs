@@ -8,7 +8,7 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder.CommandHandlers
 {
 	public class RaiseSalesOrderHandler : SalesOrderCommandHandler<RaiseSalesOrderCommand>
 	{
-		public override Task<ICommandValidationResult> ValidateForStateAsync(SalesOrderState state, RaiseSalesOrderCommand c)
+		public override Task<ICommandValidationResult> ValidateStateAsync(SalesOrderState state, RaiseSalesOrderCommand c)
 		{
 			if (state.SalesOrder != null) return CommandValidationResult.FromErrorIAsync("Duplicate sales order id.");
 			else return CommandValidationResult.FromValidIAsync();

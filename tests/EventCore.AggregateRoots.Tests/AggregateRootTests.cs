@@ -235,7 +235,7 @@ namespace EventCore.AggregateRoots.Tests
 			mockHandlerFactory.Setup(x => x.Create<ICommand>()).Returns(mockHandler.Object);
 			mockCommandValidationResultForState.Setup(x => x.IsValid).Returns(false);
 			mockCommandValidationResultForState.Setup(x => x.Errors).Returns(errors);
-			mockHandler.Setup(x => x.ValidateForStateAsync(mockState.Object, mockCommand.Object)).ReturnsAsync(mockCommandValidationResultForState.Object);
+			mockHandler.Setup(x => x.ValidateStateAsync(mockState.Object, mockCommand.Object)).ReturnsAsync(mockCommandValidationResultForState.Object);
 
 			var result = await ar.HandleGenericCommandAsync(mockCommand.Object, cancelSource.Token);
 
@@ -294,7 +294,7 @@ namespace EventCore.AggregateRoots.Tests
 			mockState.Setup(x => x.StreamPositionCheckpoint).Returns((long?)null); // Simulate no previously hydrated events.
 			mockHandlerFactory.Setup(x => x.Create<ICommand>()).Returns(mockHandler.Object);
 			mockCommandValidationResultForState.Setup(x => x.IsValid).Returns(true);
-			mockHandler.Setup(x => x.ValidateForStateAsync(mockState.Object, mockCommand.Object)).ReturnsAsync(mockCommandValidationResultForState.Object);
+			mockHandler.Setup(x => x.ValidateStateAsync(mockState.Object, mockCommand.Object)).ReturnsAsync(mockCommandValidationResultForState.Object);
 			mockHandler.Setup(x => x.ProcessCommandAsync(mockState.Object, mockCommand.Object)).ReturnsAsync(mockCommandEventsResult.Object);
 			mockCommandEventsResult.Setup(x => x.Events).Returns(events);
 			mockResolver.Setup(x => x.CanUnresolve(mockEvent.Object)).Returns(true);

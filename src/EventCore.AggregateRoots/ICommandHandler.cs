@@ -6,7 +6,7 @@ namespace EventCore.AggregateRoots
 		where TState : IAggregateRootState
 		where TCommand : ICommand
 	{
-		Task<ICommandValidationResult> ValidateForStateAsync(TState state, TCommand c);
+		Task<ICommandValidationResult> ValidateStateAsync(TState state, TCommand c);
 		Task<ICommandEventsResult> ProcessCommandAsync(TState state, TCommand c);
 	}
 }

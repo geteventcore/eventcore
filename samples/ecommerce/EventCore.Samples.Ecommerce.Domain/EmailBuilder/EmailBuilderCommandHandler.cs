@@ -9,6 +9,6 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 	{
 		public EmailBuilderCommandHandler() { }
 		public abstract Task<ICommandEventsResult> ProcessCommandAsync(EmailBuilderState state, TCommand c);
-		public abstract Task<ICommandValidationResult> ValidateForStateAsync(EmailBuilderState state, TCommand c);
+		public abstract Task<ICommandValidationResult> ValidateStateAsync(EmailBuilderState state, TCommand c);
 	}
 }

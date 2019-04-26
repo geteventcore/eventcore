@@ -8,7 +8,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue.CommandHandlers
 {
 	public class EnqueueEmailHandler : EmailQueueCommandHandler<EnqueueEmailCommand>
 	{
-		public override Task<ICommandValidationResult> ValidateForStateAsync(EmailQueueState state, EnqueueEmailCommand c)
+		public override Task<ICommandValidationResult> ValidateStateAsync(EmailQueueState state, EnqueueEmailCommand c)
 		{
 			if (state.Message != null) return CommandValidationResult.FromErrorIAsync("Duplicate email id.");
 			else return CommandValidationResult.FromValidIAsync();

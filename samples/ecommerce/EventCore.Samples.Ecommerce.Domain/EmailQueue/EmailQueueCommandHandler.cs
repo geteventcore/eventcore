@@ -9,6 +9,6 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue
 	{
 		public EmailQueueCommandHandler() { }
 		public abstract Task<ICommandEventsResult> ProcessCommandAsync(EmailQueueState state, TCommand c);
-		public abstract Task<ICommandValidationResult> ValidateForStateAsync(EmailQueueState state, TCommand c);
+		public abstract Task<ICommandValidationResult> ValidateStateAsync(EmailQueueState state, TCommand c);
 	}
 }
