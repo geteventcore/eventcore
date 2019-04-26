@@ -25,7 +25,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 				c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "Ecommerce Sample - Domain API", Version = "v1" });
 			});
 
-			AppServiceConfiguration.ConfigureServices(Configuration, services);
+			StartupSupport.ServiceConfiguration.Configure(Configuration, services);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

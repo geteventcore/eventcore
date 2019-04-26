@@ -3,9 +3,14 @@ using System;
 
 namespace EventCore.Utilities
 {
+	public class StandardLogger<T> : StandardLogger, IStandardLogger<T>
+	{
+		public StandardLogger(ILogger<T> logger) : base(logger) { }
+	}
+
 	public class StandardLogger : IStandardLogger
 	{
-		private readonly ILogger _logger;
+		protected readonly ILogger _logger;
 
 		public StandardLogger(ILogger logger)
 		{

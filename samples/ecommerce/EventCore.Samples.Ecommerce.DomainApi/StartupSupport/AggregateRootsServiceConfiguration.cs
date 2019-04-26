@@ -1,8 +1,7 @@
 ﻿using EventCore.AggregateRoots;
 using EventCore.AggregateRoots.SerializableState;
 using EventCore.EventSourcing;
-using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels;
-using EventCore.Samples.Ecommerce.DomainApi.Infrastructure;
+using EventCore.Samples.Ecommerce.Domain;
 using EventCore.Samples.Ecommerce.DomainApi.Options;
 using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -10,39 +9,32 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace EventCore.Samples.Ecommerce.DomainApi
+namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 {
 	public static class AggregateRootsServiceConfiguration
 	{
-		public static void ConfigureAggregateRoots(IConfiguration config, IServiceCollection services, InfrastructureOptions options)
+		public static void Configure(IConfiguration config, IServiceCollection services, ServicesOptions options)
 		{
-			ConfigureSupportingServices(services, options);
-
-			// ConfigureEmailBuilder(config, services);
-			// ConfigureEmailQueue(services);
-			ConfigureSalesOrder(services);
-		}
-
-		private static void ConfigureSupportingServices(IServiceCollection services, InfrastructureOptions options)
-		{
-			services.AddScoped<IGenericBusinessEventHydrator, GenericBusinessEventHydrator>();
-			services.AddScoped<ISerializableAggregateRootStateObjectRepo>(
+			services.AddSingleton<IGenericBusinessEventHydrator, GenericBusinessEventHydrator>();
+			services.AddSingleton<ISerializableAggregateRootStateObjectRepo>(
 				sp => new FileSerializableAggregateRootStateObjectRepo(options.AggregateRootStateBasePath)
 			);
+
+			// ConfigureEmailBuilder(services, options, config);
+			// ConfigureEmailQueue(services, options);
+			ConfigureSalesOrder(services, options);
 		}
 
-		private static void ConfigureGenericAggregateRoot<TAggregate, TState>(IServiceCollection services)
+		private static void ConfigureGenericAggregateRoot<TAggregate, TState>(IServiceCollection services, ServicesOptions options)
 			where TAggregate : AggregateRoot<TState>
 			where TState : IAggregateRootState
 		{
 			services.AddScoped<AggregateRootDependencies<TState>>(sp => new AggregateRootDependencies<TState>(
-				sp.GetRequiredService<IStandardLogger>(),
+				sp.GetRequiredService<IStandardLogger<TAggregate>>(),
 				sp.GetRequiredService<IAggregateRootStateFactory<TState>>(),
 				sp.GetRequiredService<IStreamIdBuilder>(),
-				sp.GetRequiredService<IStreamClient>(),
-				new AggregateRootStateBusinessEventResolver<TState>(
-					sp.GetRequiredService<IStandardLogger>()
-				),
+				EventSourcingServiceConfiguration.BuildStreamClient<TAggregate>(sp, options),
+				new AllBusinessEventsResolver(sp.GetRequiredService<IStandardLogger<TAggregate>>()),
 				sp.GetRequiredService<ICommandHandlerFactory<TState>>()
 			));
 
@@ -54,7 +46,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			Func<AggregateRootStateBusinessEventResolver<TState>, IGenericBusinessEventHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
 			where TState : SerializableAggregateRootState<TInternalState>
 		{
-			services.AddScoped<IAggregateRootStateFactory<TState>, SerializableAggregateRootStateFactory<TState, TInternalState>>(
+			services.AddScoped<IAggregateRootStateFactory<TState>>(
 				sp => new SerializableAggregateRootStateFactory<TState, TInternalState>(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<TState>>(),
 					sp.GetRequiredService<IGenericBusinessEventHydrator>(),
@@ -65,12 +57,11 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			);
 		}
 
-		private static void ConfigureEmailBuilder(IConfiguration config, IServiceCollection services)
+		private static void ConfigureEmailBuilder(IServiceCollection services, ServicesOptions options, IConfiguration config)
 		{
-			ConfigureGenericAggregateRoot<Domain.EmailBuilder.EmailBuilderAggregate, Domain.EmailBuilder.EmailBuilderState>(services);
+			ConfigureGenericAggregateRoot<Domain.EmailBuilder.EmailBuilderAggregate, Domain.EmailBuilder.EmailBuilderState>(services, options);
 
-			services.AddDbContext<RegionAEmailBuilderDbContext>(o => o.UseSqlite(config.GetConnectionString("EmailBuilderStateDbRegionA")));
-			services.AddDbContext<RegionBEmailBuilderDbContext>(o => o.UseSqlite(config.GetConnectionString("EmailBuilderStateDbRegionB")));
+			services.AddDbContext<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>(o => o.UseSqlite(config.GetConnectionString("EmailBuilderStateDb")));
 
 			services.AddScoped<Domain.EmailBuilder.EmailBuilderStateFactory>(
 				sp => new Domain.EmailBuilder.EmailBuilderStateFactory(
@@ -78,31 +69,19 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 					sp.GetRequiredService<IGenericBusinessEventHydrator>(),
 					(regionId) =>
 					{
-						if (string.Equals(regionId, "RegionA", StringComparison.OrdinalIgnoreCase)) return sp.GetRequiredService<RegionAEmailBuilderDbContext>();
-						if (string.Equals(regionId, "RegionB", StringComparison.OrdinalIgnoreCase)) return sp.GetRequiredService<RegionBEmailBuilderDbContext>();
-						return null;
+						// If supporting multiple regions then return db context based on region id given.
+						// if (string.Equals(regionId, "RegionA", StringComparison.OrdinalIgnoreCase)) return sp.GetRequiredService<RegionAEmailBuilderDbContext>();
+						// if (string.Equals(regionId, "RegionB", StringComparison.OrdinalIgnoreCase)) return sp.GetRequiredService<RegionBEmailBuilderDbContext>();
+						// return null;
+						return sp.GetRequiredService<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>();
 					}
 				)
 			);
 		}
 
-		// Cheap way to reuse database context object for different connection strings.
-		private class RegionAEmailBuilderDbContext : Domain.EmailBuilder.StateModels.EmailBuilderDbContext
+		private static void ConfigureEmailQueue(IServiceCollection services, ServicesOptions options)
 		{
-			public RegionAEmailBuilderDbContext(DbContextOptions<EmailBuilderDbContext> options) : base(options)
-			{
-			}
-		}
-		private class RegionBEmailBuilderDbContext : Domain.EmailBuilder.StateModels.EmailBuilderDbContext
-		{
-			public RegionBEmailBuilderDbContext(DbContextOptions<EmailBuilderDbContext> options) : base(options)
-			{
-			}
-		}
-
-		private static void ConfigureEmailQueue(IServiceCollection services)
-		{
-			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services);
+			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services, options);
 
 			ConfigureGenericSerializableState<Domain.EmailQueue.EmailQueueState, Domain.EmailQueue.StateModels.EmailQueueMessageModel>(
 				services,
@@ -113,9 +92,9 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			);
 		}
 
-		private static void ConfigureSalesOrder(IServiceCollection services)
+		private static void ConfigureSalesOrder(IServiceCollection services, ServicesOptions options)
 		{
-			ConfigureGenericAggregateRoot<Domain.SalesOrder.SalesOrderAggregate, Domain.SalesOrder.SalesOrderState>(services);
+			ConfigureGenericAggregateRoot<Domain.SalesOrder.SalesOrderAggregate, Domain.SalesOrder.SalesOrderState>(services, options);
 
 			ConfigureGenericSerializableState<Domain.SalesOrder.SalesOrderState, Domain.SalesOrder.StateModels.SalesOrderModel>(
 				services,

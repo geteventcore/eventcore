@@ -2,6 +2,8 @@
 
 namespace EventCore.Utilities
 {
+	public interface IStandardLogger<T> : IStandardLogger { }
+
 	public interface IStandardLogger
 	{
 		void LogCritical(string message, params object[] args);
@@ -13,6 +15,4 @@ namespace EventCore.Utilities
 		void LogWarning(string message, params object[] args);
 		void LogWarning(Exception ex, string message, params object[] args);
 	}
-
-	public interface IGenericLogger<T> : IStandardLogger { }
 }
