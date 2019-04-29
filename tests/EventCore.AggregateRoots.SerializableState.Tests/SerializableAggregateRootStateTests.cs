@@ -20,7 +20,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 			public List<string> CausalIdHistory { get => _causalIdHistory; }
 			public int MaxCausalIdHistory { get => _maxCausalIdHistory; }
 
-			public TestState(IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
+			public TestState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo) : base(resolver, repo)
 			{
 			}
 
@@ -33,7 +33,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 			var causalIdLower = "abc";
 			var causalIdUpper = "ABC";
 
-			var state = new TestState(null, null, null, null, null, null, null);
+			var state = new TestState(null, null);
 
 			Assert.False(await state.IsCausalIdInHistoryAsync(causalIdLower));
 			await state.AddCausalIdToHistoryAsync(causalIdUpper);
@@ -43,7 +43,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 		[Fact]
 		public async Task honor_max_causal_id_history()
 		{
-			var state = new TestState(null, null, null, null, null, null, null);
+			var state = new TestState(null, null);
 			var causalIdNext = "next";
 
 			for (var i = 1; i <= state.MaxCausalIdHistory; i++)
@@ -71,7 +71,9 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 
 			Func<Func<StreamEvent, Task>, Task> streamLoaderAsync = (_1) => { baseHydrationCalled = true; return Task.CompletedTask; };
 
-			var state = new TestState(null, null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
+			var state = new TestState(null, mockRepo.Object);
+
+			mockRepo.Setup(x => x.LoadAsync<TestInternalState>(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync((SerializableAggregateRootStateObject<TestInternalState>)null);
 
 			mockRepo
 				.Setup(x => x.SaveAsync(regionId, context, aggregateRootName, aggregateRootId, It.IsAny<SerializableAggregateRootStateObject<TestInternalState>>()))
@@ -84,6 +86,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 				.Returns(Task.CompletedTask);
 
 			state.SetStreamPositionCheckpoint(1);
+			await state.InitializeAsync(regionId, context, aggregateRootName, aggregateRootId, cancelSource.Token);
 			await state.HydrateFromCheckpointAsync(streamLoaderAsync, cancelSource.Token);
 
 			Assert.True(baseHydrationCalled);
@@ -101,9 +104,9 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 
 			mockRepo.Setup(x => x.LoadAsync<TestInternalState>(regionId, context, aggregateRootName, aggregateRootId)).ReturnsAsync((SerializableAggregateRootStateObject<TestInternalState>)null);
 
-			var state = new TestState(null, null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
+			var state = new TestState(null, mockRepo.Object);
 
-			await state.InitializeAsync(CancellationToken.None); // Will throw null reference exception if proceeds into body code.
+			await state.InitializeAsync(regionId, context, aggregateRootName, aggregateRootId, CancellationToken.None); // Will throw null reference exception if proceeds into body code.
 		}
 
 		[Fact]
@@ -123,9 +126,9 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 				.Setup(x => x.LoadAsync<TestInternalState>(regionId, context, aggregateRootName, aggregateRootId))
 				.ReturnsAsync(stateObj);
 
-			var state = new TestState(null, null, mockRepo.Object, regionId, context, aggregateRootName, aggregateRootId);
+			var state = new TestState(null, mockRepo.Object);
 
-			await state.InitializeAsync(CancellationToken.None);
+			await state.InitializeAsync(regionId, context, aggregateRootName, aggregateRootId, CancellationToken.None);
 
 			Assert.Equal(streamPositionCheckpoint, state.StreamPositionCheckpoint);
 			Assert.Contains(causalId, state.CausalIdHistory);
