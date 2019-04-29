@@ -19,12 +19,12 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 			var aggregateRootName = "ar";
 			var aggregateRootId = "1";
 			var mockResolver = new Mock<IBusinessEventResolver>();
-			var mockHydrator = new Mock<IGenericBusinessEventHydrator>();
+			var mockHydrator = new Mock<IAggregateRootStateHydrator>();
 			var mockRepo = new Mock<ISerializableAggregateRootStateObjectRepo>();
 			var mockState = new Mock<ISerializableAggregateRootState<TestInternalState>>();
 			var cancelSource = new CancellationTokenSource();
 
-			Func<IBusinessEventResolver, IGenericBusinessEventHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, ISerializableAggregateRootState<TestInternalState>> stateConstructor =
+			Func<IBusinessEventResolver, IAggregateRootStateHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, ISerializableAggregateRootState<TestInternalState>> stateConstructor =
 			(pResolver, pHydrator, pRepo, pRegionId, pContext, pAggregateRootName, pAggregateRootId) =>
 			{
 				if (pResolver != mockResolver.Object || pHydrator != mockHydrator.Object || pRepo != mockRepo.Object

@@ -9,13 +9,13 @@ namespace EventCore.AggregateRoots.SerializableState
 		where TState : ISerializableAggregateRootState<TInternalState>
 	{
 		private readonly IBusinessEventResolver _resolver;
-		private readonly IGenericBusinessEventHydrator _genericHydrator;
+		private readonly IAggregateRootStateHydrator _genericHydrator;
 		private readonly ISerializableAggregateRootStateObjectRepo _repo;
-		private readonly Func<IBusinessEventResolver, IGenericBusinessEventHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> _stateConstructor;
+		private readonly Func<IBusinessEventResolver, IAggregateRootStateHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> _stateConstructor;
 
 		public SerializableAggregateRootStateFactory(
-			IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator, ISerializableAggregateRootStateObjectRepo repo,
-			Func<IBusinessEventResolver, IGenericBusinessEventHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
+			IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator, ISerializableAggregateRootStateObjectRepo repo,
+			Func<IBusinessEventResolver, IAggregateRootStateHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
 		{
 			_resolver = resolver;
 			_genericHydrator = genericHydrator;

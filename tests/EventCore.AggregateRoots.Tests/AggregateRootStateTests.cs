@@ -16,7 +16,7 @@ namespace EventCore.AggregateRoots.Tests
 	{
 		private class TestState : AggregateRootState
 		{
-			public TestState(IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator) : base(resolver, genericHydrator) { }
+			public TestState(IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator) : base(resolver, genericHydrator) { }
 			public override Task AddCausalIdToHistoryAsync(string causalId) => throw new NotImplementedException();
 			public override Task<bool> IsCausalIdInHistoryAsync(string causalId) => throw new NotImplementedException();
 		}
@@ -30,7 +30,7 @@ namespace EventCore.AggregateRoots.Tests
 			var streamEvent = new StreamEvent(streamId, position, null, eventType, new byte[] { });
 			var mockEvent = new Mock<IBusinessEvent>();
 			var mockResolver = new Mock<IBusinessEventResolver>();
-			var mockHydrator = new Mock<IGenericBusinessEventHydrator>();
+			var mockHydrator = new Mock<IAggregateRootStateHydrator>();
 			var cancelSource = new CancellationTokenSource();
 			var state = new TestState(mockResolver.Object, mockHydrator.Object);
 

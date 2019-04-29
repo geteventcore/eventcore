@@ -12,11 +12,11 @@ namespace EventCore.AggregateRoots
 	public abstract class AggregateRootState : IAggregateRootState
 	{
 		protected readonly IBusinessEventResolver _resolver;
-		protected readonly IGenericBusinessEventHydrator _genericHydrator;
+		protected readonly IAggregateRootStateHydrator _genericHydrator;
 
 		public virtual long? StreamPositionCheckpoint { get; protected set; }
 
-		public AggregateRootState(IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator)
+		public AggregateRootState(IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator)
 		{
 			_resolver = resolver;
 			_genericHydrator = genericHydrator;

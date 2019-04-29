@@ -10,12 +10,12 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 	public class EmailBuilderStateFactory : IAggregateRootStateFactory<EmailBuilderState>
 	{
 		private readonly AggregateRootStateBusinessEventResolver<EmailBuilderState> _resolver;
-		private readonly IGenericBusinessEventHydrator _genericHydrator;
+		private readonly IAggregateRootStateHydrator _genericHydrator;
 
 		// Gives caller the option of separating state databases by region.
 		private readonly Func<string, EmailBuilderDbContext> _dbFactory;
 
-		public EmailBuilderStateFactory(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, IGenericBusinessEventHydrator genericHydrator, Func<string, EmailBuilderDbContext> dbFactory)
+		public EmailBuilderStateFactory(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, IAggregateRootStateHydrator genericHydrator, Func<string, EmailBuilderDbContext> dbFactory)
 		{
 			_resolver = resolver;
 			_genericHydrator = genericHydrator;

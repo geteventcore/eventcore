@@ -13,7 +13,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 	{
 		private readonly EmailBuilderDbContext _db;
 
-		public EmailBuilderState(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, IGenericBusinessEventHydrator genericHydrator, EmailBuilderDbContext db) : base(resolver, genericHydrator)
+		public EmailBuilderState(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, IAggregateRootStateHydrator genericHydrator, EmailBuilderDbContext db) : base(resolver, genericHydrator)
 		{
 			_db = db;
 		}
@@ -24,7 +24,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 			await streamLoaderAsync(se => ReceiveHydrationEventAsync(this, _resolver, _genericHydrator, _db, se, cancellationToken));
 		}
 
-		private static async Task<long> ReceiveHydrationEventAsync(EmailBuilderState state, IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator, EmailBuilderDbContext db, StreamEvent streamEvent, CancellationToken cancellationToken)
+		private static async Task<long> ReceiveHydrationEventAsync(EmailBuilderState state, IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator, EmailBuilderDbContext db, StreamEvent streamEvent, CancellationToken cancellationToken)
 		{
 			if (resolver.CanResolve(streamEvent.EventType))
 			{

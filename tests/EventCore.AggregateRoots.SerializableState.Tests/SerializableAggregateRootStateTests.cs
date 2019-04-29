@@ -20,7 +20,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 			public List<string> CausalIdHistory { get => _causalIdHistory; }
 			public int MaxCausalIdHistory { get => _maxCausalIdHistory; }
 
-			public TestState(IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
+			public TestState(IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
 			{
 			}
 

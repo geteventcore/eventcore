@@ -15,7 +15,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 	{
 		public static void Configure(IConfiguration config, IServiceCollection services, ServicesOptions options)
 		{
-			services.AddSingleton<IGenericBusinessEventHydrator, GenericBusinessEventHydrator>();
+			services.AddSingleton<IAggregateRootStateHydrator, AggregateRootStateHydrator>();
 			services.AddSingleton<ISerializableAggregateRootStateObjectRepo>(
 				sp => new FileSerializableAggregateRootStateObjectRepo(options.AggregateRootStateBasePath)
 			);
@@ -43,13 +43,13 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 
 		private static void ConfigureGenericSerializableState<TState, TInternalState>(
 			IServiceCollection services,
-			Func<AggregateRootStateBusinessEventResolver<TState>, IGenericBusinessEventHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
+			Func<AggregateRootStateBusinessEventResolver<TState>, IAggregateRootStateHydrator, ISerializableAggregateRootStateObjectRepo, string, string, string, string, TState> stateConstructor)
 			where TState : SerializableAggregateRootState<TInternalState>
 		{
 			services.AddScoped<IAggregateRootStateFactory<TState>>(
 				sp => new SerializableAggregateRootStateFactory<TState, TInternalState>(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<TState>>(),
-					sp.GetRequiredService<IGenericBusinessEventHydrator>(),
+					sp.GetRequiredService<IAggregateRootStateHydrator>(),
 					sp.GetRequiredService<ISerializableAggregateRootStateObjectRepo>(),
 					(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId) =>
 						stateConstructor((AggregateRootStateBusinessEventResolver<TState>)resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
@@ -66,7 +66,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			services.AddScoped<Domain.EmailBuilder.EmailBuilderStateFactory>(
 				sp => new Domain.EmailBuilder.EmailBuilderStateFactory(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailBuilder.EmailBuilderState>>(),
-					sp.GetRequiredService<IGenericBusinessEventHydrator>(),
+					sp.GetRequiredService<IAggregateRootStateHydrator>(),
 					(regionId) =>
 					{
 						// If supporting multiple regions then return db context based on region id given.

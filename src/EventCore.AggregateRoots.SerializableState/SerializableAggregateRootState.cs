@@ -20,7 +20,7 @@ namespace EventCore.AggregateRoots.SerializableState
 		protected abstract TInternalState _internalState { get; set; }
 
 		public SerializableAggregateRootState(
-			IBusinessEventResolver resolver, IGenericBusinessEventHydrator genericHydrator,
+			IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator,
 			ISerializableAggregateRootStateObjectRepo repo,
 			string regionId, string context, string aggregateRootName, string aggregateRootId)
 			: base(resolver, genericHydrator)

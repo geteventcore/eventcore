@@ -12,7 +12,7 @@ using Xunit;
 
 namespace EventCore.AggregateRoots.Tests
 {
-	public class GenericEventHydratorTests
+	public class AggregateRootStateHydratorTests
 	{
 		private class TestState : IAggregateRootState,
 			IApplyBusinessEvent<IBusinessEvent>
@@ -37,7 +37,7 @@ namespace EventCore.AggregateRoots.Tests
 			var position = 1;
 			var mockEvent = new Mock<IBusinessEvent>();
 			var state = new TestState();
-			var hydrator = new GenericBusinessEventHydrator();
+			var hydrator = new AggregateRootStateHydrator();
 			var cancelSource = new CancellationTokenSource();
 			var applyCalled = false;
 

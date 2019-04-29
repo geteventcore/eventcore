@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.AggregateRoots
 {
-	public class GenericBusinessEventHydrator : IGenericBusinessEventHydrator
+	public class AggregateRootStateHydrator : IAggregateRootStateHydrator
 	{
 		public async Task ApplyGenericBusinessEventAsync(IAggregateRootState state, string streamId, long position, IBusinessEvent e, CancellationToken cancellationToken)
 		{
