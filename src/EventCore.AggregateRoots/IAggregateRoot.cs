@@ -5,6 +5,6 @@ namespace EventCore.AggregateRoots
 {
 	public interface IAggregateRoot
 	{
-		Task<IHandledCommandResult> HandleGenericCommandAsync<TCommand>(TCommand command, CancellationToken cancellationToken) where TCommand : ICommand;
+		Task<ICommandResult> HandleGenericCommandAsync(ICommand command, CancellationToken cancellationToken);
 	}
 }

@@ -10,19 +10,17 @@ namespace EventCore.AggregateRoots
 		public readonly IStreamIdBuilder StreamIdBuilder;
 		public readonly IStreamClient StreamClient;
 		public readonly IBusinessEventResolver Resolver;
-		public readonly ICommandHandlerFactory<TState> HandlerFactory;
 
 		public AggregateRootDependencies(
 			IStandardLogger logger,
 			IAggregateRootStateFactory<TState> stateFactory, IStreamIdBuilder streamIdBuilder, IStreamClient streamClient,
-			IBusinessEventResolver resolver, ICommandHandlerFactory<TState> handlerFactory)
+			IBusinessEventResolver resolver)
 		{
 			Logger = logger;
 			StateFactory = stateFactory;
 			StreamIdBuilder = streamIdBuilder;
 			StreamClient = streamClient;
 			Resolver = resolver;
-			HandlerFactory = handlerFactory;
 		}
 	}
 }

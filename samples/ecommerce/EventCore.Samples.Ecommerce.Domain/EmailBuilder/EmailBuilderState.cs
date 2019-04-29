@@ -13,7 +13,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 	{
 		private readonly EmailBuilderDbContext _db;
 
-		public EmailBuilderState(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, IAggregateRootStateHydrator genericHydrator, EmailBuilderDbContext db) : base(resolver, genericHydrator)
+		public EmailBuilderState(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, EmailBuilderDbContext db) : base(resolver)
 		{
 			_db = db;
 		}
@@ -21,18 +21,18 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 		public override async Task HydrateFromCheckpointAsync(Func<Func<StreamEvent, Task>, Task> streamLoaderAsync, CancellationToken cancellationToken)
 		{
 			// Do not catch exceptions - allow to bubble up to command handler.
-			await streamLoaderAsync(se => ReceiveHydrationEventAsync(this, _resolver, _genericHydrator, _db, se, cancellationToken));
+			await streamLoaderAsync(se => ReceiveHydrationEventAsync(se, cancellationToken));
 		}
 
-		private static async Task<long> ReceiveHydrationEventAsync(EmailBuilderState state, IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator, EmailBuilderDbContext db, StreamEvent streamEvent, CancellationToken cancellationToken)
+		public async Task<long> ReceiveHydrationEventAsync(StreamEvent streamEvent, CancellationToken cancellationToken)
 		{
-			if (resolver.CanResolve(streamEvent.EventType))
+			if (_resolver.CanResolve(streamEvent.EventType))
 			{
-				var resolvedEvent = resolver.Resolve(streamEvent.EventType, streamEvent.Data);
+				var resolvedEvent = _resolver.Resolve(streamEvent.EventType, streamEvent.Data);
 
 				// Expecting that agg root stream does not have link events, so we
 				// pass the primary stream and position.
-				await genericHydrator.ApplyGenericBusinessEventAsync(state, streamEvent.StreamId, streamEvent.Position, resolvedEvent, cancellationToken);
+				await ApplyGenericBusinessEventAsync(streamEvent.StreamId, streamEvent.Position, resolvedEvent, cancellationToken);
 			}
 
 			// Track the position even if we can't resolve the event.

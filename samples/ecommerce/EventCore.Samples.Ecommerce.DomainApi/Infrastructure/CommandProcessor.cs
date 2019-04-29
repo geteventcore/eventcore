@@ -13,7 +13,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.Infrastructure
 			var result = await ar.HandleGenericCommandAsync(c, CancellationToken.None);
 
 			if(result.IsSuccess) return new OkResult();
-			else return new BadRequestObjectResult(result.ValidationErrors);
+			else return new BadRequestObjectResult(result.Errors);
 		}
 	}
 }

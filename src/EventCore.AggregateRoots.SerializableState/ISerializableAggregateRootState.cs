@@ -5,6 +5,6 @@ namespace EventCore.AggregateRoots.SerializableState
 {
 	public interface ISerializableAggregateRootState<TInternalState> : IAggregateRootState
 	{
-		Task InitializeAsync(CancellationToken cancellationToken);
+		Task InitializeAsync(string regionId, string context, string aggregateRootName, string aggregateRootId, CancellationToken cancellationToken);
 	}
 }

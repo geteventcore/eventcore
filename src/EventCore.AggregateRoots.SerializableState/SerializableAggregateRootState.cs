@@ -10,30 +10,33 @@ namespace EventCore.AggregateRoots.SerializableState
 	public abstract class SerializableAggregateRootState<TInternalState> : AggregateRootState, ISerializableAggregateRootState<TInternalState>
 	{
 		private readonly ISerializableAggregateRootStateObjectRepo _repo;
-		private readonly string _regionId;
-		private readonly string _context;
-		private readonly string _aggregateRootName;
-		private readonly string _aggregateRootId;
 
 		protected virtual int _maxCausalIdHistory { get; } = 100; // Limits the number of causal ids stored in memory.
 		protected readonly List<string> _causalIdHistory = new List<string>(); // List, not Set - need ordering so we can remove overflow.
 		protected abstract TInternalState _internalState { get; set; }
 
-		public SerializableAggregateRootState(
-			IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator,
-			ISerializableAggregateRootStateObjectRepo repo,
-			string regionId, string context, string aggregateRootName, string aggregateRootId)
-			: base(resolver, genericHydrator)
+		// Set during initialization, not from constructor.
+		// This makes concrete implementations' constructors simpler.
+		private string _regionId;
+		private string _context;
+		private string _aggregateRootName;
+		private string _aggregateRootId;
+
+		public SerializableAggregateRootState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo)
+			: base(resolver)
 		{
 			_repo = repo;
+
+		}
+
+		public virtual async Task InitializeAsync(string regionId, string context, string aggregateRootName, string aggregateRootId, CancellationToken cancellationToken)
+		{
+			// These could be set by the constructor but it would make the constructor parameters in the state factory messier.
 			_regionId = regionId;
 			_context = context;
 			_aggregateRootName = aggregateRootName;
 			_aggregateRootId = aggregateRootId;
-		}
 
-		public virtual async Task InitializeAsync(CancellationToken cancellationToken)
-		{
 			var stateObj = await _repo.LoadAsync<TInternalState>(_regionId, _context, _aggregateRootName, _aggregateRootId);
 
 			if (stateObj != null)

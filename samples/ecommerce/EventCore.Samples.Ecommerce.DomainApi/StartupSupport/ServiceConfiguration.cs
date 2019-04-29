@@ -1,5 +1,4 @@
-﻿using EventCore.Samples.Ecommerce.Domain;
-using EventCore.Samples.Ecommerce.DomainApi.Options;
+﻿using EventCore.Samples.Ecommerce.DomainApi.Options;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 

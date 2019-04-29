@@ -21,7 +21,7 @@ namespace EventCore.Samples.Ecommerce.DomainAzFx.Infrastructure
 			try
 			{
 				var sp = Bootstrapper.ConfigureServices();
-				IHandledCommandResult result;
+				ICommandResult result;
 
 				using (var scope = sp.CreateScope())
 				{
@@ -37,7 +37,7 @@ namespace EventCore.Samples.Ecommerce.DomainAzFx.Infrastructure
 				}
 
 				if (result.IsSuccess) return new OkResult();
-				else return new BadRequestObjectResult(result.ValidationErrors);
+				else return new BadRequestObjectResult(result.Errors);
 			}
 			catch (Exception ex)
 			{

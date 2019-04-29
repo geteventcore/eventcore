@@ -15,7 +15,7 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder
 
 		public SalesOrderModel SalesOrder { get; private set; }
 
-		public SalesOrderState(IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator, ISerializableAggregateRootStateObjectRepo repo, string regionId, string context, string aggregateRootName, string aggregateRootId) : base(resolver, genericHydrator, repo, regionId, context, aggregateRootName, aggregateRootId)
+		public SalesOrderState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo) : base(resolver, repo)
 		{
 		}
 

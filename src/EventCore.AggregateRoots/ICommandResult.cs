@@ -3,8 +3,10 @@ using System.Collections.Immutable;
 
 namespace EventCore.AggregateRoots
 {
-	public interface ICommandEventsResult
+	public interface ICommandResult
 	{
+		bool IsSuccess { get; }
+		IImmutableList<string> Errors { get; }
 		IImmutableList<IBusinessEvent> Events { get; }
 	}
 }

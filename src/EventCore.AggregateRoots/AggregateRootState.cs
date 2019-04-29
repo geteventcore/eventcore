@@ -12,14 +12,18 @@ namespace EventCore.AggregateRoots
 	public abstract class AggregateRootState : IAggregateRootState
 	{
 		protected readonly IBusinessEventResolver _resolver;
-		protected readonly IAggregateRootStateHydrator _genericHydrator;
 
 		public virtual long? StreamPositionCheckpoint { get; protected set; }
 
-		public AggregateRootState(IBusinessEventResolver resolver, IAggregateRootStateHydrator genericHydrator)
+		public AggregateRootState(IBusinessEventResolver resolver)
 		{
 			_resolver = resolver;
-			_genericHydrator = genericHydrator;
+		}
+
+		public virtual async Task ApplyGenericBusinessEventAsync(string streamId, long position, IBusinessEvent e, CancellationToken cancellationToken)
+		{
+			// Expects IApplyBusinessEvent<TEvent> for the type of event given.
+			await (Task)this.GetType().InvokeMember("ApplyBusinessEventAsync", BindingFlags.InvokeMethod, null, this, new object[] { streamId, position, e, cancellationToken });
 		}
 
 		public virtual async Task HydrateFromCheckpointAsync(Func<Func<StreamEvent, Task>, Task> streamLoaderAsync, CancellationToken cancellationToken)
@@ -32,9 +36,9 @@ namespace EventCore.AggregateRoots
 					var resolvedEvent = _resolver.Resolve(se.EventType, se.Data);
 
 					// Expecting that agg root stream does not have link events.
-					await _genericHydrator.ApplyGenericBusinessEventAsync(this, se.StreamId, se.Position, resolvedEvent, cancellationToken);
+					await ApplyGenericBusinessEventAsync(se.StreamId, se.Position, resolvedEvent, cancellationToken);
 				}
-				
+
 				// Track the position even if we can't resolve the event.
 				StreamPositionCheckpoint = se.Position;
 			});
