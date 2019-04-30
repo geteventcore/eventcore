@@ -43,7 +43,7 @@ namespace EventCore.AggregateRoots
 		{
 			try
 			{
-				var trackingStart = DateTime.Now;
+				var trackingStartAll = DateTime.Now;
 
 				// Semantic validation to check format of fields, etc. - data that isn't dependent on state.
 				var semanticValidationResult = command.ValidateSemantics();
@@ -56,11 +56,15 @@ namespace EventCore.AggregateRoots
 				var aggregateRootId = command.GetAggregateRootId();
 				var streamId = _streamIdBuilder.Build(regionId, _context, _aggregateRootName, aggregateRootId);
 
+				var trackingStartState = DateTime.Now;
+
 				// Instantiate the agg root state and load to latest checkpoint (i.e. cached state.)
 				var state = await _stateFactory.CreateAndLoadToCheckpointAsync(regionId, _context, _aggregateRootName, aggregateRootId, cancellationToken);
 
 				// Hydrate state from the latest checkpoint to the end of the agg root event stream.
 				var lastPositionHydrated = await HydrateStateAsync(state, regionId, streamId, cancellationToken);
+
+				_logger.LogTrace($"Command handler took {DateTime.Now.Subtract(trackingStartState).TotalMilliseconds}ms to load state and hydrate events.");
 
 				// Check for duplicate command id.
 				if (await state.IsCausalIdInHistoryAsync(command.GetCommandId()))
@@ -78,16 +82,18 @@ namespace EventCore.AggregateRoots
 				}
 
 				// Commit events to the agg root stream.
+				var trackingStartCommit = DateTime.Now;
 				if (!(await CommitEventsAsync(handlerResult.Events, regionId, streamId, lastPositionHydrated)))
 				{
 					return CommandResult.FromError("Concurrency conflict while committing events.");
 				}
+				_logger.LogTrace($"Command handler took {DateTime.Now.Subtract(trackingStartCommit).TotalMilliseconds}ms to commit events.");
 
 				// Save the command id to the causal id history so we can detect duplicate commands
 				// as new commands arrive on this agg root instance.
 				await state.AddCausalIdToHistoryAsync(command.GetCommandId());
 
-				_logger.LogTrace($"Aggregate root took {DateTime.Now.Subtract(trackingStart).TotalMilliseconds}ms to handle command.");
+				_logger.LogTrace($"Command handler total run rime {DateTime.Now.Subtract(trackingStartAll).TotalMilliseconds}ms.");
 
 				return handlerResult;
 			}
