@@ -11,8 +11,6 @@ namespace EventCore.AggregateRoots
 		public IImmutableList<string> Errors { get; }
 		public IImmutableList<IBusinessEvent> Events { get; }
 
-		public CommandResult() : this(new List<IBusinessEvent>()) { }
-
 		public CommandResult(IList<string> errors)
 		{
 			IsSuccess = false;
@@ -32,7 +30,6 @@ namespace EventCore.AggregateRoots
 		public static CommandResult FromErrors(IList<string> errors) => new CommandResult(errors);
 		public static Task<CommandResult> FromErrorsAsync(IList<string> errors) => Task.FromResult<CommandResult>(FromErrors(errors));
 		public static Task<ICommandResult> FromErrorsIAsync(IList<string> errors) => Task.FromResult<ICommandResult>(FromErrors(errors));
-
 
 		public static CommandResult FromEvent(IBusinessEvent e) => new CommandResult(new List<IBusinessEvent>() { e });
 		public static Task<CommandResult> FromEventAsync(IBusinessEvent e) => Task.FromResult<CommandResult>(FromEvent(e));

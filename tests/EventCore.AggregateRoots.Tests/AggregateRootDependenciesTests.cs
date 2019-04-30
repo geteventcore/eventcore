@@ -1,4 +1,3 @@
-using System;
 using EventCore.EventSourcing;
 using EventCore.Utilities;
 using Moq;
@@ -16,11 +15,10 @@ namespace EventCore.AggregateRoots.Tests
 			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
 			var mockStreamClient = new Mock<IStreamClient>();
 			var mockResolver = new Mock<IBusinessEventResolver>();
-			var mockHandlerFactory = new Mock<ICommandHandlerFactory<IAggregateRootState>>();
 
 			var dependencies = new AggregateRootDependencies<IAggregateRootState>(
-				mockLogger.Object, mockStateFactory.Object, mockStreamIdBuilder.Object, mockStreamClient.Object,
-				mockResolver.Object, mockHandlerFactory.Object
+				mockLogger.Object, mockStateFactory.Object, mockStreamIdBuilder.Object,
+				mockStreamClient.Object, mockResolver.Object
 			);
 
 			Assert.Equal(mockLogger.Object, dependencies.Logger);
@@ -28,7 +26,6 @@ namespace EventCore.AggregateRoots.Tests
 			Assert.Equal(mockStreamIdBuilder.Object, dependencies.StreamIdBuilder);
 			Assert.Equal(mockStreamClient.Object, dependencies.StreamClient);
 			Assert.Equal(mockResolver.Object, dependencies.Resolver);
-			Assert.Equal(mockHandlerFactory.Object, dependencies.HandlerFactory);
 		}
 	}
 }

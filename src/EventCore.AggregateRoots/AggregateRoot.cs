@@ -33,7 +33,7 @@ namespace EventCore.AggregateRoots
 			_aggregateRootName = aggregateRootName;
 		}
 
-		public virtual async Task<ICommandResult> RouteTypedCommandForHandlingAsync(TState state, ICommand command, CancellationToken cancellationToken)
+		protected virtual async Task<ICommandResult> RouteCommandForTypedHandlingAsync(TState state, ICommand command, CancellationToken cancellationToken)
 		{
 			// Expects IHandleCommand<> for the type of command given.
 			return await (Task<ICommandResult>)this.GetType().InvokeMember("HandleCommandAsync", BindingFlags.InvokeMethod, null, this, new object[] { state, command, cancellationToken });
@@ -68,7 +68,7 @@ namespace EventCore.AggregateRoots
 
 				// The agg root concrete implementation should take care of routing to typed command handlers for
 				// each type of command it wants to handle.
-				var handlerResult = await RouteTypedCommandForHandlingAsync(state, command, cancellationToken);
+				var handlerResult = await RouteCommandForTypedHandlingAsync(state, command, cancellationToken);
 
 				if (!handlerResult.IsSuccess)
 				{
@@ -94,17 +94,17 @@ namespace EventCore.AggregateRoots
 			}
 		}
 
-		public virtual async Task<long?> HydrateStateAsync(TState state, string regionId, string streamId, CancellationToken cancellationToken)
+		protected virtual async Task<long?> HydrateStateAsync(TState state, string regionId, string streamId, CancellationToken cancellationToken)
 		{
 			var loadStreamFromPosition = state.StreamPositionCheckpoint.GetValueOrDefault(_streamClient.FirstPositionInStream - 1) + 1;
 			long? lastPositionHydrated = null;
 
-			await state.HydrateFromCheckpointAsync(
-				receiverAsync => _streamClient.LoadStreamEventsAsync(
+			await state.HydrateFromCheckpointAsync( // Must tell the state hydrator how to load events. I.e. give it a delegate.
+				streamLoaderAsync => _streamClient.LoadStreamEventsAsync(
 					regionId, streamId, loadStreamFromPosition,
-					async se =>
+					async se => // Function to execute for each event in the stream.
 					{
-						await receiverAsync(se);
+						await streamLoaderAsync(se); // Calls the stream loader delegate given by the state hydration function.
 						lastPositionHydrated = se.Position;
 					},
 					cancellationToken),
@@ -114,7 +114,7 @@ namespace EventCore.AggregateRoots
 			return lastPositionHydrated;
 		}
 
-		public virtual async Task<bool> CommitEventsAsync(IImmutableList<IBusinessEvent> events, string regionId, string streamId, long? lastPositionHydrated)
+		protected virtual async Task<bool> CommitEventsAsync(IImmutableList<IBusinessEvent> events, string regionId, string streamId, long? lastPositionHydrated)
 		{
 			if (events.Count > 0)
 			{
