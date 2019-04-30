@@ -21,7 +21,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue
 			if (s.Message != null) return CommandResult.FromErrorIAsync("Duplicate email id.");
 
 			var e = new EmailEnqueuedEvent(
-				BusinessEventMetadata.FromCausalId(c._Metadata.CommandId),
+				BusinessEventMetadata.FromCausalId(c.GetCommandId()),
 				c.EmailId, c.FromAddress, c.ToAddress, c.Subject, c.Body, c.IsHtml
 			);
 			return CommandResult.FromEventIAsync(e);

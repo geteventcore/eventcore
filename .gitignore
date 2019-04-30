@@ -72,7 +72,7 @@ project.lock.json
 nupkg/
 
 # Visual Studio Code
-# .vscode #Allowing this through to preserve build tasks.
+.vscode
 
 # User-specific files
 *.suo

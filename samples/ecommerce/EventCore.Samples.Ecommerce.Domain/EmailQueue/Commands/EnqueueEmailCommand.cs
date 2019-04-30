@@ -11,7 +11,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue.Commands
 		public readonly string Body;
 		public readonly bool IsHtml;
 
-		public EnqueueEmailCommand(DomainCommandMetadata metadata, Guid emailId, string fromAddress, string toAddress, string subject, string body, bool isHtml) : base(metadata, emailId)
+		public EnqueueEmailCommand(DomainCommandMetadata _metadata, Guid emailId, string fromAddress, string toAddress, string subject, string body, bool isHtml) : base(_metadata, emailId)
 		{
 			FromAddress = fromAddress;
 			ToAddress = toAddress;

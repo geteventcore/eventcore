@@ -27,6 +27,8 @@ namespace EventCore.Samples.Ecommerce.Domain
 
 		public DomainCommand(DomainCommandMetadata _metadata)
 		{
+			_Metadata = _metadata;
+			if(_metadata == null) throw new ArgumentNullException("Metadata is null!");
 		}
 	}
 }

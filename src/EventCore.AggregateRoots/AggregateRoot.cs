@@ -43,6 +43,8 @@ namespace EventCore.AggregateRoots
 		{
 			try
 			{
+				var trackingStart = DateTime.Now;
+
 				// Semantic validation to check format of fields, etc. - data that isn't dependent on state.
 				var semanticValidationResult = command.ValidateSemantics();
 				if (!semanticValidationResult.IsValid)
@@ -84,6 +86,8 @@ namespace EventCore.AggregateRoots
 				// Save the command id to the causal id history so we can detect duplicate commands
 				// as new commands arrive on this agg root instance.
 				await state.AddCausalIdToHistoryAsync(command.GetCommandId());
+
+				_logger.LogTrace($"Aggregate root took {DateTime.Now.Subtract(trackingStart).TotalMilliseconds}ms to handle command.");
 
 				return handlerResult;
 			}
