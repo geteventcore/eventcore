@@ -1,4 +1,5 @@
 ﻿using EventCore.Samples.Ecommerce.Domain.SalesOrder;
+using EventCore.Samples.Ecommerce.Domain.SalesOrder.Commands;
 using EventCore.Samples.Ecommerce.DomainApi.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -20,6 +21,6 @@ namespace EventCore.Samples.Ecommerce.DomainApi.Controllers
 		[HttpPost("RaiseSalesOrder")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public Task<IActionResult> RaiseSalesOrder([FromBody] SalesOrderCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
+		public Task<IActionResult> RaiseSalesOrder([FromBody] RaiseSalesOrderCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
 	}
 }

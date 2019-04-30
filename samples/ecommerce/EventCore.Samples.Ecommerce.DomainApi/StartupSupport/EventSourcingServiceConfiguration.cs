@@ -13,7 +13,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			var connectionBuilders = new Dictionary<string, Func<EventStore.ClientAPI.IEventStoreConnection>>();
 
 			// Connection factory must be able to create a new connection for each region.
-			// For now we only have one region.
+			// ... For now we only have one region.
 			connectionBuilders.Add(Domain.Constants.DEFAULT_REGION_ID, () => EventStore.ClientAPI.EventStoreConnection.Create("EventStoreX"));
 
 			services.AddSingleton<EventSourcing.EventStore.IEventStoreConnectionFactory>(

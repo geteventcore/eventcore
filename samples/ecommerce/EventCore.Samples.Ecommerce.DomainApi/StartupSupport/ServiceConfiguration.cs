@@ -8,7 +8,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 	{
 		public static void Configure(IConfiguration config, IServiceCollection services)
 		{
-			var options = config.GetSection("Infrastructure").Get<ServicesOptions>();
+			var options = config.GetSection("Services").Get<ServicesOptions>();
 
 			services.AddSingleton(typeof(Utilities.IStandardLogger<>), typeof(Utilities.StandardLogger<>));
 			

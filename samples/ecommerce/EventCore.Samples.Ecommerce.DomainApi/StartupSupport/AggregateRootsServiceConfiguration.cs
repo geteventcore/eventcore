@@ -28,12 +28,16 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			where TAggregate : AggregateRoot<TState>
 			where TState : IAggregateRootState
 		{
-			services.AddScoped<AggregateRootDependencies<TState>>(sp => new AggregateRootDependencies<TState>(
+			services.AddSingleton<AggregateRootDependencies<TState>>(sp => new AggregateRootDependencies<TState>(
 				sp.GetRequiredService<IStandardLogger<TAggregate>>(),
 				sp.GetRequiredService<IAggregateRootStateFactory<TState>>(),
 				sp.GetRequiredService<IStreamIdBuilder>(),
 				EventSourcingServiceConfiguration.BuildStreamClient<TAggregate>(sp, options),
-				new AllBusinessEventsResolver(sp.GetRequiredService<IStandardLogger<TAggregate>>())
+				new AllBusinessEventsResolver(sp.GetRequiredService<IStandardLogger<TAggregate>>()) // This resolver used when committing events.
+			));
+
+			services.AddSingleton<AggregateRootStateBusinessEventResolver<TState>>(sp => new AggregateRootStateBusinessEventResolver<TState>(
+				sp.GetRequiredService<IStandardLogger<TAggregate>>()
 			));
 
 			services.AddScoped<TAggregate>();
@@ -44,7 +48,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			Func<AggregateRootStateBusinessEventResolver<TState>, ISerializableAggregateRootStateObjectRepo, TState> stateConstructor)
 			where TState : SerializableAggregateRootState<TInternalState>
 		{
-			services.AddScoped<IAggregateRootStateFactory<TState>>(
+			services.AddSingleton<IAggregateRootStateFactory<TState>>(
 				sp => new SerializableAggregateRootStateFactory<TState, TInternalState>(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<TState>>(),
 					sp.GetRequiredService<ISerializableAggregateRootStateObjectRepo>(),
@@ -63,7 +67,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 
 			services.AddDbContext<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>(o => o.UseSqlite(config.GetConnectionString("EmailBuilderStateDb")));
 
-			services.AddScoped<Domain.EmailBuilder.EmailBuilderStateFactory>(
+			services.AddSingleton<Domain.EmailBuilder.EmailBuilderStateFactory>(
 				sp => new Domain.EmailBuilder.EmailBuilderStateFactory(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailBuilder.EmailBuilderState>>(),
 					(regionId) =>
