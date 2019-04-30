@@ -21,7 +21,7 @@ namespace EventCore.Samples.Ecommerce.Domain
 		private string BuildPostUrl(string aggregateRootName, string commandName) => string.Join("/", _baseUrl, aggregateRootName, commandName);
 
 		public Task PostCommandAsync<TCommand>(TCommand command) where TCommand : DomainCommand
-			=> PostCommandAsync(BuildPostUrl(command._AggregateRootName, command._CommandName), command);
+			=> PostCommandAsync(BuildPostUrl(command.GetAggregateRootName(), command.GetCommandName()), command);
 
 		private async Task PostCommandAsync(string postUrl, DomainCommand command)
 		{

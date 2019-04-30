@@ -61,7 +61,7 @@ namespace EventCore.AggregateRoots
 				var lastPositionHydrated = await HydrateStateAsync(state, regionId, streamId, cancellationToken);
 
 				// Check for duplicate command id.
-				if (await state.IsCausalIdInHistoryAsync(command._Metadata.CommandId))
+				if (await state.IsCausalIdInHistoryAsync(command.GetCommandId()))
 				{
 					return CommandResult.FromError("Duplicate command id.");
 				}
@@ -83,7 +83,7 @@ namespace EventCore.AggregateRoots
 
 				// Save the command id to the causal id history so we can detect duplicate commands
 				// as new commands arrive on this agg root instance.
-				await state.AddCausalIdToHistoryAsync(command._Metadata.CommandId);
+				await state.AddCausalIdToHistoryAsync(command.GetCommandId());
 
 				return handlerResult;
 			}

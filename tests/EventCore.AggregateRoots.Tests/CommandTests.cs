@@ -7,17 +7,17 @@ namespace EventCore.AggregateRoots.Tests
 	{
 		private class TestCommand : Command
 		{
-			public TestCommand(ICommandMetadata _metadata) : base(_metadata) { }
+			public override string GetCommandId() => throw new NotImplementedException();
 			public override string GetAggregateRootId() => throw new NotImplementedException();
 			public override string GetRegionId() => throw new NotImplementedException();
 		}
 
 		[Fact]
-		public void construct_with_metadata()
+		public void validate_semantics()
 		{
-			var md = CommandMetadata.Empty;
-			var command = new TestCommand(md);
-			Assert.Equal(md, command._Metadata);
+			var command = new TestCommand();
+			var result = command.ValidateSemantics();
+			Assert.True(result.IsValid);
 		}
 	}
 }

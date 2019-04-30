@@ -1,4 +1,4 @@
-﻿using EventCore.AggregateRoots;
+﻿using EventCore.Samples.Ecommerce.Domain;
 using EventCore.Samples.Ecommerce.Domain.Clients;
 using EventCore.Samples.Ecommerce.Domain.SalesOrder.Commands;
 using System;
@@ -25,7 +25,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 				for (var i = 1; i <= _options.Count; i++)
 				{
 					var so = new RaiseSalesOrderCommand(
-						new CommandMetadata(Guid.NewGuid().ToString()),
+						new DomainCommandMetadata(Guid.NewGuid().ToString()),
 						"SO-" + string.Format(i.ToString(), "0000000000"),
 						"Customer " + i,
 						"customer." + i + "@" + Guid.NewGuid() + ".com",

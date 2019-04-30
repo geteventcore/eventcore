@@ -4,13 +4,7 @@ namespace EventCore.AggregateRoots
 {
 	public abstract class Command : ICommand
 	{
-		public ICommandMetadata _Metadata { get; }
-
-		public Command(ICommandMetadata _metadata)
-		{
-			_Metadata = _metadata;
-		}
-
+		public abstract string GetCommandId();
 		public abstract string GetRegionId();
 		public abstract string GetAggregateRootId();
 
