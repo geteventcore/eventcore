@@ -26,7 +26,6 @@ namespace EventCore.AggregateRoots.SerializableState
 			: base(resolver)
 		{
 			_repo = repo;
-
 		}
 
 		public virtual async Task InitializeAsync(string regionId, string context, string aggregateRootName, string aggregateRootId, CancellationToken cancellationToken)

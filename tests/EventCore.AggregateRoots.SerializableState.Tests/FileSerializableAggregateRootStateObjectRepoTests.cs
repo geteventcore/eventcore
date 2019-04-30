@@ -28,6 +28,22 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 		}
 
 		[Fact]
+		public async Task load_null_when_no_state_file_exists()
+		{
+			var basePath = Directory.GetCurrentDirectory();
+			var repo = new FileSerializableAggregateRootStateObjectRepo(basePath);
+			var regionId = "x";
+			var context = "ctx";
+			var aggregateRootName = "ar";
+			var aggregateRootId = Guid.NewGuid().ToString();
+			var internalState = new TestInternalState();
+
+			var loadedState = await repo.LoadAsync<TestInternalState>(regionId, context, aggregateRootName, aggregateRootId);
+
+			Assert.Null(loadedState);
+		}
+
+		[Fact]
 		public async Task save_and_load_state()
 		{
 			var basePath = Directory.GetCurrentDirectory();
@@ -35,7 +51,7 @@ namespace EventCore.AggregateRoots.SerializableState.Tests
 			var regionId = "x";
 			var context = "ctx";
 			var aggregateRootName = "ar";
-			var aggregateRootId = "1";
+			var aggregateRootId = Guid.NewGuid().ToString();
 			var streamPositionCheckpoint = 1;
 			var causalId = "abc";
 			var internalState = new TestInternalState();

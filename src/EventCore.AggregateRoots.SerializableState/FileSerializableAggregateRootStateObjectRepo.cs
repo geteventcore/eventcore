@@ -22,10 +22,16 @@ namespace EventCore.AggregateRoots.SerializableState
 
 		public Task<SerializableAggregateRootStateObject<TInternalState>> LoadAsync<TInternalState>(string regionId, string context, string aggregateRootName, string aggregateRootId)
 		{
-			var json = File.ReadAllText(BuildStateFilePath(_basePath, regionId, context, aggregateRootName, aggregateRootId));
-			return Task.FromResult<SerializableAggregateRootStateObject<TInternalState>>(
-				(SerializableAggregateRootStateObject<TInternalState>)JsonConvert.DeserializeObject(json, typeof(SerializableAggregateRootStateObject<TInternalState>))
-			);
+			SerializableAggregateRootStateObject<TInternalState> stateObj = null;
+			
+			var stateFilePath = BuildStateFilePath(_basePath, regionId, context, aggregateRootName, aggregateRootId);
+			if (File.Exists(stateFilePath))
+			{
+				var json = File.ReadAllText(stateFilePath);
+				stateObj = (SerializableAggregateRootStateObject<TInternalState>)JsonConvert.DeserializeObject(json, typeof(SerializableAggregateRootStateObject<TInternalState>));
+			}
+
+			return Task.FromResult<SerializableAggregateRootStateObject<TInternalState>>(stateObj);
 		}
 
 		public Task SaveAsync<TInternalState>(string regionId, string context, string aggregateRootName, string aggregateRootId, SerializableAggregateRootStateObject<TInternalState> stateObject)
