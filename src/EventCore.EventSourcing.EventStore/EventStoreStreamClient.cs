@@ -29,6 +29,8 @@ namespace EventCore.EventSourcing.EventStore
 
 		public async Task<CommitResult> CommitEventsToStreamAsync(string regionId, string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events)
 		{
+			var start = DateTime.Now;
+
 			if (!StreamIdBuilder.ValidateStreamIdChars(streamId))
 			{
 				throw new ArgumentException("Invalid character(s) in stream id.");
@@ -53,6 +55,8 @@ namespace EventCore.EventSourcing.EventStore
 					conn.Close();
 				}
 
+				_logger.LogTrace($"Commit events took {DateTime.Now.Subtract(start).TotalMilliseconds}ms.");
+
 				return CommitResult.Success;
 			}
 			catch (WrongExpectedVersionException)
@@ -71,6 +75,8 @@ namespace EventCore.EventSourcing.EventStore
 
 		public async Task LoadStreamEventsAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken)
 		{
+			var start = DateTime.Now;
+
 			if (fromPosition < FirstPositionInStream)
 			{
 				throw new ArgumentException("Invalid position.");
@@ -106,6 +112,8 @@ namespace EventCore.EventSourcing.EventStore
 
 					conn.Close();
 				}
+
+				_logger.LogTrace($"Load events took {DateTime.Now.Subtract(start).TotalMilliseconds}ms.");
 			}
 			catch (Exception ex)
 			{
