@@ -14,7 +14,8 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 
 			// Connection factory must be able to create a new connection for each region.
 			// ... For now we only have one region.
-			connectionBuilders.Add(Domain.Constants.DEFAULT_REGION_ID, () => EventStore.ClientAPI.EventStoreConnection.Create("EventStoreX"));
+			var eventStoreConnStrRegionX = config.GetConnectionString("EventStoreRegionX");
+			connectionBuilders.Add(Domain.Constants.DEFAULT_REGION_ID, () => EventStore.ClientAPI.EventStoreConnection.Create(eventStoreConnStrRegionX));
 
 			services.AddSingleton<EventSourcing.EventStore.IEventStoreConnectionFactory>(
 				sp => new EventSourcing.EventStore.EventStoreConnectionFactory(connectionBuilders)

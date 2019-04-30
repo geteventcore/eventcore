@@ -28,6 +28,8 @@ namespace EventCore.AggregateRoots.SerializableState
 			if (File.Exists(stateFilePath))
 			{
 				var json = File.ReadAllText(stateFilePath);
+
+				// If the agg root state structure has changed then the obsolete json should deserialize to null.
 				stateObj = (SerializableAggregateRootStateObject<TInternalState>)JsonConvert.DeserializeObject(json, typeof(SerializableAggregateRootStateObject<TInternalState>));
 			}
 
