@@ -38,7 +38,7 @@ namespace EventCore.EventSourcing.EventStore
 
 			if (expectedLastPosition.HasValue && expectedLastPosition < FirstPositionInStream)
 			{
-				throw new ArgumentException("Invalid character(s) in stream id.");
+				throw new ArgumentException("Invalid expected last position.");
 			}
 
 			try
