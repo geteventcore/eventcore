@@ -1,10 +1,10 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace EventCore.AggregateRoots.SerializableState
 {
-	public interface ISerializableAggregateRootState<TInternalState> : IAggregateRootState
+	public interface ISerializableAggregateRootState : IAggregateRootState
 	{
-		Task InitializeAsync(string regionId, string context, string aggregateRootName, string aggregateRootId, CancellationToken cancellationToken);
+		Task DeserializeInternalStateAsync(byte[] data);
+		Task<byte[]> SerializeInternalStateAsync();
 	}
 }

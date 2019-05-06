@@ -15,10 +15,6 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 	{
 		public static void Configure(IConfiguration config, IServiceCollection services, ServicesOptions options)
 		{
-			services.AddSingleton<ISerializableAggregateRootStateObjectRepo>(
-				sp => new FileSerializableAggregateRootStateObjectRepo(options.AggregateRootStateBasePath)
-			);
-
 			// ConfigureEmailBuilder(services, options, config);
 			// ConfigureEmailQueue(services, options);
 			ConfigureSalesOrder(services, options);
@@ -30,12 +26,13 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 		{
 			services.AddSingleton<AggregateRootDependencies<TState>>(sp => new AggregateRootDependencies<TState>(
 				sp.GetRequiredService<IStandardLogger<TAggregate>>(),
-				sp.GetRequiredService<IAggregateRootStateFactory<TState>>(),
+				sp.GetRequiredService<IAggregateRootStateRepo<TState>>(),
 				sp.GetRequiredService<IStreamIdBuilder>(),
-				EventSourcingServiceConfiguration.BuildStreamClient<TAggregate>(sp, options),
+				sp.GetRequiredService<IStreamClientFactory>(),
 				new AllBusinessEventsResolver(sp.GetRequiredService<IStandardLogger<TAggregate>>()) // This resolver used when committing events.
 			));
 
+			// This resolver used when hydrating aggregate root state.
 			services.AddSingleton<AggregateRootStateBusinessEventResolver<TState>>(sp => new AggregateRootStateBusinessEventResolver<TState>(
 				sp.GetRequiredService<IStandardLogger<TAggregate>>()
 			));
@@ -43,16 +40,12 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			services.AddScoped<TAggregate>();
 		}
 
-		private static void ConfigureGenericSerializableState<TState, TInternalState>(
-			IServiceCollection services,
-			Func<AggregateRootStateBusinessEventResolver<TState>, ISerializableAggregateRootStateObjectRepo, TState> stateConstructor)
-			where TState : SerializableAggregateRootState<TInternalState>
+		private static void ConfigureGenericSerializableState<TState>(IServiceCollection services, Func<IServiceProvider, TState> stateConstructor, ServicesOptions options)
+			where TState : ISerializableAggregateRootState
 		{
-			services.AddSingleton<IAggregateRootStateFactory<TState>>(
-				sp => new SerializableAggregateRootStateFactory<TState, TInternalState>(
-					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<TState>>(),
-					sp.GetRequiredService<ISerializableAggregateRootStateObjectRepo>(),
-					(resolver, repo) => stateConstructor((AggregateRootStateBusinessEventResolver<TState>)resolver, repo)
+			services.AddSingleton<IAggregateRootStateRepo<TState>>(
+				sp => new SerializableAggregateRootStateFileRepo<TState>(
+					sp.GetRequiredService<IStreamClientFactory>(), () => stateConstructor(sp), options.AggregateRootStateBasePath
 				)
 			);
 		}
@@ -86,9 +79,10 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 		{
 			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services, options);
 
-			ConfigureGenericSerializableState<Domain.EmailQueue.EmailQueueState, Domain.EmailQueue.StateModels.EmailQueueMessageModel>(
+			ConfigureGenericSerializableState<Domain.EmailQueue.EmailQueueState>(
 				services,
-				(resolver, repo) => new Domain.EmailQueue.EmailQueueState((AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>)resolver, repo)
+				(sp) => new Domain.EmailQueue.EmailQueueState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>>()),
+				options
 			);
 		}
 
@@ -96,9 +90,10 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 		{
 			ConfigureGenericAggregateRoot<Domain.SalesOrder.SalesOrderAggregate, Domain.SalesOrder.SalesOrderState>(services, options);
 
-			ConfigureGenericSerializableState<Domain.SalesOrder.SalesOrderState, Domain.SalesOrder.StateModels.SalesOrderModel>(
+			ConfigureGenericSerializableState<Domain.SalesOrder.SalesOrderState>(
 				services,
-				(resolver, repo) => new Domain.SalesOrder.SalesOrderState((AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>)resolver, repo)
+				(sp) => new Domain.SalesOrder.SalesOrderState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>>()),
+				options
 			);
 		}
 	}

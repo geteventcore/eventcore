@@ -1,8 +1,8 @@
 ﻿using EventCore.AggregateRoots;
 using EventCore.AggregateRoots.SerializableState;
 using EventCore.EventSourcing;
-using EventCore.Samples.Ecommerce.Domain.SalesOrder.StateModels;
 using EventCore.Samples.Ecommerce.Domain.Events;
+using EventCore.Samples.Ecommerce.Domain.SalesOrder.StateModels;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +15,7 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder
 
 		public SalesOrderModel SalesOrder { get; private set; }
 
-		public SalesOrderState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo) : base(resolver, repo)
+		public SalesOrderState(IBusinessEventResolver resolver) : base(resolver)
 		{
 		}
 

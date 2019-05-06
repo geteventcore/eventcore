@@ -14,7 +14,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\src\EventCore.AggregateRoots.SerializableState\EventCore.AggregateRoots.SerializableState.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.AggregateRoots\EventCore.AggregateRoots.csproj" />
-		<ProjectReference Include="..\..\..\src\EventCore.EventSourcing.EventStore\EventCore.EventSourcing.EventStore.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain\EventCore.Samples.Ecommerce.Domain.csproj" />
     <ProjectReference Include="..\..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />

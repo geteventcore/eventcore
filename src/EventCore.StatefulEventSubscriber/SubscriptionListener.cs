@@ -9,13 +9,13 @@ namespace EventCore.StatefulEventSubscriber
 	public class SubscriptionListener : ISubscriptionListener
 	{
 		private readonly IStandardLogger _logger;
-		private readonly IStreamClient _streamClient;
+		private readonly IStreamClientFactory _streamClientFactory;
 		private readonly IResolutionManager _resolutionManager;
 
-		public SubscriptionListener(IStandardLogger logger, IStreamClient streamClient, IResolutionManager resolutionManager)
+		public SubscriptionListener(IStandardLogger logger, IStreamClientFactory streamClientFactory, IResolutionManager resolutionManager)
 		{
 			_logger = logger;
-			_streamClient = streamClient;
+			_streamClientFactory = streamClientFactory;
 			_resolutionManager = resolutionManager;
 		}
 
@@ -24,16 +24,19 @@ namespace EventCore.StatefulEventSubscriber
 		{
 			try
 			{
-				while (!cancellationToken.IsCancellationRequested)
+				using (var streamClient = _streamClientFactory.Create(regionId))
 				{
-					// Subscription starts from first position in stream.
-					// Streams states will be read to skip previously processed events.
-					var listenerTask = _streamClient.SubscribeToStreamAsync(
-						regionId, subscriptionStreamId, _streamClient.FirstPositionInStream,
-						(se) => _resolutionManager.ReceiveStreamEventAsync(se, _streamClient.FirstPositionInStream, cancellationToken),
-						cancellationToken
-					);
-					await Task.WhenAny(new[] { listenerTask, cancellationToken.WaitHandle.AsTask() });
+					while (!cancellationToken.IsCancellationRequested)
+					{
+						// Subscription starts from first position in stream.
+						// Streams states will be read to skip previously processed events.
+						var listenerTask = streamClient.SubscribeToStreamAsync(
+							subscriptionStreamId, streamClient.FirstPositionInStream,
+							(se) => _resolutionManager.ReceiveStreamEventAsync(se, streamClient.FirstPositionInStream, cancellationToken),
+							cancellationToken
+						);
+						await Task.WhenAny(new[] { listenerTask, cancellationToken.WaitHandle.AsTask() });
+					}
 				}
 			}
 			catch (Exception ex)

@@ -15,7 +15,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue
 
 		public EmailQueueMessageModel Message { get; private set; }
 
-		public EmailQueueState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo) : base(resolver, repo)
+		public EmailQueueState(IBusinessEventResolver resolver) : base(resolver)
 		{
 		}
 

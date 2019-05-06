@@ -11,21 +11,21 @@ namespace EventCore.AggregateRoots.Tests
 		public void construct()
 		{
 			var mockLogger = new Mock<IStandardLogger>();
-			var mockStateFactory = new Mock<IAggregateRootStateFactory<IAggregateRootState>>();
+			var mockStateRepo = new Mock<IAggregateRootStateRepo<IAggregateRootState>>();
 			var mockStreamIdBuilder = new Mock<IStreamIdBuilder>();
-			var mockStreamClient = new Mock<IStreamClient>();
-			var mockResolver = new Mock<IBusinessEventResolver>();
+			var mockStreamClientFactory = new Mock<IStreamClientFactory>();
+			var mockEventResolver = new Mock<IBusinessEventResolver>();
 
 			var dependencies = new AggregateRootDependencies<IAggregateRootState>(
-				mockLogger.Object, mockStateFactory.Object, mockStreamIdBuilder.Object,
-				mockStreamClient.Object, mockResolver.Object
+				mockLogger.Object, mockStateRepo.Object, mockStreamIdBuilder.Object,
+				mockStreamClientFactory.Object, mockEventResolver.Object
 			);
 
 			Assert.Equal(mockLogger.Object, dependencies.Logger);
-			Assert.Equal(mockStateFactory.Object, dependencies.StateFactory);
+			Assert.Equal(mockStateRepo.Object, dependencies.StateRepo);
 			Assert.Equal(mockStreamIdBuilder.Object, dependencies.StreamIdBuilder);
-			Assert.Equal(mockStreamClient.Object, dependencies.StreamClient);
-			Assert.Equal(mockResolver.Object, dependencies.Resolver);
+			Assert.Equal(mockStreamClientFactory.Object, dependencies.StreamClientFactory);
+			Assert.Equal(mockEventResolver.Object, dependencies.EventResolver);
 		}
 	}
 }

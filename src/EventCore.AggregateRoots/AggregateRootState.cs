@@ -1,7 +1,4 @@
 ﻿using EventCore.EventSourcing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,40 +8,42 @@ namespace EventCore.AggregateRoots
 	// Basic aggregate root state implementation.
 	public abstract class AggregateRootState : IAggregateRootState
 	{
-		protected readonly IBusinessEventResolver _resolver;
+		private readonly IBusinessEventResolver _eventResolver;
 
 		public virtual long? StreamPositionCheckpoint { get; protected set; }
 
-		public AggregateRootState(IBusinessEventResolver resolver)
+		public abstract Task<bool> IsCausalIdInHistoryAsync(string causalId);
+		public abstract Task AddCausalIdToHistoryAsync(string causalId);
+
+		public AggregateRootState(IBusinessEventResolver eventResolver)
 		{
-			_resolver = resolver;
+			_eventResolver = eventResolver;
 		}
 
-		public virtual async Task ApplyGenericBusinessEventAsync(string streamId, long position, IBusinessEvent e, CancellationToken cancellationToken)
+		public virtual async Task ApplyStreamEventAsync(StreamEvent streamEvent, CancellationToken cancellationToken)
+		{
+			if (_eventResolver.CanResolve(streamEvent.EventType))
+			{
+				var resolvedEvent = _eventResolver.Resolve(streamEvent.EventType, streamEvent.Data);
+
+				// Expecting that agg root stream does not have link events.
+				await ApplyGenericBusinessEventAsync(streamEvent.StreamId, streamEvent.Position, resolvedEvent, cancellationToken);
+
+				var causalId = resolvedEvent.GetCausalId();
+				if (!string.IsNullOrWhiteSpace(causalId))
+				{
+					await AddCausalIdToHistoryAsync(causalId);
+				}
+			}
+
+			// Update the last hydrated position even if we can't resolve the event.
+			StreamPositionCheckpoint = streamEvent.Position;
+		}
+
+		protected virtual async Task ApplyGenericBusinessEventAsync(string streamId, long position, IBusinessEvent e, CancellationToken cancellationToken)
 		{
 			// Expects IApplyBusinessEvent<TEvent> for the type of event given.
 			await (Task)this.GetType().InvokeMember("ApplyBusinessEventAsync", BindingFlags.InvokeMethod, null, this, new object[] { streamId, position, e, cancellationToken });
 		}
-
-		public virtual async Task HydrateFromCheckpointAsync(Func<Func<StreamEvent, Task>, Task> streamLoaderAsync, CancellationToken cancellationToken)
-		{
-			// Do not catch exceptions - allow to bubble up to command handler.
-			await streamLoaderAsync(async se =>
-			{
-				if (_resolver.CanResolve(se.EventType))
-				{
-					var resolvedEvent = _resolver.Resolve(se.EventType, se.Data);
-
-					// Expecting that agg root stream does not have link events.
-					await ApplyGenericBusinessEventAsync(se.StreamId, se.Position, resolvedEvent, cancellationToken);
-				}
-
-				// Track the position even if we can't resolve the event.
-				StreamPositionCheckpoint = se.Position;
-			});
-		}
-
-		public abstract Task<bool> IsCausalIdInHistoryAsync(string causalId);
-		public abstract Task AddCausalIdToHistoryAsync(string causalId);
 	}
 }

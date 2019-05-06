@@ -5,14 +5,12 @@ using System.Threading.Tasks;
 
 namespace EventCore.EventSourcing
 {
-	public interface IStreamClient
+	public interface IStreamClient : IDisposable
 	{
 		long FirstPositionInStream { get; }
-
-		Task<CommitResult> CommitEventsToStreamAsync(string regionId, string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events);
-		Task LoadStreamEventsAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken);
-		Task SubscribeToStreamAsync(string regionId, string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken);
-		Task<long?> FindLastPositionInStreamAsync(string regionId, string streamId);
-		
+		Task<CommitResult> CommitEventsToStreamAsync(string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events);
+		Task LoadStreamEventsAsync(string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken);
+		Task SubscribeToStreamAsync(string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken);
+		Task<long?> GetLastPositionInStreamAsync(string streamId);
 	}
 }

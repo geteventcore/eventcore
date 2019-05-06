@@ -1,63 +1,21 @@
-﻿using EventCore.EventSourcing;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
+using System.Text;
 using System.Threading.Tasks;
+using EventCore.EventSourcing;
+using Newtonsoft.Json;
 
 namespace EventCore.AggregateRoots.SerializableState
 {
-	public abstract class SerializableAggregateRootState<TInternalState> : AggregateRootState, ISerializableAggregateRootState<TInternalState>
+	public abstract class SerializableAggregateRootState<TInternalState> : AggregateRootState, ISerializableAggregateRootState
 	{
-		private readonly ISerializableAggregateRootStateObjectRepo _repo;
+		protected virtual int _maxCausalIdHistory { get; set; } = 100; // Limits the number of causal ids stored in memory/serialized.
+		protected readonly List<string> _causalIdHistory = new List<string>(); // List<>, not Set<> - need ordering so we can remove overflow.
+		protected abstract TInternalState _internalState { get; set; } // This is the concrete state's serializable object.
 
-		protected virtual int _maxCausalIdHistory { get; } = 100; // Limits the number of causal ids stored in memory.
-		protected readonly List<string> _causalIdHistory = new List<string>(); // List, not Set - need ordering so we can remove overflow.
-		protected abstract TInternalState _internalState { get; set; }
-
-		// Set during initialization, not from constructor.
-		// This makes concrete implementations' constructors simpler.
-		private string _regionId;
-		private string _context;
-		private string _aggregateRootName;
-		private string _aggregateRootId;
-
-		public SerializableAggregateRootState(IBusinessEventResolver resolver, ISerializableAggregateRootStateObjectRepo repo)
-			: base(resolver)
+		public SerializableAggregateRootState(IBusinessEventResolver eventResolver) : base(eventResolver)
 		{
-			_repo = repo;
-		}
-
-		public virtual async Task InitializeAsync(string regionId, string context, string aggregateRootName, string aggregateRootId, CancellationToken cancellationToken)
-		{
-			// These could be set by the constructor but it would make the constructor parameters in the state factory messier.
-			_regionId = regionId;
-			_context = context;
-			_aggregateRootName = aggregateRootName;
-			_aggregateRootId = aggregateRootId;
-
-			var stateObj = await _repo.LoadAsync<TInternalState>(_regionId, _context, _aggregateRootName, _aggregateRootId);
-
-			if (stateObj != null)
-			{
-				StreamPositionCheckpoint = stateObj.StreamPositionCheckpoint;
-				_causalIdHistory.AddRange(stateObj.CausalIdHistory);
-
-				if (stateObj.InternalState != null)
-				{
-					_internalState = (TInternalState)stateObj.InternalState;
-				}
-			}
-
-		}
-
-		public override async Task HydrateFromCheckpointAsync(Func<Func<StreamEvent, Task>, Task> streamLoaderAsync, CancellationToken cancellationToken)
-		{
-			await base.HydrateFromCheckpointAsync(streamLoaderAsync, cancellationToken);
-
-			// Save state.
-			var stateObj = new SerializableAggregateRootStateObject<TInternalState>(StreamPositionCheckpoint, _causalIdHistory, _internalState);
-			await _repo.SaveAsync(_regionId, _context, _aggregateRootName, _aggregateRootId, stateObj);
 		}
 
 		public override Task AddCausalIdToHistoryAsync(string causalId)
@@ -78,6 +36,32 @@ namespace EventCore.AggregateRoots.SerializableState
 		{
 			// Causal id is case INsensitive.
 			return Task.FromResult<bool>(_causalIdHistory.Exists(x => string.Equals(x, causalId, StringComparison.OrdinalIgnoreCase)));
+		}
+
+		public virtual Task DeserializeInternalStateAsync(byte[] data)
+		{
+			var json = Encoding.Unicode.GetString(data);
+			var deserializedState = (SerializableData<TInternalState>)JsonConvert.DeserializeObject(json, typeof(SerializableData<TInternalState>));
+
+			if (deserializedState != null)
+			{
+				StreamPositionCheckpoint = deserializedState.StreamPositionCheckpoint;
+				_causalIdHistory.AddRange(deserializedState.CausalIdHistory);
+
+				if (deserializedState.InternalState != null)
+				{
+					_internalState = (TInternalState)deserializedState.InternalState;
+				}
+			}
+
+			return Task.CompletedTask;
+		}
+
+		public virtual Task<byte[]> SerializeInternalStateAsync()
+		{
+			var serializableData = new SerializableData<TInternalState>(StreamPositionCheckpoint, _causalIdHistory, _internalState);
+			var json = JsonConvert.SerializeObject(serializableData);
+			return Task.FromResult(Encoding.Unicode.GetBytes(json));
 		}
 	}
 }

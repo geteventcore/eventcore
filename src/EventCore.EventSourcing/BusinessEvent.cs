@@ -10,5 +10,8 @@ namespace EventCore.EventSourcing
 		{
 			Metadata = metadata;
 		}
+
+		public string GetCausalId() => Metadata.CausalId;
+		public string GetCorrelationId() => Metadata.CorrelationId;
 	}
 }

@@ -6,21 +6,21 @@ namespace EventCore.AggregateRoots
 	public class AggregateRootDependencies<TState> where TState : IAggregateRootState
 	{
 		public readonly IStandardLogger Logger;
-		public readonly IAggregateRootStateFactory<TState> StateFactory;
+		public readonly IAggregateRootStateRepo<TState> StateRepo;
 		public readonly IStreamIdBuilder StreamIdBuilder;
-		public readonly IStreamClient StreamClient;
-		public readonly IBusinessEventResolver Resolver;
+		public readonly IStreamClientFactory StreamClientFactory;
+		public readonly IBusinessEventResolver EventResolver;
 
 		public AggregateRootDependencies(
 			IStandardLogger logger,
-			IAggregateRootStateFactory<TState> stateFactory, IStreamIdBuilder streamIdBuilder, IStreamClient streamClient,
-			IBusinessEventResolver resolver)
+			IAggregateRootStateRepo<TState> stateRepo, IStreamIdBuilder streamIdBuilder,
+			IStreamClientFactory streamClientFactory, IBusinessEventResolver eventResolver)
 		{
 			Logger = logger;
-			StateFactory = stateFactory;
+			StateRepo = stateRepo;
 			StreamIdBuilder = streamIdBuilder;
-			StreamClient = streamClient;
-			Resolver = resolver;
+			StreamClientFactory = streamClientFactory;
+			EventResolver = eventResolver;
 		}
 	}
 }

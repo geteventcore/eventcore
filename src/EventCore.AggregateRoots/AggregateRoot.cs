@@ -14,9 +14,9 @@ namespace EventCore.AggregateRoots
 		where TState : IAggregateRootState
 	{
 		private readonly IStandardLogger _logger;
-		private readonly IAggregateRootStateFactory<TState> _stateFactory;
+		private readonly IAggregateRootStateRepo<TState> _stateRepo;
 		private readonly IStreamIdBuilder _streamIdBuilder;
-		private readonly IStreamClient _streamClient;
+		private readonly IStreamClientFactory _streamClientFactory;
 		private readonly IBusinessEventResolver _resolver;
 
 		private readonly string _context;
@@ -25,15 +25,15 @@ namespace EventCore.AggregateRoots
 		public AggregateRoot(AggregateRootDependencies<TState> dependencies, string context, string aggregateRootName)
 		{
 			_logger = dependencies.Logger;
-			_stateFactory = dependencies.StateFactory;
+			_stateRepo = dependencies.StateRepo;
 			_streamIdBuilder = dependencies.StreamIdBuilder;
-			_streamClient = dependencies.StreamClient;
-			_resolver = dependencies.Resolver;
+			_streamClientFactory = dependencies.StreamClientFactory;
+			_resolver = dependencies.EventResolver;
 			_context = context;
 			_aggregateRootName = aggregateRootName;
 		}
 
-		protected virtual async Task<ICommandResult> RouteCommandForTypedHandlingAsync(TState state, ICommand command, CancellationToken cancellationToken)
+		protected virtual async Task<ICommandResult> InvokeTypedHandlerAsync(TState state, ICommand command, CancellationToken cancellationToken)
 		{
 			// Expects IHandleCommand<> for the type of command given.
 			return await (Task<ICommandResult>)this.GetType().InvokeMember("HandleCommandAsync", BindingFlags.InvokeMethod, null, this, new object[] { state, command, cancellationToken });
@@ -54,11 +54,8 @@ namespace EventCore.AggregateRoots
 				var aggregateRootId = command.GetAggregateRootId();
 				var streamId = _streamIdBuilder.Build(regionId, _context, _aggregateRootName, aggregateRootId);
 
-				// Instantiate the agg root state and load to latest checkpoint (i.e. cached state.)
-				var state = await _stateFactory.CreateAndLoadToCheckpointAsync(regionId, _context, _aggregateRootName, aggregateRootId, cancellationToken);
-
-				// Hydrate state from the latest checkpoint to the end of the agg root event stream.
-				var lastPositionHydrated = await HydrateStateAsync(state, regionId, streamId, cancellationToken);
+				// Load the latest aggregate root instance.
+				var state = await _stateRepo.LoadAsync(regionId, streamId, cancellationToken);
 
 				// Check for duplicate command id.
 				if (await state.IsCausalIdInHistoryAsync(command.GetCommandId()))
@@ -66,9 +63,7 @@ namespace EventCore.AggregateRoots
 					return CommandResult.FromError("Duplicate command id.");
 				}
 
-				// The agg root concrete implementation should take care of routing to typed command handlers for
-				// each type of command it wants to handle.
-				var handlerResult = await RouteCommandForTypedHandlingAsync(state, command, cancellationToken);
+				var handlerResult = await InvokeTypedHandlerAsync(state, command, cancellationToken);
 
 				if (!handlerResult.IsSuccess)
 				{
@@ -77,14 +72,10 @@ namespace EventCore.AggregateRoots
 
 				// Commit events to the agg root stream.
 				var trackingStartCommit = DateTime.Now;
-				if (!(await CommitEventsAsync(handlerResult.Events, regionId, streamId, lastPositionHydrated)))
+				if (!(await CommitEventsAsync(handlerResult.Events, regionId, streamId, state.StreamPositionCheckpoint)))
 				{
 					return CommandResult.FromError("Concurrency conflict while committing events.");
 				}
-
-				// Save the command id to the causal id history so we can detect duplicate commands
-				// as new commands arrive on this agg root instance.
-				await state.AddCausalIdToHistoryAsync(command.GetCommandId());
 
 				return handlerResult;
 			}
@@ -93,26 +84,6 @@ namespace EventCore.AggregateRoots
 				_logger.LogError(ex, "Exception while handling generic command.");
 				throw;
 			}
-		}
-
-		protected virtual async Task<long?> HydrateStateAsync(TState state, string regionId, string streamId, CancellationToken cancellationToken)
-		{
-			var loadStreamFromPosition = state.StreamPositionCheckpoint.GetValueOrDefault(_streamClient.FirstPositionInStream - 1) + 1;
-			long? lastPositionHydrated = null;
-
-			await state.HydrateFromCheckpointAsync( // Must tell the state hydrator how to load events. I.e. give it a delegate.
-				streamLoaderAsync => _streamClient.LoadStreamEventsAsync(
-					regionId, streamId, loadStreamFromPosition,
-					async se => // Function to execute for each event in the stream.
-					{
-						await streamLoaderAsync(se); // Calls the stream loader delegate given by the state hydration function.
-						lastPositionHydrated = se.Position;
-					},
-					cancellationToken),
-				cancellationToken
-				);
-
-			return lastPositionHydrated;
 		}
 
 		protected virtual async Task<bool> CommitEventsAsync(IImmutableList<IBusinessEvent> events, string regionId, string streamId, long? lastPositionHydrated)
@@ -130,7 +101,9 @@ namespace EventCore.AggregateRoots
 					commitEvents.Add(new CommitEvent(unresolvedEvent.EventType, unresolvedEvent.Data));
 				}
 
-				var result = await _streamClient.CommitEventsToStreamAsync(regionId, streamId, lastPositionHydrated, commitEvents);
+				var client = _streamClientFactory.Create(regionId); // Assuming caller will take care of disposing if necessary.
+				
+				var result = await client.CommitEventsToStreamAsync(streamId, lastPositionHydrated, commitEvents);
 
 				if (result != CommitResult.Success)
 				{
