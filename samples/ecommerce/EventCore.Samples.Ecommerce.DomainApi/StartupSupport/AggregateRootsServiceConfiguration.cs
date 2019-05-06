@@ -40,12 +40,12 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			services.AddScoped<TAggregate>();
 		}
 
-		private static void ConfigureGenericSerializableState<TState>(IServiceCollection services, Func<IServiceProvider, TState> stateConstructor, ServicesOptions options)
+		private static void ConfigureGenericSerializableState<TState>(IServiceCollection services, Func<IServiceProvider, string, TState> stateConstructor, ServicesOptions options)
 			where TState : ISerializableAggregateRootState
 		{
 			services.AddSingleton<IAggregateRootStateRepo<TState>>(
 				sp => new SerializableAggregateRootStateFileRepo<TState>(
-					sp.GetRequiredService<IStreamClientFactory>(), () => stateConstructor(sp), options.AggregateRootStateBasePath
+					sp.GetRequiredService<IStreamClientFactory>(), (regionId) => stateConstructor(sp, regionId), options.AggregateRootStateBasePath
 				)
 			);
 		}
@@ -81,7 +81,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 
 			ConfigureGenericSerializableState<Domain.EmailQueue.EmailQueueState>(
 				services,
-				(sp) => new Domain.EmailQueue.EmailQueueState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>>()),
+				(sp, regionId) => new Domain.EmailQueue.EmailQueueState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>>()),
 				options
 			);
 		}
@@ -92,7 +92,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 
 			ConfigureGenericSerializableState<Domain.SalesOrder.SalesOrderState>(
 				services,
-				(sp) => new Domain.SalesOrder.SalesOrderState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>>()),
+				(sp, regionId) => new Domain.SalesOrder.SalesOrderState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>>()),
 				options
 			);
 		}

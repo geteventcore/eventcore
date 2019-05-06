@@ -9,7 +9,7 @@ namespace EventCore.AggregateRoots
 	public class AggregateRootStateBusinessEventResolver<TState> : BusinessEventResolver
 		where TState : IAggregateRootState
 	{
-		// Business event resolver that automatically determines resolvable events based on IApplyBusinessEvent generic parameters.
+		// Business event resolver that automatically determines resolvable events based on IApplyBusinessEvent<> generic parameters.
 		public AggregateRootStateBusinessEventResolver(IStandardLogger logger) : base(logger, GetAppliedBusinessEventTypes())
 		{
 		}

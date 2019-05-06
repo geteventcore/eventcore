@@ -1,10 +1,10 @@
-﻿using System;
+﻿using EventCore.EventSourcing;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using EventCore.EventSourcing;
-using Newtonsoft.Json;
 
 namespace EventCore.AggregateRoots.SerializableState
 {
@@ -18,7 +18,7 @@ namespace EventCore.AggregateRoots.SerializableState
 		{
 		}
 
-		public override Task AddCausalIdToHistoryAsync(string causalId)
+		protected override Task AddCausalIdToHistoryAsync(string causalId)
 		{
 			// Prevents large aggregate streams from accumulating too much history.
 			// Causal id tracking is used for preventing duplicate commands, which

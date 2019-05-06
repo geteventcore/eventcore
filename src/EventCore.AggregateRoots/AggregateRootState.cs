@@ -12,13 +12,14 @@ namespace EventCore.AggregateRoots
 
 		public virtual long? StreamPositionCheckpoint { get; protected set; }
 
-		public abstract Task<bool> IsCausalIdInHistoryAsync(string causalId);
-		public abstract Task AddCausalIdToHistoryAsync(string causalId);
-
 		public AggregateRootState(IBusinessEventResolver eventResolver)
 		{
 			_eventResolver = eventResolver;
 		}
+
+		public abstract Task<bool> IsCausalIdInHistoryAsync(string causalId);
+
+		protected abstract Task AddCausalIdToHistoryAsync(string causalId);
 
 		public virtual async Task ApplyStreamEventAsync(StreamEvent streamEvent, CancellationToken cancellationToken)
 		{

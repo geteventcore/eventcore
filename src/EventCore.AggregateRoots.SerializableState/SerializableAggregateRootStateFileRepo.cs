@@ -10,10 +10,10 @@ namespace EventCore.AggregateRoots.SerializableState
 		where TState : ISerializableAggregateRootState
 	{
 		private readonly IStreamClientFactory _streamClientFactory;
-		private readonly Func<TState> _stateConstructor;
+		private readonly Func<string, TState> _stateConstructor;
 		private readonly string _basePath;
 
-		public SerializableAggregateRootStateFileRepo(IStreamClientFactory streamClientFactory, Func<TState> stateConstructor, string basePath)
+		public SerializableAggregateRootStateFileRepo(IStreamClientFactory streamClientFactory, Func<string, TState> stateConstructor, string basePath)
 		{
 			_streamClientFactory = streamClientFactory;
 			_stateConstructor = stateConstructor;
@@ -27,9 +27,19 @@ namespace EventCore.AggregateRoots.SerializableState
 			}
 		}
 
+		// Custom method to update aggregate root state cache out of process from loading method.
+		public virtual async Task RefreshAsync(string regionId, string streamId, CancellationToken cancellationToken)
+		{
+			var state = await LoadAsync(regionId, streamId, cancellationToken);
+			var stateFilePath = BuildStateFilePath(regionId, streamId);
+			
+			// Overwrite state if exists.
+			File.WriteAllBytes(stateFilePath, await state.SerializeInternalStateAsync());
+		}
+
 		public virtual async Task<TState> LoadAsync(string regionId, string streamId, CancellationToken cancellationToken)
 		{
-			var state = _stateConstructor();
+			var state = _stateConstructor(regionId);
 			var stateFilePath = BuildStateFilePath(regionId, streamId);
 
 			// Load cached state if exists.
@@ -41,6 +51,10 @@ namespace EventCore.AggregateRoots.SerializableState
 
 			// Catch up on latest events.
 			await HydrateFromCheckpointAsync(state, regionId, streamId, cancellationToken);
+
+			// Note... we could save the state here but choose not to so the command handlers
+			// complete as fast as possible. We'll use another process to separately respond to
+			// new stream commits for each aggregate root type and update the state accordingly.
 
 			return state;
 		}
