@@ -31,7 +31,8 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 		public static IStreamClientFactory BuildStreamClientFactory<TLoggerCategory>(IServiceProvider sp, ServicesOptions options)
 			=> new StreamClientFactory(
 					sp.GetRequiredService<Utilities.IStandardLogger<TLoggerCategory>>(),
-					sp.GetRequiredService<IDictionary<string, Func<StreamDbContext>>>()
+					sp.GetRequiredService<IDictionary<string, Func<StreamDbContext>>>(),
+					options.EventStoreNotificationsHubUrl
 				);
 	}
 }

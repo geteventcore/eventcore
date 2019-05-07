@@ -8,7 +8,7 @@ namespace EventCore.Samples.EventStore.StreamDb.Config
 	{
 		public void Configure(EntityTypeBuilder<StreamEventDbModel> builder)
 		{
-			builder.HasKey(x => x.GlobalId);
+			builder.HasKey(x => x.GlobalPosition);
 		}
 	}
 }

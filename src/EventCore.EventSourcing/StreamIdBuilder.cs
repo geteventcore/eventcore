@@ -14,18 +14,11 @@ namespace EventCore.EventSourcing
 		
 		public const string SEPARATOR = "-";
 
-		public static bool ValidateStreamIdChars(string chars) => !Regex.IsMatch(chars, INVALID_STREAM_ID_REGEX);
-
 		public string Build(string regionId, string context, string entityName, string entityId)
 		{
 			if (string.IsNullOrWhiteSpace(entityName))
 			{
 				throw new ArgumentNullException("Entity name is required.");
-			}
-
-			if (!ValidateStreamIdChars(regionId + context + entityName + entityId))
-			{
-				throw new ArgumentException("Invalid character(s) in stream id input.");
 			}
 
 			var composite = new List<string>();

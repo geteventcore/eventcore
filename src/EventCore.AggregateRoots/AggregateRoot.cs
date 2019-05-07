@@ -71,7 +71,6 @@ namespace EventCore.AggregateRoots
 				}
 
 				// Commit events to the agg root stream.
-				var trackingStartCommit = DateTime.Now;
 				if (!(await CommitEventsAsync(handlerResult.Events, regionId, streamId, state.StreamPositionCheckpoint)))
 				{
 					return CommandResult.FromError("Concurrency conflict while committing events.");

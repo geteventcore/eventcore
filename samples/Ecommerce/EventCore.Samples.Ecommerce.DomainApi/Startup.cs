@@ -3,6 +3,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System.IO;
+using Microsoft.EntityFrameworkCore.Sqlite;
+using Microsoft.EntityFrameworkCore.Extensions;
+using Microsoft.EntityFrameworkCore;
+using EventCore.Utilities;
+using System;
 
 namespace EventCore.Samples.Ecommerce.DomainApi
 {
@@ -29,7 +35,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceScopeFactory scopeFactory)
 		{
 			if (env.IsDevelopment())
 			{
@@ -60,6 +66,14 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "Ecommerce Sample- Domain API v1");
 			});
 
+			using (var scope = scopeFactory.CreateScope())
+			{
+				Console.WriteLine("Resetting event store db.");
+				var db = scope.ServiceProvider.GetRequiredService<EventStore.StreamDb.StreamDbContext>();
+				var fileName = db.Database.GetDbConnection().DataSource;
+				if(File.Exists(fileName)) File.Delete(fileName);
+				db.Database.EnsureCreated();
+			}
 		}
 	}
 }

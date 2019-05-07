@@ -33,7 +33,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			));
 
 			// This resolver used when hydrating aggregate root state.
-			services.AddScoped<AggregateRootStateBusinessEventResolver<TState>>(sp => new AggregateRootStateBusinessEventResolver<TState>(
+			services.AddSingleton<AggregateRootStateBusinessEventResolver<TState>>(sp => new AggregateRootStateBusinessEventResolver<TState>(
 				sp.GetRequiredService<IStandardLogger<TAggregate>>()
 			));
 
