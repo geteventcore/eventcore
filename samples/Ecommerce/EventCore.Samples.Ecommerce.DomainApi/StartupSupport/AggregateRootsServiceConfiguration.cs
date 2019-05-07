@@ -24,16 +24,16 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			where TAggregate : AggregateRoot<TState>
 			where TState : IAggregateRootState
 		{
-			services.AddSingleton<AggregateRootDependencies<TState>>(sp => new AggregateRootDependencies<TState>(
+			services.AddScoped<AggregateRootDependencies<TState>>(sp => new AggregateRootDependencies<TState>(
 				sp.GetRequiredService<IStandardLogger<TAggregate>>(),
 				sp.GetRequiredService<IAggregateRootStateRepo<TState>>(),
 				sp.GetRequiredService<IStreamIdBuilder>(),
-				sp.GetRequiredService<IStreamClientFactory>(),
+				EventSourcingServiceConfiguration.BuildStreamClientFactory<TAggregate>(sp, options),
 				new AllBusinessEventsResolver(sp.GetRequiredService<IStandardLogger<TAggregate>>()) // This resolver used when committing events.
 			));
 
 			// This resolver used when hydrating aggregate root state.
-			services.AddSingleton<AggregateRootStateBusinessEventResolver<TState>>(sp => new AggregateRootStateBusinessEventResolver<TState>(
+			services.AddScoped<AggregateRootStateBusinessEventResolver<TState>>(sp => new AggregateRootStateBusinessEventResolver<TState>(
 				sp.GetRequiredService<IStandardLogger<TAggregate>>()
 			));
 
@@ -43,9 +43,10 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 		private static void ConfigureGenericSerializableState<TState>(IServiceCollection services, Func<IServiceProvider, string, TState> stateConstructor, ServicesOptions options)
 			where TState : ISerializableAggregateRootState
 		{
-			services.AddSingleton<IAggregateRootStateRepo<TState>>(
+			services.AddScoped<IAggregateRootStateRepo<TState>>(
 				sp => new SerializableAggregateRootStateFileRepo<TState>(
-					sp.GetRequiredService<IStreamClientFactory>(), (regionId) => stateConstructor(sp, regionId), options.AggregateRootStateBasePath
+					EventSourcingServiceConfiguration.BuildStreamClientFactory<TState>(sp, options),
+					(regionId) => stateConstructor(sp, regionId), options.AggregateRootStateBasePath
 				)
 			);
 		}
@@ -60,7 +61,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 
 			services.AddDbContext<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>(o => o.UseSqlite(config.GetConnectionString("EmailBuilderStateDb")));
 
-			services.AddSingleton<Domain.EmailBuilder.EmailBuilderStateFactory>(
+			services.AddScoped<Domain.EmailBuilder.EmailBuilderStateFactory>(
 				sp => new Domain.EmailBuilder.EmailBuilderStateFactory(
 					sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailBuilder.EmailBuilderState>>(),
 					(regionId) =>
@@ -71,6 +72,13 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 						// return null;
 						return sp.GetRequiredService<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>();
 					}
+				)
+			);
+
+			services.AddScoped<IAggregateRootStateRepo<Domain.EmailBuilder.EmailBuilderState>>(
+				sp => new Domain.EmailBuilder.EmailBuilderStateRepo(
+					EventSourcingServiceConfiguration.BuildStreamClientFactory<Domain.EmailBuilder.EmailBuilderState>(sp, options),
+					sp.GetRequiredService<Domain.EmailBuilder.EmailBuilderStateFactory>()
 				)
 			);
 		}

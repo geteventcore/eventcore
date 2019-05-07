@@ -13,7 +13,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 		// Gives caller the option of separating state databases by region.
 		private readonly Func<string, EmailBuilderDbContext> _dbFactory;
 
-		public EmailBuilderStateFactory(AggregateRootStateBusinessEventResolver<EmailBuilderState> resolver, Func<string, EmailBuilderDbContext> dbFactory)
+		public EmailBuilderStateFactory(IBusinessEventResolver resolver, Func<string, EmailBuilderDbContext> dbFactory)
 		{
 			_eventResolver = resolver;
 			_dbFactory = dbFactory;

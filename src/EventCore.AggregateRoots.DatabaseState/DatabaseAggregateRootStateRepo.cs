@@ -1,5 +1,6 @@
 ﻿using EventCore.AggregateRoots;
 using EventCore.EventSourcing;
+using EventCore.Utilities;
 using System;
 using System.Threading;
 using System.Threading.Tasks;

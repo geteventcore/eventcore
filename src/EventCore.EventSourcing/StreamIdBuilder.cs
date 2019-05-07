@@ -16,14 +16,14 @@ namespace EventCore.EventSourcing
 
 		public static bool ValidateStreamIdChars(string chars) => !Regex.IsMatch(chars, INVALID_STREAM_ID_REGEX);
 
-		public string Build(string regionId, string context, string aggregateRootName, string aggregateRootId)
+		public string Build(string regionId, string context, string entityName, string entityId)
 		{
-			if (string.IsNullOrWhiteSpace(aggregateRootName))
+			if (string.IsNullOrWhiteSpace(entityName))
 			{
-				throw new ArgumentNullException("Aggregate root name is required.");
+				throw new ArgumentNullException("Entity name is required.");
 			}
 
-			if (!ValidateStreamIdChars(regionId + context + aggregateRootName + aggregateRootId))
+			if (!ValidateStreamIdChars(regionId + context + entityName + entityId))
 			{
 				throw new ArgumentException("Invalid character(s) in stream id input.");
 			}
@@ -40,11 +40,11 @@ namespace EventCore.EventSourcing
 				composite.Add(context);
 			}
 
-			composite.Add(aggregateRootName); // Required.
+			composite.Add(entityName); // Required.
 
-			if (!string.IsNullOrWhiteSpace(aggregateRootId))
+			if (!string.IsNullOrWhiteSpace(entityId))
 			{
-				composite.Add(aggregateRootId);
+				composite.Add(entityId);
 			}
 
 			return string.Join(SEPARATOR, composite);

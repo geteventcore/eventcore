@@ -2,6 +2,6 @@
 {
 	public interface IStreamIdBuilder
 	{
-		string Build(string regionId, string context, string aggregateRootName, string aggregateRootId);
+		string Build(string regionId, string context, string entityName, string entityId);
 	}
 }
