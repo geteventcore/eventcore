@@ -5,11 +5,11 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder.StateModels
 {
 	public class SalesOrderModel
 	{
-		public readonly Guid EmailId;
+		public readonly string SalesOrderId;
 		
-		public SalesOrderModel(Guid emailId)
+		public SalesOrderModel(string salesOrderId)
 		{
-			EmailId = emailId;
+			SalesOrderId = salesOrderId;
 		}
 	}
 }

@@ -27,7 +27,7 @@ namespace EventCore.AggregateRoots.SerializableState
 			}
 		}
 
-		// Custom method to update aggregate root state cache out of process from loading method.
+		// Non-interface method to update aggregate root state cache out of process from loading method.
 		public virtual async Task RefreshAsync(string regionId, string streamId, CancellationToken cancellationToken)
 		{
 			var state = await LoadAsync(regionId, streamId, cancellationToken);

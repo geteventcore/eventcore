@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace EventCore.Samples.Ecommerce.Domain.SalesOrder
 {
 	public class SalesOrderState : SerializableAggregateRootState<SalesOrderModel>,
-		IApplyBusinessEvent<EmailEnqueuedEvent>
+		IApplyBusinessEvent<SalesOrderRaisedEvent>
 	{
 		protected override SalesOrderModel _internalState { get => SalesOrder; set => SalesOrder = value; }
 
@@ -19,14 +19,14 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder
 		{
 		}
 
-		public Task ApplyBusinessEventAsync(string streamId, long position, EmailEnqueuedEvent e, CancellationToken cancellationToken)
+		public Task ApplyBusinessEventAsync(string streamId, long position, SalesOrderRaisedEvent e, CancellationToken cancellationToken)
 		{
 			if (SalesOrder != null)
 			{
 				return Task.CompletedTask;
 			}
 
-			SalesOrder = new StateModels.SalesOrderModel(e.EmailId);
+			SalesOrder = new StateModels.SalesOrderModel(e.SalesOrderId);
 			return Task.CompletedTask;
 		}
 	}
