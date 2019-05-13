@@ -98,21 +98,24 @@ namespace EventCore.Samples.EventStore.Client
 			return Task.FromResult(_db.GetLastStreamPositionByStreamId(streamId));
 		}
 
-		public async Task LoadStreamEventsAsync(string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken)
+		private Func<string, long, IEnumerable<StreamEventDbModel>> BuildEventQuery(bool isSubscription, string streamId, long fromPosition)
 		{
-			var isSubscription = IsSubscriptionStreamId(streamId);
-
-			Func<string, long, IEnumerable<StreamEventDbModel>> eventQuery;
-
 			if (isSubscription)
 			{
-				if (streamId.Length == 1) eventQuery = (_1, _2) => _db.GetAllStreamEventsByGlobalPosition(fromPosition);
-				else eventQuery = (_1, _2) => _db.GetSubscriptionEventsByGlobalPosition(streamId, fromPosition);
+				// If streamId == "$" - i.e. built-in subscription to listen on all streams.
+				if (streamId.Length == 1) return (_1, _2) => _db.GetAllStreamEventsByGlobalPosition(fromPosition);
+				else return (_1, _2) => _db.GetSubscriptionEventsByGlobalPosition(streamId, fromPosition);
 			}
 			else
 			{
-				eventQuery = (_1, _2) => _db.GetAllStreamEventsByGlobalPosition(fromPosition);
+				return (_1, _2) => _db.GetAllStreamEventsByGlobalPosition(fromPosition);
 			}
+		}
+
+		public async Task LoadStreamEventsAsync(string streamId, long fromPosition, Func<StreamEvent, Task> receiverAsync, CancellationToken cancellationToken)
+		{
+			var isSubscription = IsSubscriptionStreamId(streamId);
+			var eventQuery = BuildEventQuery(isSubscription, streamId, fromPosition);
 
 			foreach (var streamEvent in eventQuery(streamId, fromPosition))
 			{
@@ -141,18 +144,7 @@ namespace EventCore.Samples.EventStore.Client
 			var advancementTrigger = new ManualResetEventSlim(false); // Set when global position is advanced.
 
 			var isSubscription = IsSubscriptionStreamId(streamId);
-
-			Func<string, long, IEnumerable<StreamEventDbModel>> eventQuery;
-
-			if (isSubscription)
-			{
-				if (streamId.Length == 1) eventQuery = (_1, _2) => _db.GetAllStreamEventsByGlobalPosition(fromPosition);
-				else eventQuery = (_1, _2) => _db.GetSubscriptionEventsByGlobalPosition(streamId, fromPosition);
-			}
-			else
-			{
-				eventQuery = (_1, _2) => _db.GetAllStreamEventsByGlobalPosition(fromPosition);
-			}
+			var eventQuery = BuildEventQuery(isSubscription, streamId, fromPosition);
 
 			var connection = new HubConnectionBuilder().WithUrl(_notificationsHubUrl).Build();
 
@@ -202,21 +194,22 @@ namespace EventCore.Samples.EventStore.Client
 			}
 		}
 
-		private async Task PublishCommitNotification(long globalIndex)
+		private async Task PublishCommitNotification(long globalPosition)
 		{
 			var connection = new HubConnectionBuilder().WithUrl(_notificationsHubUrl).Build();
 
 			connection.Closed += async (ex) =>
 			{
-				await Task.Delay(1000); // Wait 1 second, then try again.
-				_logger.LogError(ex, "Notifications hub connection closed, trying again.");
+				var delayMs = new Random().Next(500, 1500);
+				_logger.LogError(ex, $"Notifications hub connection closed, trying again in {delayMs} milliseconds.");
+				await Task.Delay(delayMs);
 				await connection.StartAsync();
 			};
 
 			try
 			{
 				await connection.StartAsync();
-				await connection.InvokeAsync("ReceiveServerNotification", globalIndex);
+				await connection.InvokeAsync("ReceiveCommitNotification", globalPosition);
 			}
 			catch (Exception ex1)
 			{
@@ -227,7 +220,7 @@ namespace EventCore.Samples.EventStore.Client
 				try
 				{
 					await connection.StartAsync();
-					await connection.InvokeAsync("ReceiveCommitNotification", globalIndex);
+					await connection.InvokeAsync("ReceiveCommitNotification", globalPosition);
 				}
 				catch (Exception ex2)
 				{
