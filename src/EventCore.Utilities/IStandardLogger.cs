@@ -6,6 +6,8 @@ namespace EventCore.Utilities
 
 	public interface IStandardLogger
 	{
+		void LogDebug(Exception ex, string message, params object[] args);
+		void LogDebug(string message, params object[] args);
 		void LogCritical(string message, params object[] args);
 		void LogCritical(Exception ex, string message, params object[] args);
 		void LogError(string message, params object[] args);

@@ -8,10 +8,19 @@
 
 	<ItemGroup>
 		<PackageReference Include="CommandLineParser" Version="2.4.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.4" />
+		<PackageReference Include="Microsoft.Extensions.Configuration" Version="2.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="2.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="2.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0" />
+		<PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="2.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\EventCore.Samples.SimpleEventStore.Client\EventCore.Samples.SimpleEventStore.Client.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.SimpleEventStore.StreamDb\EventCore.Samples.SimpleEventStore.StreamDb.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />
 	</ItemGroup>
 

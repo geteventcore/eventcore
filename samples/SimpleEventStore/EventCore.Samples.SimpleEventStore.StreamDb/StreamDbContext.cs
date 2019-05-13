@@ -24,6 +24,7 @@ namespace EventCore.Samples.SimpleEventStore.StreamDb
 
 		public long? GetMaxGlobalPosition() => GetMaxGlobalPositionInternal(this);
 		public long? GetMaxStreamPositionByStreamId(string streamId) => GetMaxStreamPositionByStreamIdInternal(this, streamId);
+		
 		// public IEnumerable<StreamEventDbModel> GetStreamEventsByStreamId(string streamId, long minStreamPosition) => GetStreamEventsByStreamIdInternal(this, streamId, minStreamPosition);
 		// public IEnumerable<StreamEventDbModel> GetStreamEventsByGlobalPosition(string streamId, long minGlobalPosition) => GetStreamEventsByGlobalPositionInternal(this, streamId, minGlobalPosition);
 		// public IEnumerable<StreamEventDbModel> GetAllStreamEventsByGlobalPosition(long minGlobalPosition) => GetAllStreamEventsByGlobalPositionInternal(this, minGlobalPosition);

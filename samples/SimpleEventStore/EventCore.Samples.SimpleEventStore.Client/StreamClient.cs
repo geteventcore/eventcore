@@ -95,7 +95,15 @@ namespace EventCore.Samples.SimpleEventStore.Client
 
 		public Task<long?> GetLastPositionInStreamAsync(string streamId)
 		{
-			return Task.FromResult(_db.GetMaxStreamPositionByStreamId(streamId));
+			if (IsSubscriptionStreamId(streamId))
+			{
+				if (streamId.Length == 1) return Task.FromResult(_db.GetMaxGlobalPosition());
+				else throw new ArgumentException("Invalid stream id.");
+			}
+			else
+			{
+				return Task.FromResult(_db.GetMaxStreamPositionByStreamId(streamId));
+			}
 		}
 
 		private Func<IOrderedQueryable<StreamEventDbModel>> BuildEventQuery(bool isSubscription, string streamId, long fromPosition)

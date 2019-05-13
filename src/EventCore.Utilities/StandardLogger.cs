@@ -17,6 +17,8 @@ namespace EventCore.Utilities
 			_logger = logger;
 		}
 
+		public void LogDebug(string message, params object[] args) => _logger.LogDebug(message, args);
+		public void LogDebug(Exception ex, string message, params object[] args) => _logger.LogDebug(ex, message, args);
 		public void LogCritical(string message, params object[] args) => _logger.LogCritical(message, args);
 		public void LogCritical(Exception ex, string message, params object[] args) => _logger.LogCritical(ex, message, args);
 		public void LogError(string message, params object[] args) => _logger.LogError(message, args);
