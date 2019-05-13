@@ -23,11 +23,11 @@ namespace EventCore.Samples.SimpleEventStore.EventStoreDb
 		}
 
 		public long? GetMaxGlobalPosition() => GetMaxGlobalPositionInternal(this);
-		public long? GetLastStreamPositionByStreamId(string streamId) => GetLastStreamPositionByStreamIdInternal(this, streamId);
-		public IEnumerable<StreamEventDbModel> GetStreamEventsByStreamId(string streamId, long minStreamPosition) => GetStreamEventsByStreamIdInternal(this, streamId, minStreamPosition);
-		public IEnumerable<StreamEventDbModel> GetStreamEventsByGlobalPosition(string streamId, long minGlobalPosition) => GetStreamEventsByGlobalPositionInternal(this, streamId, minGlobalPosition);
-		public IEnumerable<StreamEventDbModel> GetAllStreamEventsByGlobalPosition(long minGlobalPosition) => GetAllStreamEventsByGlobalPositionInternal(this, minGlobalPosition);
-		public IEnumerable<StreamEventDbModel> GetSubscriptionEventsByGlobalPosition(string subscriptionName, long minGlobalPosition) => GetSubscriptionEventsByGlobalPositionInternal(this, subscriptionName, minGlobalPosition);
+		public long? GetMaxStreamPositionByStreamId(string streamId) => GetMaxStreamPositionByStreamIdInternal(this, streamId);
+		// public IEnumerable<StreamEventDbModel> GetStreamEventsByStreamId(string streamId, long minStreamPosition) => GetStreamEventsByStreamIdInternal(this, streamId, minStreamPosition);
+		// public IEnumerable<StreamEventDbModel> GetStreamEventsByGlobalPosition(string streamId, long minGlobalPosition) => GetStreamEventsByGlobalPositionInternal(this, streamId, minGlobalPosition);
+		// public IEnumerable<StreamEventDbModel> GetAllStreamEventsByGlobalPosition(long minGlobalPosition) => GetAllStreamEventsByGlobalPositionInternal(this, minGlobalPosition);
+		// public IEnumerable<StreamEventDbModel> GetSubscriptionEventsByGlobalPosition(string subscriptionName, long minGlobalPosition) => GetSubscriptionEventsByGlobalPositionInternal(this, subscriptionName, minGlobalPosition);
 
 		// Note: Avoiding use of async queries due to this bug/performance issue that may no longer by an issue.
 		// Tldr - async is an order of magnitude slower with tables that have varbinary(max), or was at the time of this discussion.
@@ -36,14 +36,14 @@ namespace EventCore.Samples.SimpleEventStore.EventStoreDb
 		private static Func<EventStoreDbContext, long?> GetMaxGlobalPositionInternal =
 			EF.CompileQuery((EventStoreDbContext context) => context.StreamEvent.Max(x => (long?)x.GlobalPosition));
 
-		private static Func<EventStoreDbContext, string, long?> GetLastStreamPositionByStreamIdInternal =
+		private static Func<EventStoreDbContext, string, long?> GetMaxStreamPositionByStreamIdInternal =
 			EF.CompileQuery((EventStoreDbContext context, string streamId) =>
 				context.StreamEvent
 					.Where(x => x.StreamId == streamId) // No string transformation (i.e. ToUpper) assuming db is case insensitive by default.
 					.Max(x => (long?)x.StreamPosition)
 			);
 
-		private static Func<EventStoreDbContext, string, long, IOrderedQueryable<StreamEventDbModel>> GetStreamEventsByStreamIdInternal =
+		private static Func<EventStoreDbContext, string, long, IEnumerable<StreamEventDbModel>> GetStreamEventsByStreamIdInternal =
 			EF.CompileQuery((EventStoreDbContext context, string streamId, long minStreamPosition) =>
 				context.StreamEvent
 					.Where(x => x.StreamId == streamId && x.StreamPosition >= minStreamPosition) // No string transformation (i.e. ToUpper) assuming db is case insensitive by default.
@@ -63,13 +63,14 @@ namespace EventCore.Samples.SimpleEventStore.EventStoreDb
 					.Where(x => x.GlobalPosition >= minGlobalPosition)
 					.OrderBy(x => x.StreamPosition)
 			);
-
+		
 		private static Func<EventStoreDbContext, string, long, IEnumerable<StreamEventDbModel>> GetSubscriptionEventsByGlobalPositionInternal =
 			EF.CompileQuery((EventStoreDbContext context, string subscriptionName, long minGlobalPosition) =>
-				from se in context.StreamEvent
-				from sub in context.SubscriptionFilter.Where(x => x.SubscriptionName == subscriptionName && se.StreamId.ToUpper().StartsWith(x.StreamIdPrefix.ToUpper()))
-				orderby se.GlobalPosition
-				select se
+				context.SubscriptionFilter
+					.Where(x => x.SubscriptionName == subscriptionName)
+					.SelectMany(sub => context.StreamEvent.Where(se => se.StreamId.ToUpper().StartsWith(sub.StreamIdPrefix.ToUpper())))
+					.Distinct()
+					.OrderBy(x => x.GlobalPosition)
 			);
 	}
 }

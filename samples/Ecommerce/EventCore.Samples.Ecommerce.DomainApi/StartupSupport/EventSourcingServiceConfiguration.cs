@@ -18,7 +18,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 
 			// Connection factory must be able to create a new connection for each region.
 			// ... For now we only have one region.
-			services.AddDbContext<EventStoreDbContext>(o => o.UseSqlite(config.GetConnectionString("EventStoreDbRegionX")));
+			services.AddDbContext<EventStoreDbContext>(o => o.UseSqlServer(config.GetConnectionString("EventStoreDbRegionX")));
 
 			services.AddScoped<IDictionary<string, Func<EventStoreDbContext>>>(sp => new Dictionary<string, Func<EventStoreDbContext>>()
 			{

@@ -44,7 +44,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			where TState : ISerializableAggregateRootState
 		{
 			services.AddScoped<IAggregateRootStateRepo<TState>>(
-				sp => new FileAggregateRootStateRepo<TState>(
+				sp => new FlatFileAggregateRootStateRepo<TState>(
 					EventSourcingServiceConfiguration.BuildStreamClientFactory<TState>(sp, options),
 					(regionId) => stateConstructor(sp, regionId), options.AggregateRootStateBasePath
 				)

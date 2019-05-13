@@ -23,7 +23,7 @@ namespace EventCore.Samples.SimpleEventStore.Client
 		// - underscore ("_")
 		// - short dash / minus sign ("-")
 		// - dollar sign
-		public const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9_-$]";
+		public const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9_\-$]";
 
 		// Special naming for stream ids starting with "$"... these will be
 		// treated as subscription names and queries as such instead of querying on stream id.
@@ -57,7 +57,7 @@ namespace EventCore.Samples.SimpleEventStore.Client
 				throw new ArgumentException("Can't commit to a subscription stream.");
 			}
 
-			var lastPosition = _db.GetLastStreamPositionByStreamId(streamId);
+			var lastPosition = _db.GetMaxStreamPositionByStreamId(streamId);
 
 			if (lastPosition == null && expectedLastPosition.HasValue)
 			{
@@ -95,20 +95,34 @@ namespace EventCore.Samples.SimpleEventStore.Client
 
 		public Task<long?> GetLastPositionInStreamAsync(string streamId)
 		{
-			return Task.FromResult(_db.GetLastStreamPositionByStreamId(streamId));
+			return Task.FromResult(_db.GetMaxStreamPositionByStreamId(streamId));
 		}
 
-		private Func<string, long, IEnumerable<StreamEventDbModel>> BuildEventQuery(bool isSubscription, string streamId, long fromPosition)
+		private Func<IOrderedQueryable<StreamEventDbModel>> BuildEventQuery(bool isSubscription, string streamId, long fromPosition)
 		{
 			if (isSubscription)
 			{
 				// If streamId == "$" - i.e. built-in subscription to listen on all streams.
-				if (streamId.Length == 1) return (_1, _2) => _db.GetAllStreamEventsByGlobalPosition(fromPosition);
-				else return (_1, _2) => _db.GetSubscriptionEventsByGlobalPosition(streamId, fromPosition);
+				if (streamId.Length == 1)
+				{
+					return () => _db.StreamEvent.Where(x => x.GlobalPosition >= fromPosition).OrderBy(x => x.StreamPosition);
+				}
+				else
+				{
+					return () =>
+						_db.SubscriptionFilter
+							.Where(x => x.SubscriptionName == streamId)
+							.SelectMany(sub => _db.StreamEvent.Where(se => se.StreamId.ToUpper().StartsWith(sub.StreamIdPrefix.ToUpper())))
+							.Distinct()
+							.OrderBy(x => x.GlobalPosition);
+				}
 			}
 			else
 			{
-				return (_1, _2) => _db.GetAllStreamEventsByGlobalPosition(fromPosition);
+				return () =>
+					_db.StreamEvent
+						.Where(x => x.StreamId == streamId && x.StreamPosition >= fromPosition) // No string transformation (i.e. ToUpper) assuming db is case insensitive by default.
+						.OrderBy(x => x.StreamPosition);
 			}
 		}
 
@@ -117,7 +131,7 @@ namespace EventCore.Samples.SimpleEventStore.Client
 			var isSubscription = IsSubscriptionStreamId(streamId);
 			var eventQuery = BuildEventQuery(isSubscription, streamId, fromPosition);
 
-			foreach (var streamEvent in eventQuery(streamId, fromPosition))
+			foreach (var streamEvent in eventQuery())
 			{
 				if (!cancellationToken.IsCancellationRequested)
 				{
@@ -132,6 +146,8 @@ namespace EventCore.Samples.SimpleEventStore.Client
 						primaryPosition = streamEvent.GlobalPosition;
 					}
 
+					// _logger.LogInformation($"Loaded event {streamEvent.EventType} ({primaryPosition}) from stream {streamId}.");
+
 					// Don't catch - if the receiver throws an exception let it bubble up to the caller.
 					await receiverAsync(new StreamEvent(primaryStreamId, primaryPosition, link, streamEvent.EventType, streamEvent.EventData));
 				}
@@ -144,7 +160,6 @@ namespace EventCore.Samples.SimpleEventStore.Client
 			var advancementTrigger = new ManualResetEventSlim(false); // Set when global position is advanced.
 
 			var isSubscription = IsSubscriptionStreamId(streamId);
-			var eventQuery = BuildEventQuery(isSubscription, streamId, fromPosition);
 
 			var connection = new HubConnectionBuilder().WithUrl(_notificationsHubUrl).Build();
 
@@ -166,9 +181,11 @@ namespace EventCore.Samples.SimpleEventStore.Client
 
 			await connection.StartAsync();
 
+			var eventQuery = BuildEventQuery(isSubscription, streamId, lastLoadedGlobalPosition.GetValueOrDefault(fromPosition - 1) + 1);
+
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				foreach (var streamEvent in eventQuery(streamId, lastLoadedGlobalPosition.GetValueOrDefault(fromPosition - 1) + 1))
+				foreach (var streamEvent in eventQuery())
 				{
 					var primaryStreamId = streamEvent.StreamId;
 					var primaryPosition = streamEvent.StreamPosition;
@@ -197,13 +214,17 @@ namespace EventCore.Samples.SimpleEventStore.Client
 		private async Task PublishCommitNotification(long globalPosition)
 		{
 			var connection = new HubConnectionBuilder().WithUrl(_notificationsHubUrl).Build();
+			var isDone = false;
 
 			connection.Closed += async (ex) =>
 			{
-				var delayMs = new Random().Next(500, 1500);
-				_logger.LogError(ex, $"Notifications hub connection closed, trying again in {delayMs} milliseconds.");
-				await Task.Delay(delayMs);
-				await connection.StartAsync();
+				if (!isDone)
+				{
+					var delayMs = new Random().Next(500, 1500);
+					_logger.LogError(ex, $"Notifications hub connection closed, trying again in {delayMs} milliseconds.");
+					await Task.Delay(delayMs);
+					await connection.StartAsync();
+				}
 			};
 
 			try
@@ -230,6 +251,7 @@ namespace EventCore.Samples.SimpleEventStore.Client
 
 			if (connection.State == HubConnectionState.Connected)
 			{
+				isDone = true;
 				await connection.StopAsync();
 			}
 		}

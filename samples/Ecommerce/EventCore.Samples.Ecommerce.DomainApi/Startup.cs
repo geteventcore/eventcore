@@ -65,15 +65,6 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 				c.RoutePrefix = string.Empty;
 				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "Ecommerce Sample- Domain API v1");
 			});
-
-			using (var scope = scopeFactory.CreateScope())
-			{
-				Console.WriteLine("Resetting event store db.");
-				var db = scope.ServiceProvider.GetRequiredService<SimpleEventStore.EventStoreDb.EventStoreDbContext>();
-				var fileName = db.Database.GetDbConnection().DataSource;
-				if(File.Exists(fileName)) File.Delete(fileName);
-				db.Database.EnsureCreated();
-			}
 		}
 	}
 }
