@@ -53,6 +53,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.SimpleEve
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.SimpleEventStore.NotificationsApi", "samples\SimpleEventStore\EventCore.Samples.SimpleEventStore.NotificationsApi\EventCore.Samples.SimpleEventStore.NotificationsApi.csproj", "{85EB69CC-BE54-415A-B0DC-CC02BC365478}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SimpleEventStore", "SimpleEventStore", "{1AFFE154-3FBC-472A-BD64-51751BAD628F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.SimpleEventStore.Cli", "samples\SimpleEventStore\EventCore.Samples.SimpleEventStore.Cli\EventCore.Samples.SimpleEventStore.Cli.csproj", "{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -306,6 +310,18 @@ Global
 		{85EB69CC-BE54-415A-B0DC-CC02BC365478}.Release|x64.Build.0 = Release|Any CPU
 		{85EB69CC-BE54-415A-B0DC-CC02BC365478}.Release|x86.ActiveCfg = Release|Any CPU
 		{85EB69CC-BE54-415A-B0DC-CC02BC365478}.Release|x86.Build.0 = Release|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Debug|x64.Build.0 = Debug|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Debug|x86.Build.0 = Debug|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Release|x64.ActiveCfg = Release|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Release|x64.Build.0 = Release|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Release|x86.ActiveCfg = Release|Any CPU
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F8ADCB34-C115-448E-A6E8-448307AC5F15} = {F2687D8C-5761-49C0-80B6-BFAAA89AE534}
@@ -329,5 +345,7 @@ Global
 		{F051EF25-6E20-4145-B433-83D14B5B4CCF} = {58BBF428-AF3C-44A4-9892-87BF3E5186E9}
 		{3BACBCC7-89DC-47A6-9B28-7AB1908E5158} = {58BBF428-AF3C-44A4-9892-87BF3E5186E9}
 		{85EB69CC-BE54-415A-B0DC-CC02BC365478} = {58BBF428-AF3C-44A4-9892-87BF3E5186E9}
+		{1AFFE154-3FBC-472A-BD64-51751BAD628F} = {44BC74F3-26CA-4608-9915-F5BF529EB733}
+		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD} = {1AFFE154-3FBC-472A-BD64-51751BAD628F}
 	EndGlobalSection
 EndGlobal
