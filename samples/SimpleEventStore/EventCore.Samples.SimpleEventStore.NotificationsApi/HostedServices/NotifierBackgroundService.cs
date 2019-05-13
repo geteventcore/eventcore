@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.EventStore.NotificationsApi.HostedServices
+namespace EventCore.Samples.SimpleEventStore.NotificationsApi.HostedServices
 {
 	public class NotifierBackgroundService : BackgroundService
 	{
@@ -14,7 +14,7 @@ namespace EventCore.Samples.EventStore.NotificationsApi.HostedServices
 		private readonly NotificationsManager _manager;
 		private readonly IHubContext<NotificationsHub, INotificationsClient> _hub;
 
-		public NotifierBackgroundService(ILogger logger, NotificationsManager manager, IHubContext<NotificationsHub, INotificationsClient> hub)
+		public NotifierBackgroundService(ILogger<NotifierBackgroundService> logger, NotificationsManager manager, IHubContext<NotificationsHub, INotificationsClient> hub)
 		{
 			_logger = logger;
 			_manager = manager;

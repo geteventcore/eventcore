@@ -1,11 +1,11 @@
-﻿using EventCore.Samples.EventStore.StreamDb.Config;
-using EventCore.Samples.EventStore.StreamDb.DbModels;
+﻿using EventCore.Samples.SimpleEventStore.StreamDb.Config;
+using EventCore.Samples.SimpleEventStore.StreamDb.DbModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EventCore.Samples.EventStore.StreamDb
+namespace EventCore.Samples.SimpleEventStore.StreamDb
 {
 	public class StreamDbContext : DbContext
 	{

@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace EventCore.Samples.EventStore.NotificationsApi
+namespace EventCore.Samples.SimpleEventStore.NotificationsApi
 {
 	public class Program
 	{

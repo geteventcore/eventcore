@@ -69,7 +69,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 			using (var scope = scopeFactory.CreateScope())
 			{
 				Console.WriteLine("Resetting event store db.");
-				var db = scope.ServiceProvider.GetRequiredService<EventStore.StreamDb.StreamDbContext>();
+				var db = scope.ServiceProvider.GetRequiredService<SimpleEventStore.StreamDb.StreamDbContext>();
 				var fileName = db.Database.GetDbConnection().DataSource;
 				if(File.Exists(fileName)) File.Delete(fileName);
 				db.Database.EnsureCreated();

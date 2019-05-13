@@ -1,10 +1,10 @@
 ﻿using EventCore.EventSourcing;
-using EventCore.Samples.EventStore.StreamDb;
+using EventCore.Samples.SimpleEventStore.StreamDb;
 using EventCore.Utilities;
 using System;
 using System.Collections.Generic;
 
-namespace EventCore.Samples.EventStore.Client
+namespace EventCore.Samples.SimpleEventStore.Client
 {
 	public class StreamClientFactory : IStreamClientFactory
 	{

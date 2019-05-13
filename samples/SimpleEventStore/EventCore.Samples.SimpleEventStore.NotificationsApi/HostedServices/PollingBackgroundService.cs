@@ -1,11 +1,11 @@
-﻿using EventCore.Samples.EventStore.StreamDb;
+﻿using EventCore.Samples.SimpleEventStore.StreamDb;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.EventStore.NotificationsApi.HostedServices
+namespace EventCore.Samples.SimpleEventStore.NotificationsApi.HostedServices
 {
 	public class PollingBackgroundService : BackgroundService
 	{
@@ -14,7 +14,7 @@ namespace EventCore.Samples.EventStore.NotificationsApi.HostedServices
 		private readonly NotificationsManager _manager;
 		private readonly IServiceScopeFactory _scopeFactory;
 
-		public PollingBackgroundService(ILogger logger, NotificationsManager manager, IServiceScopeFactory scopeFactory)
+		public PollingBackgroundService(ILogger<PollingBackgroundService> logger, NotificationsManager manager, IServiceScopeFactory scopeFactory)
 		{
 			_logger = logger;
 			_manager = manager;

@@ -1,8 +1,9 @@
-﻿using EventCore.Samples.EventStore.StreamDb;
+﻿using EventCore.Samples.SimpleEventStore.StreamDb;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -12,7 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.EventStore.NotificationsApi
+namespace EventCore.Samples.SimpleEventStore.NotificationsApi
 {
 	public class Startup
 	{
@@ -30,12 +31,12 @@ namespace EventCore.Samples.EventStore.NotificationsApi
 			services.AddSignalR();
 			services.AddHostedService<HostedServices.PollingBackgroundService>();
 			services.AddHostedService<HostedServices.NotifierBackgroundService>();
-
-			// services.AddDbContext<StreamDbContext>(o => o.UseSqlite(config.GetConnectionString("EventStoreDbRegionX")));
+			services.AddSingleton<NotificationsManager>();
+			services.AddDbContext<StreamDbContext>(o => o.UseSqlServer(Configuration.GetConnectionString("EventStoreDbRegionX")));
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceScopeFactory scopeFactory)
 		{
 			if (env.IsDevelopment())
 			{
@@ -53,6 +54,12 @@ namespace EventCore.Samples.EventStore.NotificationsApi
 					routes.MapHub<NotificationsHub>("/notificationsHub");
 				});
 			app.UseMvc();
+
+			using (var scope = scopeFactory.CreateScope())
+			{
+				var db = scope.ServiceProvider.GetRequiredService<SimpleEventStore.StreamDb.StreamDbContext>();
+				db.Database.EnsureCreated();
+			}
 		}
 	}
 }

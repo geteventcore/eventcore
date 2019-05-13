@@ -1,8 +1,8 @@
-﻿using EventCore.Samples.EventStore.StreamDb.DbModels;
+﻿using EventCore.Samples.SimpleEventStore.StreamDb.DbModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EventCore.Samples.EventStore.StreamDb.Config
+namespace EventCore.Samples.SimpleEventStore.StreamDb.Config
 {
 	public class SubscriptionFilterDbModelConfig : IEntityTypeConfiguration<SubscriptionFilterDbModel>
 	{

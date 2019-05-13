@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using EventCore.Utilities;
 
-namespace EventCore.Samples.EventStore.NotificationsApi
+namespace EventCore.Samples.SimpleEventStore.NotificationsApi
 {
 	public class NotificationsManager
 	{

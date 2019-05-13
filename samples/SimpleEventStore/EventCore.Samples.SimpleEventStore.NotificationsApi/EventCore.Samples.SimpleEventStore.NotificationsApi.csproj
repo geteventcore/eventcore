@@ -6,7 +6,7 @@
   </PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\EventCore.Samples.EventStore.StreamDb\EventCore.Samples.EventStore.StreamDb.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.SimpleEventStore.StreamDb\EventCore.Samples.SimpleEventStore.StreamDb.csproj" />
     <ProjectReference Include="..\..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />
   </ItemGroup>
 

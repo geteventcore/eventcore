@@ -1,7 +1,7 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.DomainApi.Options;
-using EventCore.Samples.EventStore.Client;
-using EventCore.Samples.EventStore.StreamDb;
+using EventCore.Samples.SimpleEventStore.Client;
+using EventCore.Samples.SimpleEventStore.StreamDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

@@ -1,6 +1,6 @@
 ﻿using EventCore.EventSourcing;
-using EventCore.Samples.EventStore.StreamDb;
-using EventCore.Samples.EventStore.StreamDb.DbModels;
+using EventCore.Samples.SimpleEventStore.StreamDb;
+using EventCore.Samples.SimpleEventStore.StreamDb.DbModels;
 using EventCore.Utilities;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.EventStore.Client
+namespace EventCore.Samples.SimpleEventStore.Client
 {
 	public class StreamClient : IStreamClient
 	{
