@@ -6,14 +6,14 @@ using System.Threading.Tasks;
 
 namespace EventCore.AggregateRoots.SerializableState
 {
-	public class SerializableAggregateRootStateFileRepo<TState> : IAggregateRootStateRepo<TState>
+	public class FileAggregateRootStateRepo<TState> : IAggregateRootStateRepo<TState>
 		where TState : ISerializableAggregateRootState
 	{
 		private readonly IStreamClientFactory _streamClientFactory;
 		private readonly Func<string, TState> _stateConstructor;
 		private readonly string _basePath;
 
-		public SerializableAggregateRootStateFileRepo(IStreamClientFactory streamClientFactory, Func<string, TState> stateConstructor, string basePath)
+		public FileAggregateRootStateRepo(IStreamClientFactory streamClientFactory, Func<string, TState> stateConstructor, string basePath)
 		{
 			_streamClientFactory = streamClientFactory;
 			_stateConstructor = stateConstructor;
