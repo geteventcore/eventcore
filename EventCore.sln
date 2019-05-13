@@ -49,7 +49,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EventStore", "EventStore", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.SimpleEventStore.Client", "samples\SimpleEventStore\EventCore.Samples.SimpleEventStore.Client\EventCore.Samples.SimpleEventStore.Client.csproj", "{F051EF25-6E20-4145-B433-83D14B5B4CCF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.SimpleEventStore.StreamDb", "samples\SimpleEventStore\EventCore.Samples.SimpleEventStore.StreamDb\EventCore.Samples.SimpleEventStore.StreamDb.csproj", "{3BACBCC7-89DC-47A6-9B28-7AB1908E5158}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.SimpleEventStore.EventStoreDb", "samples\SimpleEventStore\EventCore.Samples.SimpleEventStore.EventStoreDb\EventCore.Samples.SimpleEventStore.EventStoreDb.csproj", "{3BACBCC7-89DC-47A6-9B28-7AB1908E5158}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.SimpleEventStore.NotificationsApi", "samples\SimpleEventStore\EventCore.Samples.SimpleEventStore.NotificationsApi\EventCore.Samples.SimpleEventStore.NotificationsApi.csproj", "{85EB69CC-BE54-415A-B0DC-CC02BC365478}"
 EndProject

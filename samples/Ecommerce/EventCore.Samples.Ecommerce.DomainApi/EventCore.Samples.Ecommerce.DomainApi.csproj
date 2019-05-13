@@ -18,7 +18,7 @@
 		<ProjectReference Include="..\..\..\src\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />
 		<ProjectReference Include="..\..\SimpleEventStore\EventCore.Samples.SimpleEventStore.Client\EventCore.Samples.SimpleEventStore.Client.csproj" />
-		<ProjectReference Include="..\..\SimpleEventStore\EventCore.Samples.SimpleEventStore.StreamDb\EventCore.Samples.SimpleEventStore.StreamDb.csproj" />
+		<ProjectReference Include="..\..\SimpleEventStore\EventCore.Samples.SimpleEventStore.EventStoreDb\EventCore.Samples.SimpleEventStore.EventStoreDb.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain\EventCore.Samples.Ecommerce.Domain.csproj" />
   </ItemGroup>
 

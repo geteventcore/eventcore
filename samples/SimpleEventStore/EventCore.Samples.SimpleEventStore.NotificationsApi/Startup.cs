@@ -1,4 +1,4 @@
-﻿using EventCore.Samples.SimpleEventStore.StreamDb;
+﻿using EventCore.Samples.SimpleEventStore.EventStoreDb;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -32,7 +32,7 @@ namespace EventCore.Samples.SimpleEventStore.NotificationsApi
 			services.AddHostedService<HostedServices.PollingBackgroundService>();
 			services.AddHostedService<HostedServices.NotifierBackgroundService>();
 			services.AddSingleton<NotificationsManager>();
-			services.AddDbContext<StreamDbContext>(o => o.UseSqlServer(Configuration.GetConnectionString("EventStoreDbRegionX")));
+			services.AddDbContext<EventStoreDbContext>(o => o.UseSqlServer(Configuration.GetConnectionString("EventStoreDbRegionX")));
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -57,7 +57,7 @@ namespace EventCore.Samples.SimpleEventStore.NotificationsApi
 
 			using (var scope = scopeFactory.CreateScope())
 			{
-				var db = scope.ServiceProvider.GetRequiredService<SimpleEventStore.StreamDb.StreamDbContext>();
+				var db = scope.ServiceProvider.GetRequiredService<SimpleEventStore.EventStoreDb.EventStoreDbContext>();
 				db.Database.EnsureCreated();
 			}
 		}
