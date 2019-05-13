@@ -1,4 +1,4 @@
-﻿using EventCore.Samples.SimpleEventStore.EventStoreDb;
+﻿using EventCore.Samples.SimpleEventStore.StreamDb;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -36,7 +36,7 @@ namespace EventCore.Samples.SimpleEventStore.NotificationsApi.HostedServices
 			{
 				while (!cancellationToken.IsCancellationRequested)
 				{
-					var db = scope.ServiceProvider.GetRequiredService<EventStoreDbContext>();
+					var db = scope.ServiceProvider.GetRequiredService<StreamDbContext>();
 
 					var latestGlobalPosition = db.GetMaxGlobalPosition();
 

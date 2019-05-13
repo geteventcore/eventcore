@@ -1,8 +1,8 @@
-﻿using EventCore.Samples.SimpleEventStore.EventStoreDb.DbModels;
+﻿using EventCore.Samples.SimpleEventStore.StreamDb.DbModels;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EventCore.Samples.SimpleEventStore.EventStoreDb.Config
+namespace EventCore.Samples.SimpleEventStore.StreamDb.Config
 {
 	public class StreamEventDbModelConfig : IEntityTypeConfiguration<StreamEventDbModel>
 	{

@@ -1,6 +1,6 @@
 ﻿using EventCore.EventSourcing;
-using EventCore.Samples.SimpleEventStore.EventStoreDb;
-using EventCore.Samples.SimpleEventStore.EventStoreDb.DbModels;
+using EventCore.Samples.SimpleEventStore.StreamDb;
+using EventCore.Samples.SimpleEventStore.StreamDb.DbModels;
 using EventCore.Utilities;
 using Microsoft.AspNetCore.SignalR.Client;
 using System;
@@ -15,7 +15,7 @@ namespace EventCore.Samples.SimpleEventStore.Client
 	public class StreamClient : IStreamClient
 	{
 		private readonly IStandardLogger _logger;
-		private readonly EventStoreDbContext _db;
+		private readonly StreamDbContext _db;
 		private readonly string _notificationsHubUrl;
 
 		// Valid stream characters:
@@ -35,7 +35,7 @@ namespace EventCore.Samples.SimpleEventStore.Client
 		// StreamEventDbModel.GlobalIndex to start at this value.
 		public long FirstPositionInStream => 1;
 
-		public StreamClient(IStandardLogger logger, EventStoreDbContext db, string notificationsHubUrl)
+		public StreamClient(IStandardLogger logger, StreamDbContext db, string notificationsHubUrl)
 		{
 			_logger = logger;
 			_db = db;

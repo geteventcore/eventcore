@@ -1,7 +1,7 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.DomainApi.Options;
 using EventCore.Samples.SimpleEventStore.Client;
-using EventCore.Samples.SimpleEventStore.EventStoreDb;
+using EventCore.Samples.SimpleEventStore.StreamDb;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,15 +14,15 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 	{
 		public static void Configure(IConfiguration config, IServiceCollection services, ServicesOptions options)
 		{
-			var connectionBuilders = new Dictionary<string, Func<EventStoreDbContext>>();
+			var connectionBuilders = new Dictionary<string, Func<StreamDbContext>>();
 
 			// Connection factory must be able to create a new connection for each region.
 			// ... For now we only have one region.
-			services.AddDbContext<EventStoreDbContext>(o => o.UseSqlServer(config.GetConnectionString("EventStoreDbRegionX")));
+			services.AddDbContext<StreamDbContext>(o => o.UseSqlServer(config.GetConnectionString("StreamDbRegionX")));
 
-			services.AddScoped<IDictionary<string, Func<EventStoreDbContext>>>(sp => new Dictionary<string, Func<EventStoreDbContext>>()
+			services.AddScoped<IDictionary<string, Func<StreamDbContext>>>(sp => new Dictionary<string, Func<StreamDbContext>>()
 			{
-				{ Domain.Constants.DEFAULT_REGION_ID, () => sp.GetRequiredService<EventStoreDbContext>() }
+				{ Domain.Constants.DEFAULT_REGION_ID, () => sp.GetRequiredService<StreamDbContext>() }
 			});
 
 			services.AddSingleton<IStreamIdBuilder, EventSourcing.StreamIdBuilder>();
@@ -31,7 +31,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 		public static IStreamClientFactory BuildStreamClientFactory<TLoggerCategory>(IServiceProvider sp, ServicesOptions options)
 			=> new StreamClientFactory(
 					sp.GetRequiredService<Utilities.IStandardLogger<TLoggerCategory>>(),
-					sp.GetRequiredService<IDictionary<string, Func<EventStoreDbContext>>>(),
+					sp.GetRequiredService<IDictionary<string, Func<StreamDbContext>>>(),
 					options.EventStoreNotificationsHubUrl
 				);
 	}

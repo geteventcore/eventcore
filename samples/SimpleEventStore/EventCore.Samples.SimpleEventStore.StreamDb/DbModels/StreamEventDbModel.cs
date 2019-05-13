@@ -1,4 +1,4 @@
-﻿namespace EventCore.Samples.SimpleEventStore.EventStoreDb.DbModels
+﻿namespace EventCore.Samples.SimpleEventStore.StreamDb.DbModels
 {
 	public class StreamEventDbModel
 	{
