@@ -3,7 +3,6 @@
 	public class EventStoreStreamClientOptions
 	{
 		public int StreamReadBatchSize { get; }
-		public int ReconnectDelaySeconds { get; } = 5;
 
 		public EventStoreStreamClientOptions(int streamReadBatchSize)
 		{

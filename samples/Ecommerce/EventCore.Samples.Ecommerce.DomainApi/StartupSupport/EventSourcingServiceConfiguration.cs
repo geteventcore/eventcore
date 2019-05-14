@@ -1,7 +1,7 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.DomainApi.Options;
-using EventCore.Samples.SimpleEventStore.Client;
-using EventCore.Samples.SimpleEventStore.StreamDb;
+using EventCore.Samples.GYEventStore.StreamClient;
+using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,25 +14,20 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 	{
 		public static void Configure(IConfiguration config, IServiceCollection services, ServicesOptions options)
 		{
-			var connectionBuilders = new Dictionary<string, Func<StreamDbContext>>();
 
 			// Connection factory must be able to create a new connection for each region.
 			// ... For now we only have one region.
-			services.AddDbContext<StreamDbContext>(o => o.UseSqlServer(config.GetConnectionString("StreamDbRegionX")));
+			var eventStoreRegionXUri = config.GetConnectionString("EventStoreRegionX");
+			var eventStoreUris = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { { "x", eventStoreRegionXUri } };
 
-			services.AddScoped<IDictionary<string, Func<StreamDbContext>>>(sp => new Dictionary<string, Func<StreamDbContext>>()
-			{
-				{ Domain.Constants.DEFAULT_REGION_ID, () => sp.GetRequiredService<StreamDbContext>() }
-			});
-
+			services.AddSingleton<IStreamClientFactory>(
+				sp => new EventStoreStreamClientFactory(
+					sp.GetRequiredService<IStandardLogger<EventStoreStreamClientFactory>>(),
+					eventStoreUris,
+					config.GetValue<int>("Services:StreamReadBatchSize"),
+					5)
+				);
 			services.AddSingleton<IStreamIdBuilder, EventSourcing.StreamIdBuilder>();
 		}
-
-		public static IStreamClientFactory BuildStreamClientFactory<TLoggerCategory>(IServiceProvider sp, ServicesOptions options)
-			=> new StreamClientFactory(
-					sp.GetRequiredService<Utilities.IStandardLogger<TLoggerCategory>>(),
-					sp.GetRequiredService<IDictionary<string, Func<StreamDbContext>>>(),
-					options.EventStoreNotificationsHubUrl
-				);
 	}
 }

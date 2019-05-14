@@ -14,10 +14,9 @@ namespace EventCore.Samples.GYEventStore.StreamClient
 	public class EventStoreStreamClient : IStreamClient
 	{
 		// NOTE: Stream ids are case SENSITIVE in GY's Event Store.
-		// Haven't figured out how to disable this yet.
-		// All stream ids will be upper cased.
+		// Haven't figured out how to disable this yet, or if possible.
 
-		private const string INVALID_STREAM_ID_REGEX = @"[^A-Z0-9_\-$]";
+		private const string INVALID_STREAM_ID_REGEX = @"[^A-Za-z0-9_\-$]";
 
 		private readonly IStandardLogger _logger;
 		private readonly IEventStoreConnection _connection;
@@ -34,23 +33,8 @@ namespace EventCore.Samples.GYEventStore.StreamClient
 
 		private static bool ValidateStreamIdChars(string chars) => !Regex.IsMatch(chars, INVALID_STREAM_ID_REGEX);
 
-		public IEventStoreConnection CreateConnection(string uri)
-		{
-
-			var cnn = EventStoreConnection.Create(uri);
-			cnn.Closed += new EventHandler<ClientClosedEventArgs>(delegate (Object o, ClientClosedEventArgs a)
-			{
-				_logger.LogWarning($"Event Store connection closed. Reconnecting after {_options.ReconnectDelaySeconds} seconds.");
-				Thread.Sleep(_options.ReconnectDelaySeconds * 1000);
-				a.Connection.ConnectAsync().Wait();
-			});
-			return cnn;
-		}
-
 		public async Task<CommitResult> CommitEventsToStreamAsync(string streamId, long? expectedLastPosition, IEnumerable<CommitEvent> events)
 		{
-			streamId = streamId.ToUpper(); // GY Event Store uses case sensitive stream ids. Neutralize here.
-
 			if (!ValidateStreamIdChars(streamId))
 			{
 				throw new ArgumentException("Invalid character(s) in stream id.");
@@ -63,7 +47,6 @@ namespace EventCore.Samples.GYEventStore.StreamClient
 
 			try
 			{
-
 				long expectedVersion = expectedLastPosition.GetValueOrDefault(ExpectedVersion.NoStream);
 
 				if (events.Count() == 0) return CommitResult.Success;
@@ -95,8 +78,6 @@ namespace EventCore.Samples.GYEventStore.StreamClient
 
 			try
 			{
-				streamId = streamId.ToUpper(); // GY Event Store uses case sensitive stream ids. Neutralize here.
-
 				StreamEventsSlice currentSlice;
 				long nextSliceStart = StreamPosition.Start;
 
@@ -135,8 +116,6 @@ namespace EventCore.Samples.GYEventStore.StreamClient
 
 			try
 			{
-				streamId = streamId.ToUpper(); // GY Event Store uses case sensitive stream ids. Neutralize here.
-
 				var subSettings = new CatchUpSubscriptionSettings(
 					CatchUpSubscriptionSettings.Default.MaxLiveQueueSize,
 					CatchUpSubscriptionSettings.Default.ReadBatchSize,

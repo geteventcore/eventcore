@@ -13,10 +13,10 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 
 		public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
 			WebHost.CreateDefaultBuilder(args)
-				// .UseConfiguration(new ConfigurationBuilder()
-				// 	.AddCommandLine(args)
-				// 	.Build()
-				// )
+				.UseConfiguration(new ConfigurationBuilder()
+					.AddCommandLine(args)
+					.Build()
+					)
 				.UseStartup<Startup>();
 	}
 }

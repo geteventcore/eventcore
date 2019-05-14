@@ -1,10 +1,7 @@
 ﻿using EventCore.Samples.GYEventStore.StreamClient;
 using EventCore.Utilities;
 using EventStore.ClientAPI;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,6 +23,7 @@ namespace EventCore.Samples.GYEventStore.Cli.Actions
 		public async Task RunAsync()
 		{
 			Console.WriteLine("Subscribing to all events... (break to exit)");
+			Console.WriteLine();
 
 			using (var eventStoreConnection = EventStoreConnection.Create(_eventStoreUri, ""))
 			{
@@ -33,19 +31,20 @@ namespace EventCore.Samples.GYEventStore.Cli.Actions
 
 				using (var streamClient = new EventStoreStreamClient(_logger, eventStoreConnection, new EventStoreStreamClientOptions(100)))
 				{
-					var lastGlobalPosition = await streamClient.GetLastPositionInStreamAsync("$all");
+					var streamId = "$allNonSystemEvents";
+					var lastGlobalPosition = await streamClient.GetLastPositionInStreamAsync(streamId);
 					await streamClient.SubscribeToStreamAsync(
-						"$all",
+						streamId,
 						lastGlobalPosition.GetValueOrDefault(streamClient.FirstPositionInStream - 1) + 1,
 						(se) =>
 						{
 							if (se.IsLink)
 							{
-								_logger.LogInformation($"{se.EventType} ({se.Link.Position} in {se.Link.StreamId})");
+								Console.WriteLine($"Event: {se.EventType} ({se.Link.Position}) in {se.Link.StreamId})");
 							}
 							else
 							{
-								_logger.LogInformation($"{se.EventType} ({se.Position} in {se.StreamId})");
+								Console.WriteLine($"Event: {se.EventType} ({se.Position}) in {se.StreamId})");
 							}
 							return Task.CompletedTask;
 						},

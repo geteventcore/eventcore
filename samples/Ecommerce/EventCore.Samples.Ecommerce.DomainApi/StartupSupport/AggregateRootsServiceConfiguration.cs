@@ -28,7 +28,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 				sp.GetRequiredService<IStandardLogger<TAggregate>>(),
 				sp.GetRequiredService<IAggregateRootStateRepo<TState>>(),
 				sp.GetRequiredService<IStreamIdBuilder>(),
-				EventSourcingServiceConfiguration.BuildStreamClientFactory<TAggregate>(sp, options),
+				sp.GetRequiredService<IStreamClientFactory>(),
 				new AllBusinessEventsResolver(sp.GetRequiredService<IStandardLogger<TAggregate>>()) // This resolver used when committing events.
 			));
 
@@ -45,7 +45,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 		{
 			services.AddScoped<IAggregateRootStateRepo<TState>>(
 				sp => new FlatFileAggregateRootStateRepo<TState>(
-					EventSourcingServiceConfiguration.BuildStreamClientFactory<TState>(sp, options),
+					sp.GetRequiredService<IStreamClientFactory>(),
 					(regionId) => stateConstructor(sp, regionId), options.AggregateRootStateBasePath
 				)
 			);
@@ -77,7 +77,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 
 			services.AddScoped<IAggregateRootStateRepo<Domain.EmailBuilder.EmailBuilderState>>(
 				sp => new Domain.EmailBuilder.EmailBuilderStateRepo(
-					EventSourcingServiceConfiguration.BuildStreamClientFactory<Domain.EmailBuilder.EmailBuilderState>(sp, options),
+					sp.GetRequiredService<IStreamClientFactory>(),
 					sp.GetRequiredService<Domain.EmailBuilder.EmailBuilderStateFactory>()
 				)
 			);
