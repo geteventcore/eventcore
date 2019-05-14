@@ -1,1 +1,0 @@
-dotnet run -p ../EventCore.Samples.SimpleEventStore.Cli $1
