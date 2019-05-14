@@ -1,0 +1,1 @@
+dotnet run -p ../EventCore.Samples.GYEventStore.Cli -- ${1}

@@ -22,11 +22,18 @@ namespace EventCore.Samples.GYEventStore.Cli.Actions
 
 		public async Task RunAsync()
 		{
-			Console.WriteLine("Subscribing to all events... (break to exit)");
+			Console.WriteLine("Listening for all non-system events... ");
 			Console.WriteLine();
 
-			using (var eventStoreConnection = EventStoreConnection.Create(_eventStoreUri, ""))
+			using (var eventStoreConnection = EventStoreConnection.Create(_eventStoreUri))
 			{
+				eventStoreConnection.Closed += new EventHandler<ClientClosedEventArgs>(delegate (Object o, ClientClosedEventArgs a)
+				{
+					_logger.LogWarning($"Event Store connection closed. Reconnecting after delay.");
+					Thread.Sleep(1);
+					a.Connection.ConnectAsync().Wait();
+				});
+
 				await eventStoreConnection.ConnectAsync();
 
 				using (var streamClient = new EventStoreStreamClient(_logger, eventStoreConnection, new EventStoreStreamClientOptions(100)))
@@ -40,11 +47,11 @@ namespace EventCore.Samples.GYEventStore.Cli.Actions
 						{
 							if (se.IsLink)
 							{
-								Console.WriteLine($"Event: {se.EventType} ({se.Link.Position}) in {se.Link.StreamId})");
+								Console.WriteLine($"Event: {se.EventType} ({se.Link.Position}) in {se.Link.StreamId}");
 							}
 							else
 							{
-								Console.WriteLine($"Event: {se.EventType} ({se.Position}) in {se.StreamId})");
+								Console.WriteLine($"Event: {se.EventType} ({se.Position}) in {se.StreamId}");
 							}
 							return Task.CompletedTask;
 						},

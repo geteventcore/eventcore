@@ -18,7 +18,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			// Connection factory must be able to create a new connection for each region.
 			// ... For now we only have one region.
 			var eventStoreRegionXUri = config.GetConnectionString("EventStoreRegionX");
-			var eventStoreUris = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { { "x", eventStoreRegionXUri } };
+			var eventStoreUris = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { { Domain.Constants.DEFAULT_REGION_ID, eventStoreRegionXUri } };
 
 			services.AddSingleton<IStreamClientFactory>(
 				sp => new EventStoreStreamClientFactory(
