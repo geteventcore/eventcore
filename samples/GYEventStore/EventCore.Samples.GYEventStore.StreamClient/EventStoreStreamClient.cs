@@ -219,7 +219,7 @@ namespace EventCore.Samples.GYEventStore.StreamClient
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Exception while finding end of stream.");
+				_logger.LogError(ex, "Exception while getting end of stream.");
 				throw;
 			}
 		}

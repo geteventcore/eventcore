@@ -61,6 +61,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GYEventStore", "GYEventStor
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.GYEventStore.StreamClient", "samples\GYEventStore\EventCore.Samples.GYEventStore.StreamClient\EventCore.Samples.GYEventStore.StreamClient.csproj", "{4ED814EE-97E0-4956-9F29-4BF5B97250B4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.GYEventStore.Cli", "samples\GYEventStore\EventCore.Samples.GYEventStore.Cli\EventCore.Samples.GYEventStore.Cli.csproj", "{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -338,6 +340,18 @@ Global
 		{4ED814EE-97E0-4956-9F29-4BF5B97250B4}.Release|x64.Build.0 = Release|Any CPU
 		{4ED814EE-97E0-4956-9F29-4BF5B97250B4}.Release|x86.ActiveCfg = Release|Any CPU
 		{4ED814EE-97E0-4956-9F29-4BF5B97250B4}.Release|x86.Build.0 = Release|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Debug|x64.Build.0 = Debug|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Debug|x86.Build.0 = Debug|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Release|x64.ActiveCfg = Release|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Release|x64.Build.0 = Release|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Release|x86.ActiveCfg = Release|Any CPU
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{F8ADCB34-C115-448E-A6E8-448307AC5F15} = {F2687D8C-5761-49C0-80B6-BFAAA89AE534}
@@ -365,5 +379,6 @@ Global
 		{F90C71E9-C37E-4145-BCC8-F19745D0AFDD} = {1AFFE154-3FBC-472A-BD64-51751BAD628F}
 		{77201BF1-37AD-48DA-9C99-D170EFF4BA17} = {44BC74F3-26CA-4608-9915-F5BF529EB733}
 		{4ED814EE-97E0-4956-9F29-4BF5B97250B4} = {77201BF1-37AD-48DA-9C99-D170EFF4BA17}
+		{EC1D07D4-1FB8-4BD0-AB23-F9303B0E13BB} = {77201BF1-37AD-48DA-9C99-D170EFF4BA17}
 	EndGlobalSection
 EndGlobal
