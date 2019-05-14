@@ -1,0 +1,2 @@
+docker container stop eventcore.samples.gyeventstore.streamclient
+docker container rm eventcore.samples.gyeventstore.streamclient
