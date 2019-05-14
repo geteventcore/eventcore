@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace EventCore.Samples.SimpleEventStore.Cli
@@ -17,12 +18,9 @@ namespace EventCore.Samples.SimpleEventStore.Cli
 		{
 			Console.WriteLine();
 
-			var environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-
 			IConfiguration configuration = new ConfigurationBuilder()
-				.SetBasePath(Path.Combine(Directory.GetCurrentDirectory()))
 				.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-				.AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
+				// .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
 				.AddCommandLine(args)
 				.Build();
 
@@ -37,7 +35,7 @@ namespace EventCore.Samples.SimpleEventStore.Cli
 			Parser.Default.ParseArguments<Options.SubscribeOptions>(args)
 				.WithParsed<Options.SubscribeOptions>(options => new Actions.SubscribeAction(options, subscribeLogger, serviceProvider.GetRequiredService<IServiceScopeFactory>(), notificationsHubUrl).RunAsync().Wait());
 
-			((IDisposable) serviceProvider)?.Dispose(); // Force flush log messages to output.
+			((IDisposable)serviceProvider)?.Dispose(); // Force flush log messages to output.
 
 			return Task.CompletedTask;
 		}

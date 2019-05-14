@@ -1,2 +1,0 @@
-docker container stop eventcore.samples.simpleeventstore.eventstoredb
-docker container rm eventcore.samples.simpleeventstore.eventstoredb
