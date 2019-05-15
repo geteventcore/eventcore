@@ -1,4 +1,4 @@
-﻿using EventCore.Samples.GYEventStore.StreamClient;
+﻿using EventCore.Samples.EventStore.StreamClient;
 using EventCore.Utilities;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Configuration;

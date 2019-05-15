@@ -45,9 +45,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.AggregateRoots.Se
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.AggregateRoots.DatabaseState", "src\EventCore.AggregateRoots.DatabaseState\EventCore.AggregateRoots.DatabaseState.csproj", "{8F65538D-2CDE-4348-A4EC-CBDCC6E04C6D}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GYEventStore", "GYEventStore", "{77201BF1-37AD-48DA-9C99-D170EFF4BA17}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EventStore", "EventStore", "{77201BF1-37AD-48DA-9C99-D170EFF4BA17}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.GYEventStore.StreamClient", "samples\GYEventStore\EventCore.Samples.GYEventStore.StreamClient\EventCore.Samples.GYEventStore.StreamClient.csproj", "{4ED814EE-97E0-4956-9F29-4BF5B97250B4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.EventStore.StreamClient", "samples\EventStore\EventCore.Samples.EventStore.StreamClient\EventCore.Samples.EventStore.StreamClient.csproj", "{4ED814EE-97E0-4956-9F29-4BF5B97250B4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

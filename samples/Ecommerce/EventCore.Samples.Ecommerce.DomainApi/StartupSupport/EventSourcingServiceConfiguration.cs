@@ -1,6 +1,6 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.DomainApi.Options;
-using EventCore.Samples.GYEventStore.StreamClient;
+using EventCore.Samples.EventStore.StreamClient;
 using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;

@@ -1,4 +1,4 @@
-﻿namespace EventCore.Samples.GYEventStore.StreamClient
+﻿namespace EventCore.Samples.EventStore.StreamClient
 {
 	public static class Constants
 	{

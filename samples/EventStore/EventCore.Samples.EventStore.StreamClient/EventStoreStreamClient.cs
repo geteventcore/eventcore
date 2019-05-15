@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.GYEventStore.StreamClient
+namespace EventCore.Samples.EventStore.StreamClient
 {
 	public class EventStoreStreamClient : IStreamClient
 	{

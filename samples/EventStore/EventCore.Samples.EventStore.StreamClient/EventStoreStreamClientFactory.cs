@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.GYEventStore.StreamClient
+namespace EventCore.Samples.EventStore.StreamClient
 {
 	public class EventStoreStreamClientFactory : IStreamClientFactory, IDisposable
 	{
