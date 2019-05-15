@@ -7,7 +7,7 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder
 	{
 		public readonly string SalesOrderId;
 
-		public SalesOrderCommand(DomainCommandMetadata _metadata, string salesOrderId) : base(_metadata)
+		public SalesOrderCommand(CommandMetadata _metadata, string salesOrderId) : base(_metadata)
 		{
 			SalesOrderId = salesOrderId;
 		}

@@ -5,11 +5,9 @@ namespace EventCore.Samples.Ecommerce.Domain
 {
 	public abstract class DomainCommand : Command
 	{
-		// Use of underscore breaks naming conventions for public fields but since commands are
-		// simple data transfer objects we want to clearly separate which properties/methods are
-		// for the system and which are for the business properties in a concrete command.
-
-		public DomainCommandMetadata _Metadata { get; }
+		public DomainCommand(CommandMetadata _metadata) : base(_metadata)
+		{
+		}
 
 		public string GetCommandName()
 		{
@@ -22,13 +20,9 @@ namespace EventCore.Samples.Ecommerce.Domain
 		}
 
 		public abstract string GetAggregateRootName();
-		public override string GetCommandId() => _Metadata.CommandId;
-		public override string GetRegionId() => Constants.DEFAULT_REGION_ID; // Only one region for now.
 
-		public DomainCommand(DomainCommandMetadata _metadata)
-		{
-			_Metadata = _metadata;
-			if(_metadata == null) throw new ArgumentNullException("Metadata is null!");
-		}
+		// Only one region for this sample. If supporting multiple regions then
+		// region would be determined by data given in command, e.g. a customer's location, origin of request IP, etc.
+		public override string GetRegionId() => Constants.DEFAULT_REGION_ID;
 	}
 }

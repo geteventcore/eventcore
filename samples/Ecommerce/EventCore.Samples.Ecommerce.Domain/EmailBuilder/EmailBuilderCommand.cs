@@ -7,7 +7,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 	{
 		public readonly Guid EmailId;
 
-		public EmailBuilderCommand(DomainCommandMetadata _metadata, Guid emailId) : base(_metadata)
+		public EmailBuilderCommand(CommandMetadata _metadata, Guid emailId) : base(_metadata)
 		{
 			EmailId = emailId;
 		}

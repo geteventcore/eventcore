@@ -18,7 +18,6 @@ namespace EventCore.AggregateRoots
 		}
 
 		public abstract Task<bool> IsCausalIdInHistoryAsync(string causalId);
-
 		protected abstract Task AddCausalIdToHistoryAsync(string causalId);
 
 		public virtual async Task ApplyStreamEventAsync(StreamEvent streamEvent, CancellationToken cancellationToken)
@@ -41,7 +40,7 @@ namespace EventCore.AggregateRoots
 			StreamPositionCheckpoint = streamEvent.Position;
 		}
 
-		protected virtual async Task ApplyGenericBusinessEventAsync(string streamId, long position, IBusinessEvent e, CancellationToken cancellationToken)
+		public virtual async Task ApplyGenericBusinessEventAsync(string streamId, long position, IBusinessEvent e, CancellationToken cancellationToken)
 		{
 			// Expects IApplyBusinessEvent<TEvent> for the type of event given.
 			await (Task)this.GetType().InvokeMember("ApplyBusinessEventAsync", BindingFlags.InvokeMethod, null, this, new object[] { streamId, position, e, cancellationToken });

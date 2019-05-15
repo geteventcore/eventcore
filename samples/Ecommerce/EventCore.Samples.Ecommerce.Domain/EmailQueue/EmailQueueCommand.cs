@@ -7,7 +7,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue
 	{
 		public readonly Guid EmailId;
 
-		public EmailQueueCommand(DomainCommandMetadata _metadata, Guid emailId) : base(_metadata)
+		public EmailQueueCommand(CommandMetadata _metadata, Guid emailId) : base(_metadata)
 		{
 			EmailId = emailId;
 		}
