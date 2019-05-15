@@ -60,7 +60,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 				var byteArray = new UTF8Encoding().GetBytes(_config.GetValue<string>("EventStoreAdminCredsRegionX"));
 				httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic", Convert.ToBase64String(byteArray));
 
-				var result = await httpClient.PostAsync(postProjectionUrl, new StringContent(""));
+				var result = await httpClient.PostAsync(postProjectionUrl, new StringContent(PROJECTION___ALL_NON_SYSTEM_EVENTS));
 
 				if (result.StatusCode != HttpStatusCode.Created)
 				{
@@ -96,7 +96,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 			Console.WriteLine("Projections DB configured.");
 		}
 
-		private static string ProjectionAllNonSystemEvents() =>
+		private const string PROJECTION___ALL_NON_SYSTEM_EVENTS =
 			@"fromAll().
 				when({
 							$any : function(s,e) {

@@ -116,38 +116,15 @@ namespace EventCore.Samples.EventStore.StreamClient
 
 			try
 			{
-				var subSettings = new CatchUpSubscriptionSettings(
-					CatchUpSubscriptionSettings.Default.MaxLiveQueueSize,
-					CatchUpSubscriptionSettings.Default.ReadBatchSize,
-					false, true);
-
-				var sub = _connection.SubscribeToStreamFrom(
-				 streamId,
-				 // Client api expects last checkpoint or null if none.
-				 fromPosition == FirstPositionInStream ? (long?)null : fromPosition - 1,
-				 subSettings,
-				 async (_, resolvedEvent) =>
-				 {
-					 await ReceiveResolvedEventAsync(receiverAsync, resolvedEvent, cancellationToken);
-				 },
-				 null,
-				 (_, reason, ex) =>
-				 {
-					 _logger.LogError(ex, $"Subscription dropped. ({reason})");
-				 },
-				 null);
-
-				await cancellationToken.WaitHandle.AsTask();
-
-				try
+				Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> eventAppeared = async (_, resolvedEvent) =>
 				{
-					sub.Stop(); // Does not block.
-				}
-				catch (Exception)
-				{
-					// Ignore errors.
-				}
+					await ReceiveResolvedEventAsync(receiverAsync, resolvedEvent, cancellationToken);
+				};
 
+				using (var sub = new CatchUpSubscription(_connection, streamId, fromPosition, eventAppeared))
+				{
+					await cancellationToken.WaitHandle.AsTask();
+				}
 			}
 			catch (Exception ex)
 			{
@@ -201,6 +178,68 @@ namespace EventCore.Samples.EventStore.StreamClient
 				_logger.LogError(ex, "Exception while getting end of stream.");
 				throw;
 			}
+		}
+
+		// Wrapper class for auto renewing dropped subscription.
+		private class CatchUpSubscription : IDisposable
+		{
+			private readonly IEventStoreConnection _connection;
+			private readonly string _streamId;
+			private readonly Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> _eventAppeared;
+
+			private readonly CatchUpSubscriptionSettings _settings = new CatchUpSubscriptionSettings(
+					CatchUpSubscriptionSettings.Default.MaxLiveQueueSize,
+					CatchUpSubscriptionSettings.Default.ReadBatchSize,
+					false, true);
+
+			private EventStoreStreamCatchUpSubscription _sub;
+			private long? _lastEventPosition;
+
+			public CatchUpSubscription(IEventStoreConnection connection, string streamId, long fromPosition, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> eventAppeared)
+			{
+				_connection = connection;
+				_streamId = streamId;
+				_lastEventPosition = fromPosition == Constants.FIRST_POSITION_IN_STREAM ? (long?)null : fromPosition - 1;
+
+				_eventAppeared = (sub, resolvedEvent) =>
+				{
+					_lastEventPosition = resolvedEvent.OriginalEventNumber;
+					return eventAppeared(sub, resolvedEvent);
+				};
+
+				Subscribe();
+			}
+
+			private void Subscribe()
+			{
+				Console.WriteLine("Starting subscribe from: " + _lastEventPosition);
+				_sub = _connection.SubscribeToStreamFrom(_streamId, _lastEventPosition, _settings, _eventAppeared, null, SubscriptionDropped, null);
+			}
+
+			private void SubscriptionDropped(EventStoreCatchUpSubscription subscription, SubscriptionDropReason reason, Exception ex)
+			{
+				// Known bug in ES, must manually stop subscription or sub will continue delivering events.
+				// https://groups.google.com/forum/#!searchin/event-store/subscription/event-store/AdKzv8TxabM/6RzudeuAAgAJ
+				_sub.Stop(); 
+				Subscribe();
+			}
+
+			private bool disposedValue = false; // To detect redundant calls
+
+			protected virtual void Dispose(bool disposing)
+			{
+				if (!disposedValue)
+				{
+					if (disposing)
+					{
+						_sub.Stop();
+					}
+
+					disposedValue = true;
+				}
+			}
+
+			public void Dispose() => Dispose(true);
 		}
 
 		public void Dispose()

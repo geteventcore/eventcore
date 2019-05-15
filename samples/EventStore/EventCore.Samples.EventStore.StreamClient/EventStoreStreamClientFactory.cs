@@ -16,7 +16,9 @@ namespace EventCore.Samples.EventStore.StreamClient
 		private readonly int _streamReadBatchSize;
 		private readonly int _reconnectDelaySeconds;
 
-		private readonly Dictionary<string, EventStoreStreamClient> _streamClients;
+		// Event store connections are re-used, one per region, and disposed when the factory is disposed.
+		// Factory is meant to be used as a singleton with dependency injection.
+		private readonly Dictionary<string, IEventStoreConnection> _connections;
 
 		public EventStoreStreamClientFactory(IStandardLogger logger, Dictionary<string, string> eventStoreUris, int streamReadBatchSize, int reconnectDelaySeconds)
 		{
@@ -25,72 +27,59 @@ namespace EventCore.Samples.EventStore.StreamClient
 			_streamReadBatchSize = streamReadBatchSize;
 			_reconnectDelaySeconds = reconnectDelaySeconds;
 
-			_streamClients = new Dictionary<string, EventStoreStreamClient>(eventStoreUris.Comparer);
+			_connections = new Dictionary<string, IEventStoreConnection>(eventStoreUris.Comparer);
 
 			foreach (var regionId in _eventStoreUris.Keys)
 			{
-				var connection = CreateConnection(_eventStoreUris[regionId], regionId);
-				var streamClient = new EventStoreStreamClient(_logger, connection, new EventStoreStreamClientOptions(_streamReadBatchSize));
-				_streamClients.Add(regionId, streamClient);
-
-				connection.ConnectAsync().Wait(); // Event Store connections are designed to be long-lived and thread-safe.
+				// Create all connections so they're ready.
+				var cnn = CreateConnection(regionId);
+				cnn.ConnectAsync(); // Do not wait for connection to succeed or this will block service startup.
 			}
 		}
 
-		private IEventStoreConnection CreateConnection(string uri, string regionId)
+		private IEventStoreConnection CreateConnection(string regionId)
 		{
-			var cnn = EventStoreConnection.Create(uri, $"Connection-{regionId}");
-			cnn.Closed += new EventHandler<ClientClosedEventArgs>(delegate (Object o, ClientClosedEventArgs a)
+			var uri = _eventStoreUris[regionId];
+			var builder = ConnectionSettings.Create().KeepReconnecting();
+			var connection = EventStoreConnection.Create(uri, builder, $"Connection-{regionId}");
+
+			connection.Connected += new EventHandler<ClientConnectionEventArgs>(delegate (Object o, ClientConnectionEventArgs a)
 			{
-				_logger.LogWarning($"Event Store connection closed. Reconnecting after {_reconnectDelaySeconds} seconds. ({cnn.ConnectionName})");
-				Thread.Sleep(_reconnectDelaySeconds * 1000);
-				a.Connection.ConnectAsync().Wait();
+				_logger.LogDebug($"Event Store client connected. ({a.Connection.ConnectionName})");
 			});
-			return cnn;
+
+			connection.ErrorOccurred += new EventHandler<ClientErrorEventArgs>(delegate (Object o, ClientErrorEventArgs a)
+			{
+				_logger.LogError(a.Exception, $"Event store connection error. ({a.Connection.ConnectionName})");
+			});
+
+			_connections.Add(regionId, connection);
+			return connection;
 		}
 
 		public IStreamClient Create(string regionId)
 		{
-			return _streamClients[regionId];
+			return new EventStoreStreamClient(_logger, _connections[regionId], new EventStoreStreamClientOptions(_streamReadBatchSize));
 		}
 
-		#region IDisposable Support
-		private bool disposedValue = false; // To detect redundant calls
+
+		private bool disposed = false;
 
 		protected virtual void Dispose(bool disposing)
 		{
-			if (!disposedValue)
+			if (!disposed)
 			{
 				if (disposing)
 				{
-					foreach (var connection in _streamClients.Values)
+					foreach (var connection in _connections.Values)
 					{
 						connection.Dispose();
 					}
 				}
-
-				// TODO: free unmanaged resources (unmanaged objects) and override a finalizer below.
-				// TODO: set large fields to null.
-
-				disposedValue = true;
+				disposed = true;
 			}
 		}
 
-		// TODO: override a finalizer only if Dispose(bool disposing) above has code to free unmanaged resources.
-		// ~EventStoreStreamClientFactory()
-		// {
-		//   // Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-		//   Dispose(false);
-		// }
-
-		// This code added to correctly implement the disposable pattern.
-		public void Dispose()
-		{
-			// Do not change this code. Put cleanup code in Dispose(bool disposing) above.
-			Dispose(true);
-			// TODO: uncomment the following line if the finalizer is overridden above.
-			// GC.SuppressFinalize(this);
-		}
-		#endregion
+		public void Dispose() => Dispose(true);
 	}
 }

@@ -3,6 +3,7 @@ using EventCore.Utilities;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,23 +26,17 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 		public async Task RunAsync()
 		{
 			Console.WriteLine("Listening for all non-system events... ");
-			Console.WriteLine();
 
-			using (var eventStoreConnection = EventStoreConnection.Create(_config.GetConnectionString("EventStoreRegionX")))
+			using (var streamClientFactory = new EventStoreStreamClientFactory(
+				_logger,
+				new Dictionary<string, string>() { { "X", _config.GetConnectionString("EventStoreRegionX") } },
+				100, 5))
 			{
-				eventStoreConnection.Closed += new EventHandler<ClientClosedEventArgs>(delegate (Object o, ClientClosedEventArgs a)
-				{
-					Console.WriteLine($"Event Store connection closed. Reconnecting after delay.");
-					Thread.Sleep(1);
-					a.Connection.ConnectAsync().Wait();
-				});
-
-				await eventStoreConnection.ConnectAsync();
-
-				using (var streamClient = new EventStoreStreamClient(_logger, eventStoreConnection, new EventStoreStreamClientOptions(100)))
+				using (var streamClient = streamClientFactory.Create("X"))
 				{
 					var streamId = "$allNonSystemEvents";
 					var lastGlobalPosition = await streamClient.GetLastPositionInStreamAsync(streamId);
+					
 					await streamClient.SubscribeToStreamAsync(
 						streamId,
 						lastGlobalPosition.GetValueOrDefault(streamClient.FirstPositionInStream - 1) + 1,
