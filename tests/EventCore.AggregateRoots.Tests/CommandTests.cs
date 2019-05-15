@@ -7,7 +7,7 @@ namespace EventCore.AggregateRoots.Tests
 	{
 		private class TestCommand : Command
 		{
-			public TestCommand(CommandMetadata _metadata) : base(_metadata) {}
+			public TestCommand() : base(CommandMetadata.Default) { }
 			public override string GetAggregateRootId() => throw new NotImplementedException();
 			public override string GetRegionId() => throw new NotImplementedException();
 		}
@@ -15,7 +15,7 @@ namespace EventCore.AggregateRoots.Tests
 		[Fact]
 		public void validate_semantics()
 		{
-			var command = new TestCommand(CommandMetadata.Default);
+			var command = new TestCommand();
 			var result = command.ValidateSemantics();
 			Assert.True(result.IsValid); // TODO: Implement validation attributes.
 		}

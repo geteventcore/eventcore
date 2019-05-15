@@ -6,7 +6,10 @@ namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class SubscriberEventTests
 	{
-		private class TestBusinessEvent : IBusinessEvent { }
+		private class TestBusinessEvent : BusinessEvent
+		{
+			public TestBusinessEvent() : base(BusinessEventMetadata.Empty) { }
+		}
 
 		[Fact]
 		public void construct_with_subscription_stream_info()

@@ -2,16 +2,24 @@
 
 namespace EventCore.EventSourcing
 {
-	public abstract class BusinessEvent : IBusinessEvent
+	public abstract class BusinessEvent : BusinessEvent<BusinessEventMetadata>
 	{
-		public IBusinessEventMetadata Metadata { get; }
+		public BusinessEvent(BusinessEventMetadata _metadata) : base(_metadata) { }
+	}
 
-		public BusinessEvent(IBusinessEventMetadata metadata)
+	public abstract class BusinessEvent<TMetadata> : IBusinessEvent where TMetadata : IBusinessEventMetadata
+	{
+		// Use of underscore breaks naming conventions for public members.
+		// However, commands are simple DTOs, so we choose to do this as to
+		// to not interfere with subclass names.
+		public TMetadata _Metadata { get; }
+
+		public BusinessEvent(TMetadata _metadata)
 		{
-			Metadata = metadata;
+			_Metadata = _metadata;
 		}
 
-		public string GetCausalId() => Metadata.CausalId;
-		public string GetCorrelationId() => Metadata.CorrelationId;
+		public string GetCausalId() => _Metadata.CausalId;
+		public string GetCorrelationId() => _Metadata.CorrelationId;
 	}
 }

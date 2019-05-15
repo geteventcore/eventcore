@@ -5,9 +5,7 @@ namespace EventCore.Samples.Ecommerce.Domain
 {
 	public abstract class DomainCommand : Command
 	{
-		public DomainCommand(CommandMetadata _metadata) : base(_metadata)
-		{
-		}
+		public DomainCommand(CommandMetadata _metadata) : base(_metadata) { }
 
 		public string GetCommandName()
 		{

@@ -11,7 +11,10 @@ namespace EventCore.StatefulEventSubscriber.Tests
 {
 	public class HandlingManagerTests
 	{
-		private class TestBusinessEvent : IBusinessEvent {}
+		private class TestBusinessEvent : BusinessEvent
+		{
+			public TestBusinessEvent() : base(BusinessEventMetadata.Empty) { }
+		}
 
 		private class TestException : Exception { }
 
