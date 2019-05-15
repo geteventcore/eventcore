@@ -4,16 +4,16 @@ namespace EventCore.Samples.Ecommerce.Cli
 {
 	public static class Options
 	{
-		[Verb("generateSalesOrders", HelpText = "Generates and submits requested number of RaiseSalesOrder commands.")]
-		public class GenerateSalesOrdersOptions
+		[Verb("initialize", HelpText = "Configure infrastructure before running apps. Expects infrastructure to be running.")]
+		public class InitializeOptions
 		{
-			[Value(0, MetaName = "count", HelpText = "Number of sales orders to raise.")]
-			public int? Count { get; set; } = 1000;
 		}
 
-		[Verb("listenSalesOrders", HelpText = "Listens for all sales order related events.")]
-		public class ListenSalesOrdersOptions
+		[Verb("listen", HelpText = "Listen for and print all business events as they are committed.")]
+		public class ListenOptions
 		{
+			[Value(0, MetaName = "verbose", Required = false, Default = false, HelpText = "True to decode and show event payloads.")]
+			public bool Verbose { get; set; }
 		}
 	}
 }

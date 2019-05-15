@@ -18,6 +18,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels
 
 		protected override void OnModelCreating(ModelBuilder builder)
 		{
+			builder.ApplyConfiguration(new CausalIdDbModelConfig());
 			builder.ApplyConfiguration(new EmailDbModelConfig());
 		}
 
