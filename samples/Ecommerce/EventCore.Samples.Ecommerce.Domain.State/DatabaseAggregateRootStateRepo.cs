@@ -5,7 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.AggregateRoots.DatabaseState
+namespace EventCore.Samples.Ecommerce.Domain.State
 {
 	public abstract class DatabaseAggregateRootStateRepo<TState> : IAggregateRootStateRepo<TState>
 		where TState : IDatabaseAggregateRootState

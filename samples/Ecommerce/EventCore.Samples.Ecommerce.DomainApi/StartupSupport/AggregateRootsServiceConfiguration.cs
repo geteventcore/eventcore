@@ -1,7 +1,7 @@
 ﻿using EventCore.AggregateRoots;
-using EventCore.AggregateRoots.SerializableState;
 using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.Domain;
+using EventCore.Samples.Ecommerce.Domain.State;
 using EventCore.Samples.Ecommerce.DomainApi.Options;
 using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;

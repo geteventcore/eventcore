@@ -1,4 +1,5 @@
-﻿using EventCore.EventSourcing;
+﻿using EventCore.AggregateRoots;
+using EventCore.EventSourcing;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace EventCore.AggregateRoots.SerializableState
+namespace EventCore.Samples.Ecommerce.Domain.State
 {
 	public abstract class SerializableAggregateRootState<TInternalState> : AggregateRootState, ISerializableAggregateRootState
 	{

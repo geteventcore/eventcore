@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace EventCore.AggregateRoots.SerializableState
+namespace EventCore.Samples.Ecommerce.Domain.State
 {
 	public class SerializableData<TInternalState>
 	{

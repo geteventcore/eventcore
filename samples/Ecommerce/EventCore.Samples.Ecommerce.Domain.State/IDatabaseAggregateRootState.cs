@@ -1,7 +1,8 @@
-﻿using System.Threading;
+﻿using EventCore.AggregateRoots;
+using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.AggregateRoots.DatabaseState
+namespace EventCore.Samples.Ecommerce.Domain.State
 {
 	public interface IDatabaseAggregateRootState : IAggregateRootState
 	{

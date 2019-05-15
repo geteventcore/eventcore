@@ -1,6 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using EventCore.AggregateRoots;
+using System.Threading.Tasks;
 
-namespace EventCore.AggregateRoots.SerializableState
+namespace EventCore.Samples.Ecommerce.Domain.State
 {
 	public interface ISerializableAggregateRootState : IAggregateRootState
 	{

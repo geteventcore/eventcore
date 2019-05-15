@@ -9,12 +9,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\src\EventCore.AggregateRoots.DatabaseState\EventCore.AggregateRoots.DatabaseState.csproj" />
-		<ProjectReference Include="..\..\..\src\EventCore.AggregateRoots.SerializableState\EventCore.AggregateRoots.SerializableState.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.AggregateRoots\EventCore.AggregateRoots.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.Events\EventCore.Samples.Ecommerce.Domain.Events.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.State\EventCore.Samples.Ecommerce.Domain.State.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -1,5 +1,5 @@
-﻿using EventCore.AggregateRoots.DatabaseState;
-using EventCore.EventSourcing;
+﻿using EventCore.EventSourcing;
+using EventCore.Samples.Ecommerce.Domain.State;
 
 namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 {
