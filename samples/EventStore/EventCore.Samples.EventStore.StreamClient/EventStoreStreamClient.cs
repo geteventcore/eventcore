@@ -212,7 +212,6 @@ namespace EventCore.Samples.EventStore.StreamClient
 
 			private void Subscribe()
 			{
-				Console.WriteLine("Starting subscribe from: " + _lastEventPosition);
 				_sub = _connection.SubscribeToStreamFrom(_streamId, _lastEventPosition, _settings, _eventAppeared, null, SubscriptionDropped, null);
 			}
 

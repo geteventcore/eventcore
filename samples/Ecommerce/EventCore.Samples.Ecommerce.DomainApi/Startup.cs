@@ -35,7 +35,7 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-		public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceScopeFactory scopeFactory)
+		public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceScopeFactory scopeFactory, IServiceProvider serviceProvider)
 		{
 			if (env.IsDevelopment())
 			{
@@ -63,8 +63,11 @@ namespace EventCore.Samples.Ecommerce.DomainApi
 				c.DocumentTitle = "Ecommerce Sample API Docs";
 				// c.RoutePrefix = "_openapi";
 				c.RoutePrefix = string.Empty;
-				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "Ecommerce Sample- Domain API v1");
+				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "Ecommerce Sample - Domain API v1");
 			});
+
+			// Force event store connections to start.
+			serviceProvider.GetRequiredService<EventSourcing.IStreamClientFactory>();
 		}
 	}
 }

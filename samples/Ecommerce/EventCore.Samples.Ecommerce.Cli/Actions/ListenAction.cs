@@ -44,11 +44,11 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 						{
 							if (se.IsLink)
 							{
-								Console.WriteLine($"Event: {se.EventType} ({se.Link.Position}) in {se.Link.StreamId}");
+								Console.WriteLine($"{se.EventType} ({se.Link.Position}) in {se.Link.StreamId}");
 							}
 							else
 							{
-								Console.WriteLine($"Event: {se.EventType} ({se.Position}) in {se.StreamId}");
+								Console.WriteLine($"{se.EventType} ({se.Position}) in {se.StreamId}");
 							}
 
 							if (_options.Verbose)
