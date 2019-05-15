@@ -7,7 +7,7 @@ namespace EventCore.Samples.Ecommerce.Domain.Events
 	{
 		public readonly Guid EmailId;
 
-		public EmailBuiltEvent(BusinessEventMetadata metadata, Guid emailId) : base(metadata)
+		public EmailBuiltEvent(BusinessEventMetadata _metadata, Guid emailId) : base(_metadata)
 		{
 			EmailId = emailId;
 		}

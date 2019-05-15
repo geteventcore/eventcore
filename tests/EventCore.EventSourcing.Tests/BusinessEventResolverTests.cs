@@ -9,14 +9,21 @@ namespace EventCore.EventSourcing.Tests
 {
 	public class BusinessEventResolverTests
 	{
-		private class TestBusinessEvent1 : IBusinessEvent { }
-		private class TestBusinessEvent2 : IBusinessEvent { }
+		private class TestBusinessEvent1 : BusinessEvent
+		{
+			public TestBusinessEvent1() : base(BusinessEventMetadata.Empty) { }
+		}
 
-		private class ErrorBusinessEvent : IBusinessEvent
+		private class TestBusinessEvent2 : BusinessEvent
+		{
+			public TestBusinessEvent2() : base(BusinessEventMetadata.Empty) { }
+		}
+
+		private class ErrorBusinessEvent : BusinessEvent
 		{
 			private string _fieldWithError;
 			public string FieldWithError { get => throw new InvalidOperationException("Test"); set { _fieldWithError = value; } }
-			public ErrorBusinessEvent(string fieldWithError) => _fieldWithError = fieldWithError;
+			public ErrorBusinessEvent(string fieldWithError) : base(BusinessEventMetadata.Empty) => _fieldWithError = fieldWithError;
 		}
 
 		private class NotABusinessEvent { }

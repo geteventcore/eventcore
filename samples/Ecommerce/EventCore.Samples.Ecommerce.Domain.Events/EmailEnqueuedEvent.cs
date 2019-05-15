@@ -12,7 +12,7 @@ namespace EventCore.Samples.Ecommerce.Domain.Events
 		public readonly string Body;
 		public readonly bool IsHtml;
 
-		public EmailEnqueuedEvent(BusinessEventMetadata metadata, Guid emailId, string fromAddress, string toAddress, string subject, string body, bool isHtml) : base(metadata)
+		public EmailEnqueuedEvent(BusinessEventMetadata _metadata, Guid emailId, string fromAddress, string toAddress, string subject, string body, bool isHtml) : base(_metadata)
 		{
 			EmailId = emailId;
 			FromAddress = fromAddress;

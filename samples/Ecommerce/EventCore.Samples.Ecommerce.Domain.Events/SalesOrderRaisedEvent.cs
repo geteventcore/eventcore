@@ -10,7 +10,7 @@ namespace EventCore.Samples.Ecommerce.Domain.Events
 		public readonly string CustomerEmail;
 		public readonly decimal TotalPrice;
 
-		public SalesOrderRaisedEvent(BusinessEventMetadata metadata, string salesOrderId, string customerName, string customerEmail, decimal totalPrice) : base(metadata)
+		public SalesOrderRaisedEvent(BusinessEventMetadata _metadata, string salesOrderId, string customerName, string customerEmail, decimal totalPrice) : base(_metadata)
 		{
 			SalesOrderId = salesOrderId;
 			CustomerName = customerName;
