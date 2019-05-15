@@ -1,1 +1,0 @@
-Command line tool to watch events live from the event store.
