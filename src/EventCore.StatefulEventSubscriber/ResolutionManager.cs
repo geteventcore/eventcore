@@ -35,9 +35,19 @@ namespace EventCore.StatefulEventSubscriber
 					var streamEvent = _resolutionQueue.TryDequeue();
 					if (streamEvent != null)
 					{
-						var businessEvent = _resolver.Resolve(streamEvent.EventType, streamEvent.Data);
+						IBusinessEvent businessEvent = null;
 
-						// Stream events may (will for subscription streams) have links to original events.
+						try
+						{
+							businessEvent = _resolver.Resolve(streamEvent.EventType, streamEvent.Data);
+						}
+						catch (Exception ex)
+						{
+							_logger.LogError(ex, "Exception while resolving business event. Subscription event will be created with null business event.");
+						}
+
+
+						// Stream events may (and will for subscription streams) have links to original events.
 						// We want the original event as the core event and the subscription event info as secondary.
 						// However, if the event is not a link then we take the event info as both subscription info and original event.
 						var streamId = streamEvent.StreamId;
