@@ -32,7 +32,7 @@ namespace EventCore.StatefulEventSubscriber
 					if (subscriberEvent != null)
 					{
 						// Expecting a case INsensitive key used to group executions.
-						var parallelKey = _sorter.SortToParallelKey(subscriberEvent);
+						var parallelKey = _sorter.SortSubscriberEventToParallelKey(subscriberEvent);
 
 						if (string.IsNullOrEmpty(parallelKey))
 							throw new ArgumentException("Parallel key can't be null or empty.");

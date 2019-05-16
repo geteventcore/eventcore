@@ -2,6 +2,6 @@
 {
 	public interface ISubscriberEventSorter
 	{
-		string SortToParallelKey(SubscriberEvent subscriberEvent);
+		string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent);
 	}
 }

@@ -5,6 +5,6 @@ namespace EventCore.StatefulEventSubscriber
 {
 	public interface ISubscriberEventHandler
 	{
-		Task HandleAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken);
+		Task HandleSubscriberEvent(SubscriberEvent subscriberEvent, CancellationToken cancellationToken);
 	}
 }
