@@ -26,8 +26,9 @@ namespace EventCore.AggregateRoots
 			{
 				var resolvedEvent = _eventResolver.Resolve(streamEvent.EventType, streamEvent.Data);
 
-				// Expecting that agg root stream does not have link events.
-				await ApplyGenericBusinessEventAsync(streamEvent.StreamId, streamEvent.Position, resolvedEvent, cancellationToken);
+				// Expecting that agg root stream does not have link events since the aggregate root
+				// is the original source of events that define the state of the domain.
+				await InvokeTypedBusinessEventHandlerAsync(streamEvent.StreamId, streamEvent.Position, resolvedEvent, cancellationToken);
 
 				var causalId = resolvedEvent.GetCausalId();
 				if (!string.IsNullOrWhiteSpace(causalId))
@@ -40,7 +41,7 @@ namespace EventCore.AggregateRoots
 			StreamPositionCheckpoint = streamEvent.Position;
 		}
 
-		public virtual async Task ApplyGenericBusinessEventAsync(string streamId, long position, IBusinessEvent e, CancellationToken cancellationToken)
+		public virtual async Task InvokeTypedBusinessEventHandlerAsync(string streamId, long position, IBusinessEvent e, CancellationToken cancellationToken)
 		{
 			// Expects IApplyBusinessEvent<TEvent> for the type of event given.
 			await (Task)this.GetType().InvokeMember("ApplyBusinessEventAsync", BindingFlags.InvokeMethod, null, this, new object[] { streamId, position, e, cancellationToken });

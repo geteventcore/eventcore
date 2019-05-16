@@ -9,9 +9,15 @@ namespace EventCore.AggregateRoots.Tests
 {
 	public class AggregateRootStateBusinessEventResolverTests
 	{
-		private class TestBusinessEvent1 : IBusinessEvent { }
+		private class TestBusinessEvent1 : BusinessEvent
+		{
+			public TestBusinessEvent1() : base(BusinessEventMetadata.Empty) { }
+		}
 
-		private class TestBusinessEvent2 : IBusinessEvent { }
+		private class TestBusinessEvent2 : BusinessEvent
+		{
+			public TestBusinessEvent2() : base(BusinessEventMetadata.Empty) { }
+		}
 
 		private class TestState : IAggregateRootState,
 			IApplyBusinessEvent<TestBusinessEvent1>,
@@ -24,6 +30,8 @@ namespace EventCore.AggregateRoots.Tests
 
 			public Task ApplyBusinessEventAsync(string streamId, long position, TestBusinessEvent1 e, CancellationToken cancellationToken) => throw new NotImplementedException();
 			public Task ApplyBusinessEventAsync(string streamId, long position, TestBusinessEvent2 e, CancellationToken cancellationToken) => throw new NotImplementedException();
+
+			public Task ApplyStreamEventAsync(StreamEvent streamEvent, CancellationToken cancellationToken) => throw new NotImplementedException();
 		}
 
 		[Fact]

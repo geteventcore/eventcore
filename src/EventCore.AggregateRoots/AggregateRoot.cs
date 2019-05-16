@@ -33,7 +33,7 @@ namespace EventCore.AggregateRoots
 			_aggregateRootName = aggregateRootName;
 		}
 
-		protected virtual async Task<ICommandResult> InvokeTypedHandlerAsync(TState state, ICommand command, CancellationToken cancellationToken)
+		protected virtual async Task<ICommandResult> InvokeTypedCommandHandlerAsync(TState state, ICommand command, CancellationToken cancellationToken)
 		{
 			// Expects IHandleCommand<> for the type of command given.
 			return await (Task<ICommandResult>)this.GetType().InvokeMember("HandleCommandAsync", BindingFlags.InvokeMethod, null, this, new object[] { state, command, cancellationToken });
@@ -63,7 +63,7 @@ namespace EventCore.AggregateRoots
 					return CommandResult.FromError("Duplicate command id.");
 				}
 
-				var handlerResult = await InvokeTypedHandlerAsync(state, command, cancellationToken);
+				var handlerResult = await InvokeTypedCommandHandlerAsync(state, command, cancellationToken);
 
 				if (!handlerResult.IsSuccess)
 				{
