@@ -24,11 +24,7 @@ namespace EventCore.Projectors
 
 		public async Task RunAsync(CancellationToken cancellationToken)
 		{
-			_logger.LogInformation("Starting projector: " + this.GetType().Name);
-
 			await _subscriber.SubscribeAsync(cancellationToken);
-
-			_logger.LogInformation("Stopping projector: " + this.GetType().Name);
 		}
 
 		public virtual string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
