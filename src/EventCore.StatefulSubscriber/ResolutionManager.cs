@@ -39,7 +39,12 @@ namespace EventCore.StatefulSubscriber
 
 						try
 						{
-							businessEvent = _resolver.Resolve(streamEvent.EventType, streamEvent.Data);
+							// If unable to resolve event type then subscriber event will still be created but it
+							// will be unresolved.
+							if (_resolver.CanResolve(streamEvent.EventType))
+							{
+								businessEvent = _resolver.Resolve(streamEvent.EventType, streamEvent.Data);
+							}
 						}
 						catch (Exception ex)
 						{
@@ -59,7 +64,7 @@ namespace EventCore.StatefulSubscriber
 							streamId = streamEvent.Link.StreamId;
 							position = streamEvent.Link.Position;
 						}
-						var subscriberEvent = new SubscriberEvent(streamId, position, subscriptionStreamId, subscriptionPosition, businessEvent);
+						var subscriberEvent = new SubscriberEvent(streamId, position, subscriptionStreamId, subscriptionPosition, streamEvent.EventType, businessEvent);
 
 						// Send to the sorting manager.
 						await _sortingManager.ReceiveSubscriberEventAsync(subscriberEvent, cancellationToken);
@@ -93,8 +98,6 @@ namespace EventCore.StatefulSubscriber
 				if (streamState.HasError) return ResolutionEligibility.UnableStreamHasError;
 
 				if (streamEvent.Position <= streamState.LastAttemptedPosition) return ResolutionEligibility.SkippedAlreadyProcessed;
-
-				if (!_resolver.CanResolve(streamEvent.EventType)) return ResolutionEligibility.UnableToResolveEventType;
 
 				expectedPosition = streamState.LastAttemptedPosition + 1;
 			}

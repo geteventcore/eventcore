@@ -17,7 +17,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
 			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 
 			await queue.EnqueueWithWaitAsync(subscriberEvent, cts.Token);
 			var dequeuedSubscriberEvent = queue.TryDequeue();
@@ -32,7 +32,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var maxQueueSize = 1;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
 			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 
 			queue.TryDequeue();
 
@@ -65,9 +65,9 @@ namespace EventCore.StatefulSubscriber.Tests
 			var maxQueueSize = 2;
 			var mockQueueAwaiter = new Mock<IQueueAwaiter>();
 			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
-			var subscriberEvent1 = new SubscriberEvent(null, 0, null);
-			var subscriberEvent2 = new SubscriberEvent(null, 0, null);
-			var subscriberEvent3 = new SubscriberEvent(null, 0, null);
+			var subscriberEvent1 = new SubscriberEvent(null, 0, null, null);
+			var subscriberEvent2 = new SubscriberEvent(null, 0, null, null);
+			var subscriberEvent3 = new SubscriberEvent(null, 0, null, null);
 			var enqueueuSignalSetCount = 0;
 			var awaitingDequeueSignal = new ManualResetEventSlim(true);
 			var mockDequeueSignal = new ManualResetEventSlim(false);

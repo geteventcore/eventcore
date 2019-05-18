@@ -92,7 +92,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var cts = new CancellationTokenSource(10000);
 			var mockQueue = new Mock<IHandlingQueue>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = "x";
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
@@ -114,7 +114,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var cts = new CancellationTokenSource(10000);
 			var mockQueue = new Mock<IHandlingQueue>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null, null);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = "x";
 
 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(It.IsAny<string>(), It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
@@ -175,7 +175,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockHandlerRunner = new Mock<IHandlingManagerHandlerRunner>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
 			var businessEvent = new TestBusinessEvent();
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = "x";
 			var queueItem = new HandlingQueueItem(parallelKey, subscriberEvent);
 			var streamState = new StreamState(0, false); // Does NOT have error.
@@ -216,7 +216,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var mockHandlerRunner = new Mock<IHandlingManagerHandlerRunner>();
 			var manager = new HandlingManager(NullStandardLogger.Instance, mockAwaiter.Object, mockStreamStateRepo.Object, mockQueue.Object, mockHandlerRunner.Object, mockTaskCollection.Object);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = "x";
 			var queueItem = new HandlingQueueItem(parallelKey, subscriberEvent);
 			var streamState = new StreamState(0, true); // Has error.

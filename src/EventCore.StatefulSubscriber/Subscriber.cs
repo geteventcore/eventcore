@@ -12,11 +12,11 @@ namespace EventCore.StatefulSubscriber
 	{
 		// General flow of execution...
 		// 1. Stream events received from stream client listening on multiple regions.
-		// 2. Stream events rejected if event type is not resolvable.
-		// 3. Stream events enqueued for deserialization/resolution.
-		// 4. Stream event deserialization attempted resulting in stateful subscriber event.
-		// 5. Subscriber event enqueued for sorting into parallel handler executions.
-		// 6. Handlers called in parallel by pulling events in order off of handling queues grouped by parallel key.
+		// 2. Stream events enqueued for deserialization/resolution.
+		// 3. Deserialization attempted resulting in subscriber events.
+		// 4. Subscriber events enqueued for sorting into parallel handler executions.
+		// 5. Subscriber events sorted into handling queues grouped by parallel key.
+		// 6. Handlers called in parallel by pulling events in order (per queue) off of handling queues.
 		//
 		// Handling queues are identified by parallel keys, where each parallel queue has guaranteed
 		// in-order events per stream. Multiple streams may be interleaved into one parallel queue,

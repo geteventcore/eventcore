@@ -9,8 +9,8 @@ namespace EventCore.StatefulSubscriber.Tests
 		public void construct()
 		{
 			var parallelKey = "pk";
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
-			
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
+
 			var item = new HandlingQueueItem(parallelKey, subscriberEvent);
 
 			Assert.Equal(parallelKey, item.ParallelKey);

@@ -58,7 +58,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockQueue = new Mock<ISortingQueue>();
 			var mockSorter = new Mock<ISubscriberEventSorter>();
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, null);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = ""; // Must be empty (or null).
 
 			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
@@ -75,7 +75,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockSorter = new Mock<ISubscriberEventSorter>();
 			var mockHandlingManager = new Mock<IHandlingManager>();
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, mockHandlingManager.Object);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = "x";
 
 			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
@@ -98,7 +98,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockSorter = new Mock<ISubscriberEventSorter>();
 			var mockHandlingManager = new Mock<IHandlingManager>();
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, mockSorter.Object, mockHandlingManager.Object);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = "x";
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
@@ -121,7 +121,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var cts = new CancellationTokenSource(10000);
 			var mockQueue = new Mock<ISortingQueue>();
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, null, null);
-			var subscriberEvent = new SubscriberEvent(null, 0, null);
+			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 
 			mockQueue.Setup(x => x.EnqueueWithWaitAsync(It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
 

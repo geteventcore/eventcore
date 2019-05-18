@@ -65,6 +65,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var streamEvent = new StreamEvent(streamId, position, null, eventType, data);
 			var mockBusinessEvent = new Mock<IBusinessEvent>();
 
+			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(true);
 			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(mockBusinessEvent.Object);
 			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
 			mockSortingManager
@@ -101,6 +102,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var streamEvent = new StreamEvent(subStreamId, subPosition, new StreamEventLink(streamId, position), eventType, data);
 			var mockBusinessEvent = new Mock<IBusinessEvent>();
 
+			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(true);
 			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(mockBusinessEvent.Object);
 			mockQueue.Setup(x => x.TryDequeue()).Returns(streamEvent);
 			mockSortingManager
@@ -114,6 +116,7 @@ namespace EventCore.StatefulSubscriber.Tests
 				It.Is<SubscriberEvent>(e =>
 					e.StreamId == streamId && e.Position == position
 					&& e.SubscriptionStreamId == subStreamId && e.SubscriptionPosition == subPosition
+					&& e.EventType == eventType
 					&& e.ResolvedEvent == mockBusinessEvent.Object
 					),
 					cts.Token
@@ -277,28 +280,6 @@ namespace EventCore.StatefulSubscriber.Tests
 			var eligibility = await manager.IsStreamEventEligibleForResolution(streamEvent, firstPositionInStream);
 
 			Assert.Equal(ResolutionEligibility.UnableStreamHasError, eligibility);
-		}
-
-		[Fact]
-		public async Task stream_ineligible_for_resolution_unable_to_resolve_event_type()
-		{
-			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
-			var mockResolver = new Mock<IBusinessEventResolver>();
-			var streamId = "s";
-			var newPosition = 1;
-			var eventType = "x";
-			var lastAttemptedPosition = 0;
-			var firstPositionInStream = 0;
-			var streamState = new StreamState(lastAttemptedPosition, false);
-			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, mockStreamStateRepo.Object, null, null);
-			var streamEvent = new StreamEvent(streamId, newPosition, null, eventType, new byte[] { });
-
-			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(streamId)).ReturnsAsync(streamState);
-			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(false);
-
-			var eligibility = await manager.IsStreamEventEligibleForResolution(streamEvent, firstPositionInStream);
-
-			Assert.Equal(ResolutionEligibility.UnableToResolveEventType, eligibility);
 		}
 
 		[Fact]
