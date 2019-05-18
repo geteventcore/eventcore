@@ -26,7 +26,7 @@ namespace EventCore.StatefulSubscriber
 			{
 				try
 				{
-					await _handler.HandleSubscriberEvent(subscriberEvent, cancellationToken);
+					await _handler.HandleSubscriberEventAsync(subscriberEvent, cancellationToken);
 					await _streamStateRepo.SaveStreamStateAsync(subscriberEvent.StreamId, subscriberEvent.Position, false);
 				}
 				catch (Exception ex)

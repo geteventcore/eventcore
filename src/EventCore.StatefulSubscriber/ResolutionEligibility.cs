@@ -2,6 +2,6 @@
 {
 	public enum ResolutionEligibility
 	{
-		Eligible, UnableStreamHasError,UnableToResolveEventType, SkippedAlreadyProcessed
+		Eligible, UnableStreamHasError, UnableToResolveEventType, SkippedAlreadyProcessed
 	}
 }

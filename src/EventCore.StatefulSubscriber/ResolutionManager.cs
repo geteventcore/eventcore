@@ -90,9 +90,9 @@ namespace EventCore.StatefulSubscriber
 			long expectedPosition = firstPositionInStream;
 			if (streamState != null)
 			{
-				if (streamState.HasError) return ResolutionEligibility.UnableStreamHasError; // Ignore events from errored streams.
+				if (streamState.HasError) return ResolutionEligibility.UnableStreamHasError;
 
-				if (streamEvent.Position <= streamState.LastAttemptedPosition) return ResolutionEligibility.SkippedAlreadyProcessed; // Skip events already processed.
+				if (streamEvent.Position <= streamState.LastAttemptedPosition) return ResolutionEligibility.SkippedAlreadyProcessed;
 
 				if (!_resolver.CanResolve(streamEvent.EventType)) return ResolutionEligibility.UnableToResolveEventType;
 
