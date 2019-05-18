@@ -6,7 +6,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
-		<ProjectReference Include="..\EventCore.StatefulEventSubscriber\EventCore.StatefulEventSubscriber.csproj" />
+		<ProjectReference Include="..\EventCore.StatefulSubscriber\EventCore.StatefulSubscriber.csproj" />
     <ProjectReference Include="..\EventCore.Utilities\EventCore.Utilities.csproj" />
   </ItemGroup>
 

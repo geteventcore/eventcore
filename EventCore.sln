@@ -15,9 +15,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.EventSourcing.Tes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.DemoCli", "samples\cli\EventCore.Samples.DemoCli\EventCore.Samples.DemoCli.csproj", "{21530563-A6ED-4691-A5BF-B6D186128088}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.StatefulEventSubscriber", "src\EventCore.StatefulEventSubscriber\EventCore.StatefulEventSubscriber.csproj", "{A5F2ECB9-E623-4D51-ACB4-2B4AD44121C7}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.StatefulSubscriber", "src\EventCore.StatefulSubscriber\EventCore.StatefulSubscriber.csproj", "{A5F2ECB9-E623-4D51-ACB4-2B4AD44121C7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.StatefulEventSubscriber.Tests", "tests\EventCore.StatefulEventSubscriber.Tests\EventCore.StatefulEventSubscriber.Tests.csproj", "{7AB858BF-FD19-4E5A-A190-16B676C51B8B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.StatefulSubscriber.Tests", "tests\EventCore.StatefulSubscriber.Tests\EventCore.StatefulSubscriber.Tests.csproj", "{7AB858BF-FD19-4E5A-A190-16B676C51B8B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.AggregateRoots", "src\EventCore.AggregateRoots\EventCore.AggregateRoots.csproj", "{CA852FA0-7A6C-4380-8C1E-E0B928E2349D}"
 EndProject
