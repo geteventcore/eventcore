@@ -25,11 +25,11 @@ namespace EventCore.StatefulSubscriber.Tests
 			var basePath = Directory.GetCurrentDirectory();
 			var repo = new StreamStateRepo(NullStandardLogger.Instance, basePath);
 			var streamId = "s1";
-			var expectedPath = Path.Combine(basePath, StreamStateRepo.STREAM_PATH_PREFIX, streamId.ToLower());
+			var expectedPath = Path.Combine(basePath, StreamStateRepo.STREAM_PATH_PREFIX, streamId);
 
 			var actualPath = repo.BuildStreamStateFilePath(streamId);
 
-			Assert.Equal(expectedPath, actualPath);
+			Assert.Equal(expectedPath, actualPath, false);
 		}
 
 		[Fact]

@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 namespace EventCore.EventSourcing
 {
 	public class StreamIdBuilder : IStreamIdBuilder
-	{	
+	{
 		public const string SEPARATOR = "-";
 
 		public string Build(string regionId, string context, string entityName, string entityId)
@@ -34,7 +34,10 @@ namespace EventCore.EventSourcing
 				composite.Add(entityId);
 			}
 
-			return string.Join(SEPARATOR, composite);
+			return TreatStreamId(string.Join(SEPARATOR, composite));
 		}
+
+		// Upper case all stream ids, event store implementations are not guaranteed to be case insensitive.
+		public virtual string TreatStreamId(string untreatedStreamId) => untreatedStreamId.ToUpper();
 	}
 }

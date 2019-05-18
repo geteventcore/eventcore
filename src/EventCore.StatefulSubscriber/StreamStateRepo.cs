@@ -34,13 +34,11 @@ namespace EventCore.StatefulSubscriber
 			_simulateErrorInRetryLoops = simulateErrorsInRetryLoops;
 		}
 
-		// NOTE: Stream ids are lower-cased to be case INsensitive, expecting ascii characters only
-		// since stream ids are controlled internally by development team, not subject to external input.
-		// Also, stream state files are prefixed by a subdirectory to ensure that when we reset state
+		// Stream state files are prefixed by a subdirectory to ensure that when we reset state
 		// we don't just delete the whole base path directory, but instead delete well-defined paths. This
 		// to guard against accidentally deleting an important directory if the setting provided is a root path
 		// or some other important directory.
-		public string BuildStreamStateFilePath(string streamId) => Path.Combine(_basePath, STREAM_PATH_PREFIX, streamId.ToLower());
+		public string BuildStreamStateFilePath(string streamId) => Path.Combine(_basePath, STREAM_PATH_PREFIX, streamId);
 		public string BuildStreamStateDirectoryPath() => Path.Combine(_basePath, STREAM_PATH_PREFIX + Path.DirectorySeparatorChar);
 
 		public async Task<StreamState> LoadStreamStateAsync(string streamId)
