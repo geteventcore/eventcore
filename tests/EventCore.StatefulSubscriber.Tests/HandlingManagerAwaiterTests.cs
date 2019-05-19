@@ -16,7 +16,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var awaiter = new HandlingManagerAwaiter(maxParallelHandlerExecutions);
 
 			Assert.Equal(maxParallelHandlerExecutions, awaiter.ThrottleCurrentCount);
-			Assert.False(awaiter.IsHandlerCompleitionSignalSet);
+			Assert.False(awaiter.IsHandlerCompletionSignalSet);
 		}
 
 		[Fact]
@@ -26,7 +26,7 @@ namespace EventCore.StatefulSubscriber.Tests
 
 			awaiter.SetHandlerCompletionSignal();
 
-			Assert.True(awaiter.IsHandlerCompleitionSignalSet);
+			Assert.True(awaiter.IsHandlerCompletionSignalSet);
 		}
 
 		[Fact]
@@ -35,10 +35,10 @@ namespace EventCore.StatefulSubscriber.Tests
 			var awaiter = new HandlingManagerAwaiter(1);
 
 			awaiter.SetHandlerCompletionSignal();
-			Assert.True(awaiter.IsHandlerCompleitionSignalSet);
+			Assert.True(awaiter.IsHandlerCompletionSignalSet);
 
 			awaiter.ResetHandlerCompletionSignal();
-			Assert.False(awaiter.IsHandlerCompleitionSignalSet);
+			Assert.False(awaiter.IsHandlerCompletionSignalSet);
 		}
 
 		[Fact]

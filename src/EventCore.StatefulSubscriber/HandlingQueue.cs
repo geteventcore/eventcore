@@ -14,7 +14,7 @@ namespace EventCore.StatefulSubscriber
 		// and only one process will dequeue, with both enqueue/dequeue occuring simultaneously.
 
 		private readonly IQueueAwaiter _awaiter;
-		private readonly int _maxSharedQueueSize;
+		private readonly int _maxQueuesSharedSize;
 
 		private readonly ConcurrentDictionary<string, ConcurrentQueue<SubscriberEvent>> _queues =
 			new ConcurrentDictionary<string, ConcurrentQueue<SubscriberEvent>>(StringComparer.OrdinalIgnoreCase);
@@ -24,10 +24,10 @@ namespace EventCore.StatefulSubscriber
 		// Need these for testing.
 		public int QueueCount { get => _queues.Sum(kvp => kvp.Value.Count); }
 
-		public HandlingQueue(IQueueAwaiter awaiter, int maxSharedQueueSize)
+		public HandlingQueue(IQueueAwaiter awaiter, int maxQueuesSharedSize)
 		{
 			_awaiter = awaiter;
-			_maxSharedQueueSize = maxSharedQueueSize;
+			_maxQueuesSharedSize = maxQueuesSharedSize;
 		}
 
 		public async Task EnqueueWithWaitAsync(string parallelKey, SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
@@ -42,7 +42,7 @@ namespace EventCore.StatefulSubscriber
 				}
 
 				// Is there room for at least one more among the total of all queue counts?
-				if (_queues.Sum(x => x.Value.Count) < _maxSharedQueueSize)
+				if (_queues.Sum(x => x.Value.Count) < _maxQueuesSharedSize)
 				{
 					ConcurrentQueue<SubscriberEvent> queue;
 					if (!_queues.TryGetValue(parallelKey, out queue))

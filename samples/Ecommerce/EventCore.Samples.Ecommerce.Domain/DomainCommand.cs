@@ -1,4 +1,5 @@
 ﻿using EventCore.AggregateRoots;
+using EventCore.Samples.Ecommerce.Shared;
 using System;
 
 namespace EventCore.Samples.Ecommerce.Domain

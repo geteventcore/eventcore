@@ -1,4 +1,4 @@
-﻿namespace EventCore.Samples.Ecommerce.Domain
+﻿namespace EventCore.Samples.Ecommerce.Shared
 {
 	public static class Constants
 	{

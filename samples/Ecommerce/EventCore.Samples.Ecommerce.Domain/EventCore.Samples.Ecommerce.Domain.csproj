@@ -14,6 +14,7 @@
 		<ProjectReference Include="..\..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.Events\EventCore.Samples.Ecommerce.Domain.Events.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.State\EventCore.Samples.Ecommerce.Domain.State.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Shared\EventCore.Samples.Ecommerce.Shared.csproj" />
 	</ItemGroup>
 
 </Project>

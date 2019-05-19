@@ -1,6 +1,8 @@
-﻿using EventCore.StatefulSubscriber;
+﻿using EventCore.EventSourcing;
+using EventCore.StatefulSubscriber;
 using EventCore.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,10 +18,10 @@ namespace EventCore.Projectors
 		private readonly IStandardLogger _logger;
 		private readonly ISubscriber _subscriber;
 
-		public Projector(IStandardLogger logger, ISubscriber subscriber)
+		public Projector(IStandardLogger logger, ISubscriberFactory subscriberFactory, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver resolver, SubscriberFactoryOptions factoryOptions, IList<SubscriptionStreamId> subscriptionStreamIds)
 		{
 			_logger = logger;
-			_subscriber = subscriber;
+			_subscriber = subscriberFactory.Create(logger, streamClientFactory, streamStateRepo, resolver, this, this, factoryOptions, subscriptionStreamIds);
 		}
 
 		public async Task RunAsync(CancellationToken cancellationToken)

@@ -1,7 +1,4 @@
 ﻿using EventCore.Projectors;
-using EventCore.Utilities;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,27 +10,25 @@ namespace EventCore.Samples.Ecommerce.ProjectorsHost
 	public class ProjectorHostedService<TProjector> : BackgroundService where TProjector : IProjector
 	{
 		private readonly ILogger _logger;
+		private readonly TProjector _projector;
 
-		public ProjectorHostedService(ILogger logger)
+		public ProjectorHostedService(ILogger<ProjectorHostedService<TProjector>> logger, TProjector projector)
 		{
 			_logger = logger;
+			_projector = projector;
 		}
-
 
 		protected async override Task ExecuteAsync(CancellationToken cancellationToken)
 		{
 			_logger.LogInformation("Projector hosted service starting: " + typeof(TProjector).Name);
 
-			while (!cancellationToken.IsCancellationRequested)
+			try
 			{
-				try
-				{
-					await cancellationToken.WaitHandle.AsTask();
-				}
-				catch (Exception ex)
-				{
-					_logger.LogError(ex, "Exception in projector hosted service: " + typeof(TProjector).Name);
-				}
+				await _projector.RunAsync(cancellationToken);
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Exception in projector hosted service: " + typeof(TProjector).Name);
 			}
 
 			_logger.LogInformation("Projector hosted service stopping: " + typeof(TProjector).Name);

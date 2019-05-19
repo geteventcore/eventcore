@@ -19,7 +19,7 @@ namespace EventCore.StatefulSubscriber
 			_resolutionManager = resolutionManager;
 		}
 
-		// Thread safe, will be called in parallel by one caller for multiple regions.
+		// Thread safe, can be called in parallel by one caller to load events from multiple subscription sources.
 		public async Task ListenAsync(string regionId, string subscriptionStreamId, CancellationToken cancellationToken)
 		{
 			try
@@ -28,8 +28,6 @@ namespace EventCore.StatefulSubscriber
 				{
 					while (!cancellationToken.IsCancellationRequested)
 					{
-						// Subscription starts from first position in stream.
-						// Streams states will be read to skip previously processed events.
 						var listenerTask = streamClient.SubscribeToStreamAsync(
 							subscriptionStreamId, streamClient.FirstPositionInStream,
 							(se) => _resolutionManager.ReceiveStreamEventAsync(se, streamClient.FirstPositionInStream, cancellationToken),
@@ -41,7 +39,7 @@ namespace EventCore.StatefulSubscriber
 			}
 			catch (Exception ex)
 			{
-				_logger.LogError(ex, "Exception while listening on regional subscription.");
+				_logger.LogError(ex, $"Exception while listening on regional subscription ({regionId}) stream {subscriptionStreamId}.");
 				throw;
 			}
 		}

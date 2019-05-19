@@ -11,7 +11,7 @@ namespace EventCore.StatefulSubscriber
 
 		// For testing.
 		public int ThrottleCurrentCount { get => _throttle.CurrentCount; }
-		public bool IsHandlerCompleitionSignalSet { get => _handlerCompletionSignal.IsSet; }
+		public bool IsHandlerCompletionSignalSet { get => _handlerCompletionSignal.IsSet; }
 
 		public HandlingManagerAwaiter(int maxParallelHandlerExecutions)
 		{
