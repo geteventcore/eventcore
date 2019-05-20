@@ -1,5 +1,6 @@
 ﻿using EventCore.Projectors;
 using EventCore.Samples.Ecommerce.Domain.Events;
+using EventCore.Samples.Ecommerce.Projections.EmailQueue.EmailQueueDb;
 using EventCore.StatefulSubscriber;
 using System;
 using System.Threading;
@@ -9,6 +10,8 @@ namespace EventCore.Samples.Ecommerce.Projections.EmailQueue
 {
 	public partial class EmailQueueProjector : Projector
 	{
+		private readonly DbContextFactoryScope<EmailQueueDbContext> _dbFactory;
+
 		public EmailQueueProjector(ProjectorBaseDependencies dependencies) : base(dependencies.Logger, dependencies.SubscriberFactory, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds)
 		{
 			

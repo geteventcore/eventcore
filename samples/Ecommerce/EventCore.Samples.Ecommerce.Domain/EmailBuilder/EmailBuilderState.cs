@@ -19,7 +19,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 		}
 
 		protected override Task AddCausalIdToHistoryAsync(string causalId) => _db.AddCausalIdToHistoryIfNotExistsAsync(causalId);
-		public override Task<bool> IsCausalIdInHistoryAsync(string causalId) => _db.ExistsCausalIdInHistoryAsync(causalId);
+		public override Task<bool> IsCausalIdInHistoryAsync(string causalId) => Task.FromResult(_db.ExistsCausalIdInHistory(causalId));
 		public Task SaveChangesAsync(CancellationToken cancellationToken) => _db.SaveChangesAsync();
 	}
 }

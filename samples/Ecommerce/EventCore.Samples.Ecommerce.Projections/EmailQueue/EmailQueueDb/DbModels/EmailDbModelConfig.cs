@@ -1,9 +1,8 @@
-﻿using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.DbModels;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 
-namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.Config
+namespace EventCore.Samples.Ecommerce.Projections.EmailQueue.EmailQueueDb.DbModels
 {
 	public class EmailDbModelConfig : IEntityTypeConfiguration<EmailDbModel>
 	{

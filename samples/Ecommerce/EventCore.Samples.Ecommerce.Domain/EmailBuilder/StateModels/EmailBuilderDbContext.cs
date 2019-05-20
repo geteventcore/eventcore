@@ -1,5 +1,4 @@
-﻿using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.Config;
-using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.DbModels;
+﻿using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.DbModels;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -24,17 +23,17 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels
 
 		public async Task AddCausalIdToHistoryIfNotExistsAsync(string causalId)
 		{
-			if (await GetCausalIdHistoryOrDefaultAsync(this, causalId) == null)
+			if (GetCausalIdHistoryOrDefaultStatic(this, causalId) == null)
 			{
 				CausalIdHistory.Add(new CausalIdHistoryDbModel() { CausalId = causalId });
 				await SaveChangesAsync();
 			}
 		}
 
-		public async Task<bool> ExistsCausalIdInHistoryAsync(string causalId) => (await GetCausalIdHistoryOrDefaultAsync(this, causalId)) != null;
+		public bool ExistsCausalIdInHistory(string causalId) => GetCausalIdHistoryOrDefaultStatic(this, causalId) != null;
 
-		private static Func<EmailBuilderDbContext, string, Task<CausalIdHistoryDbModel>> GetCausalIdHistoryOrDefaultAsync =
-			EF.CompileAsyncQuery((EmailBuilderDbContext context, string causalId) =>
+		private static Func<EmailBuilderDbContext, string, CausalIdHistoryDbModel> GetCausalIdHistoryOrDefaultStatic =
+			EF.CompileQuery((EmailBuilderDbContext context, string causalId) =>
 				context.CausalIdHistory
 					.Where(x => x.CausalId == causalId) // No string transformation (i.e. ToUpper) assuming db is case insensitive by default.
 					.FirstOrDefault());

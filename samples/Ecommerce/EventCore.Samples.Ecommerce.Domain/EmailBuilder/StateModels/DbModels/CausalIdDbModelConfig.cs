@@ -1,8 +1,7 @@
-﻿using EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.DbModels;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.Config
+namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.StateModels.DbModels
 {
 	public class CausalIdDbModelConfig : IEntityTypeConfiguration<CausalIdHistoryDbModel>
 	{
