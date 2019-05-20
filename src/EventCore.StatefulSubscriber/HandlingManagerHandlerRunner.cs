@@ -31,7 +31,7 @@ namespace EventCore.StatefulSubscriber
 				}
 				catch (Exception ex)
 				{
-					_logger.LogError(ex, "Exception while handling event. Stream will be halted.");
+					_logger.LogError(ex, "Exception while handling event. Stream will be halted until stream state errors are cleared.");
 
 					// Save errored stream state.
 					await _streamStateRepo.SaveStreamStateAsync(subscriberEvent.StreamId, subscriberEvent.Position, true);

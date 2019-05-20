@@ -12,9 +12,9 @@ namespace EventCore.Samples.Ecommerce.Projections.EmailQueue
 	{
 		private readonly IDbContextScopeFactory<EmailQueueDbContext> _dbScopeFactory;
 
-		public EmailQueueProjector(ProjectorBaseDependencies dependencies) : base(dependencies.Logger, dependencies.SubscriberFactory, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds)
+		public EmailQueueProjector(ProjectorBaseDependencies dependencies, IDbContextScopeFactory<EmailQueueDbContext> dbScopeFactory) : base(dependencies.Logger, dependencies.SubscriberFactory, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds)
 		{
-			
+			_dbScopeFactory = dbScopeFactory;
 		}
 
 		public override Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
@@ -32,7 +32,7 @@ namespace EventCore.Samples.Ecommerce.Projections.EmailQueue
 				}
 			}
 
-			return null;
+			return base.SortSubscriberEventToParallelKey(subscriberEvent);
 		}
 	}
 }

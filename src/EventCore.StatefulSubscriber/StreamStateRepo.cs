@@ -89,7 +89,7 @@ namespace EventCore.StatefulSubscriber
 				long lastAttemptedPosition;
 				bool hasError;
 
-				// FileShare.ReadWrite will allow other code to read but not write while we're reading the file.
+				// FileShare.Read will allow other code to read but not write while we're reading the file.
 				using (BinaryReader reader = new BinaryReader(File.Open(stateFilePath, FileMode.Open, FileAccess.Read, FileShare.Read)))
 				{
 					lastAttemptedPosition = reader.ReadInt64();

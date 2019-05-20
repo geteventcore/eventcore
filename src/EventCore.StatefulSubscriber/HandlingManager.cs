@@ -54,7 +54,7 @@ namespace EventCore.StatefulSubscriber
 							// is a bottleneck then we need some other way to receive feedback from the handlers when
 							// a stream is in an error state.
 							var state = await _streamStateRepo.LoadStreamStateAsync(item.SubscriberEvent.StreamId);
-							if (!state.HasError)
+							if (state == null || !state.HasError)
 							{
 								await Task.WhenAny(new[] { _awaiter.AwaitThrottleAsync(), cancellationToken.WaitHandle.AsTask() });
 

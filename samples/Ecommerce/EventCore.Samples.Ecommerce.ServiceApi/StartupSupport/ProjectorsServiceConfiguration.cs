@@ -6,6 +6,7 @@ using EventCore.Samples.Ecommerce.ServiceApi.Infrastructure;
 using EventCore.Samples.Ecommerce.ServiceApi.Settings;
 using EventCore.StatefulSubscriber;
 using EventCore.Utilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -19,12 +20,20 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 		public static void Configure(IConfiguration config, IServiceCollection services)
 		{
 			services.AddSingleton<ISubscriberFactory, SubscriberFactory>();
+			AddDbContextScopeFactory<Projections.EmailQueue.EmailQueueDb.EmailQueueDbContext>(services);
+			services.AddDbContext<Projections.EmailQueue.EmailQueueDb.EmailQueueDbContext>(o => o.UseSqlServer(ConnectionStrings.Get(config).ProjectionsDb));
 
 			services.AddSingleton<Projections.EmailQueue.EmailQueueProjector>(sp => (Projections.EmailQueue.EmailQueueProjector)BuildProjector<Projections.EmailQueue.EmailQueueProjector>(sp, config));
-			// services.AddHostedService<ProjectorHostedService<Projections.EmailQueue.EmailQueueProjector>>();
+			services.AddHostedService<ProjectorHostedService<Projections.EmailQueue.EmailQueueProjector>>();
 
-			services.AddSingleton<Projections.SalesReport.SalesReportProjector>(sp => (Projections.SalesReport.SalesReportProjector)BuildProjector<Projections.SalesReport.SalesReportProjector>(sp, config));
+			// services.AddSingleton<Projections.SalesReport.SalesReportProjector>(sp => (Projections.SalesReport.SalesReportProjector)BuildProjector<Projections.SalesReport.SalesReportProjector>(sp, config));
 			// services.AddHostedService<ProjectorHostedService<Projections.SalesReport.SalesReportProjector>>();
+		}
+
+		private static void AddDbContextScopeFactory<TContext>(IServiceCollection services)
+			where TContext : DbContext
+		{
+			services.AddSingleton<IDbContextScopeFactory<TContext>, ProjectorDbContextScopeFactory<TContext>>();
 		}
 
 		private static IProjector BuildProjector<TProjector>(IServiceProvider sp, IConfiguration config)
@@ -45,7 +54,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 			var baseDependencies = new ProjectorBaseDependencies(logger, subscriberFactory, streamClientFactory, streamStateRepo, resolver, subFactoryOptions, MapSubscriptionStreams(sharedSettings.SubscriptionStreams));
 
 			if (projectorType == typeof(Projections.EmailQueue.EmailQueueProjector))
-				return new Projections.EmailQueue.EmailQueueProjector(baseDependencies);
+				return new Projections.EmailQueue.EmailQueueProjector(baseDependencies, sp.GetRequiredService<IDbContextScopeFactory<Projections.EmailQueue.EmailQueueDb.EmailQueueDbContext>>());
 
 			if (projectorType == typeof(Projections.SalesReport.SalesReportProjector))
 				return new Projections.SalesReport.SalesReportProjector(baseDependencies);

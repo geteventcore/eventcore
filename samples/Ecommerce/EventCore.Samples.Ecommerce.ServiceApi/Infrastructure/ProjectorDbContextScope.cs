@@ -1,20 +1,19 @@
-﻿using EventCore.EventSourcing;
-using EventCore.Samples.Ecommerce.Projections;
-using EventCore.StatefulSubscriber;
-using EventCore.Utilities;
+﻿using EventCore.Samples.Ecommerce.Projections;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace EventCore.Samples.Ecommerce.ServiceApi.Infrastructure
 {
 	public class ProjectorDbContextScope<TContext> : IDbContextScope<TContext> where TContext : DbContext
 	{
-		public TContext Db {get; private set;}
-		
-		public ProjectorDbContextScope()
-		{
+		private readonly IServiceScope _serviceScope;
 
+		public TContext Db { get; private set; }
+
+		public ProjectorDbContextScope(IServiceScope serviceScope)
+		{
+			_serviceScope = serviceScope;
+			Db = _serviceScope.ServiceProvider.GetRequiredService<TContext>();
 		}
 
 		private bool disposedValue = false;
@@ -26,6 +25,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Infrastructure
 				if (disposing)
 				{
 					Db = null;
+					_serviceScope.Dispose();
 				}
 				disposedValue = true;
 			}

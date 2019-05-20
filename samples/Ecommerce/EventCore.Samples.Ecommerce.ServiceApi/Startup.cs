@@ -9,11 +9,11 @@ namespace EventCore.Samples.Ecommerce.ServiceApi
 {
 	public class Startup
 	{
-		public IConfiguration Configuration { get; }
+		private readonly IConfiguration _config;
 
-		public Startup(IConfiguration configuration)
+		public Startup(IConfiguration config)
 		{
-			Configuration = configuration;
+			_config = config;
 		}
 
 		// This method gets called by the runtime. Use this method to add services to the container.
@@ -32,7 +32,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi
 					});
 			});
 
-			StartupSupport.ServiceConfiguration.Configure(Configuration, services);
+			StartupSupport.ServiceConfiguration.Configure(_config, services);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
