@@ -29,8 +29,8 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 		private static IProjector BuildProjector<TProjector>(IServiceProvider sp, IConfiguration config)
 			where TProjector : IProjector
 		{
-			var sharedSettings = config.GetSection("Services:Projectors").Get<ProjectorsSharedSettings>();
-			var projectorSettings = config.GetSection($"Services:Projectors:{typeof(TProjector).Name}").Get<ProjectorSettings>();
+			var sharedSettings = ProjectorsSettings.Get(config);
+			var projectorSettings = ProjectorSettings.Get(config, typeof(TProjector).Name);
 			var subFactoryOptions = GetSubscriberFactoryOptions(sharedSettings);
 
 			var logger = sp.GetRequiredService<IStandardLogger<TProjector>>();
@@ -50,10 +50,10 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 			return null;
 		}
 
-		private static IList<SubscriptionStreamId> MapSubscriptionStreams(ProjectorsSharedSettings.SubscriptionStream[] streams) =>
+		private static IList<SubscriptionStreamId> MapSubscriptionStreams(SubscriptionStreamSettings[] streams) =>
 			streams.Select(x => new SubscriptionStreamId(x.RegionId, x.StreamId)).ToList();
 
-		private static SubscriberFactoryOptions GetSubscriberFactoryOptions(ProjectorsSharedSettings settings) =>
+		private static SubscriberFactoryOptions GetSubscriberFactoryOptions(ProjectorsSettings settings) =>
 			new SubscriberFactoryOptions(
 				settings.MaxResolutionQueueSize, settings.MaxSortingQueueSize,
 				settings.MaxHandlingQueuesSharedSize, settings.MaxParallelHandlerExecutions

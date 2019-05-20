@@ -20,7 +20,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Infrastructure
 
 		protected async override Task ExecuteAsync(CancellationToken cancellationToken)
 		{
-			_logger.LogInformation("Projector hosted service starting: " + typeof(TProjector).Name);
+			Console.WriteLine("Projector hosted service starting: " + typeof(TProjector).Name);
 
 			try
 			{
@@ -30,8 +30,6 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Infrastructure
 			{
 				_logger.LogError(ex, "Exception in projector hosted service: " + typeof(TProjector).Name);
 			}
-
-			_logger.LogInformation("Projector hosted service stopping: " + typeof(TProjector).Name);
 		}
 	}
 }

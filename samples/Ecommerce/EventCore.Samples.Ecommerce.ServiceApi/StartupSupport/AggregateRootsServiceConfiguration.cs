@@ -43,7 +43,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 		private static void ConfigureGenericSerializableState<TState>(IServiceCollection services, IConfiguration config, Func<IServiceProvider, string, TState> stateConstructor)
 			where TState : ISerializableAggregateRootState
 		{
-			var settings = config.GetSection("Services:AggregateRoots").Get<AggregateRootsSharedSettings>();
+			var settings = AggregateRootsSettings.Get(config);
 
 			services.AddScoped<IAggregateRootStateRepo<TState>>(
 				sp => new FlatFileAggregateRootStateRepo<TState>(

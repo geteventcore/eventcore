@@ -19,7 +19,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 			var eventStoreRegionXUri = config.GetConnectionString("EventStoreRegionX");
 			var eventStoreUris = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { { Shared.Constants.DEFAULT_REGION_ID, eventStoreRegionXUri } };
 
-			var settings = config.GetSection("EventSourcing").Get<EventSourcingSettings>();
+			var settings = EventSourcingSettings.Get(config);
 
 			services.AddSingleton<IStreamClientFactory>(
 				sp =>
