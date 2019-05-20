@@ -17,11 +17,6 @@ namespace EventCore.Samples.Ecommerce.Projections.EmailQueue
 			_dbScopeFactory = dbScopeFactory;
 		}
 
-		public override Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
-		{
-			throw new NotImplementedException();
-		}
-
 		public override string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
 		{
 			if (subscriberEvent.IsResolved)

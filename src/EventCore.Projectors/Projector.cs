@@ -3,6 +3,8 @@ using EventCore.StatefulSubscriber;
 using EventCore.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,6 +40,13 @@ namespace EventCore.Projectors
 			return DEFAULT_PARALLEL_KEY; // Sorting keys may not be null or empty.
 		}
 
-		public abstract Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken);
+		public virtual async Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
+		{
+			// Does nothing if no handler - event is ignored.
+			if (this.GetType().GetInterfaces().Any(x => x == typeof(IHandleBusinessEvent<>) && x.GetGenericArguments()[0] == subscriberEvent.ResolvedEventType))
+			{
+				await (Task)this.GetType().InvokeMember("HandleBusinessEventAsync", BindingFlags.InvokeMethod, null, this, new object[] { subscriberEvent.StreamId, subscriberEvent.Position, cancellationToken });
+			}
+		}
 	}
 }

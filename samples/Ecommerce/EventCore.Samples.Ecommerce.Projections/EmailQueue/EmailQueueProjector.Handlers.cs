@@ -1,4 +1,5 @@
-﻿using EventCore.Samples.Ecommerce.Domain.Events;
+﻿using EventCore.Projectors;
+using EventCore.Samples.Ecommerce.Domain.Events;
 using EventCore.Samples.Ecommerce.Projections.EmailQueue.EmailQueueDb.DbModels;
 using System.Threading;
 using System.Threading.Tasks;

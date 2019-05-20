@@ -2,7 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.Projections
+namespace EventCore.Projectors
 {
 	public interface IHandleBusinessEvent<TEvent> where TEvent : IBusinessEvent
 	{
