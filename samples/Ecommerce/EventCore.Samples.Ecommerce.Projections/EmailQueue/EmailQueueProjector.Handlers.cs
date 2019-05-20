@@ -10,7 +10,7 @@ namespace EventCore.Samples.Ecommerce.Projections.EmailQueue
 	{
 		public async Task HandleBusinessEventAsync(string streamId, long position, EmailEnqueuedEvent e, CancellationToken cancellationToken)
 		{
-			using (var scope = _dbFactory.Create())
+			using (var scope = _dbScopeFactory.Create())
 			{
 				if (!scope.Db.ExistsEmailId(e.EmailId))
 				{

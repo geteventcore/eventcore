@@ -10,7 +10,7 @@ namespace EventCore.Samples.Ecommerce.Projections.EmailQueue
 {
 	public partial class EmailQueueProjector : Projector
 	{
-		private readonly DbContextFactoryScope<EmailQueueDbContext> _dbFactory;
+		private readonly IDbContextScopeFactory<EmailQueueDbContext> _dbScopeFactory;
 
 		public EmailQueueProjector(ProjectorBaseDependencies dependencies) : base(dependencies.Logger, dependencies.SubscriberFactory, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds)
 		{
