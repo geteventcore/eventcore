@@ -1,5 +1,7 @@
 ﻿using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Net;
@@ -28,7 +30,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 			Console.WriteLine("Initializing infrastructure... ");
 
 			// Do not rethrow - allow other configurations to proceed.
-			
+
 			try
 			{
 				await CreateEventStoreProjections();
@@ -78,24 +80,28 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 			await EnsureDatabaseCreatedAsync<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>(aggRootStatesDbConnStr, o => new Domain.EmailBuilder.StateModels.EmailBuilderDbContext(o));
 			// ... any other agg root state contexts.
 
-			Console.WriteLine("Agg Root States DB configured.");
+			Console.WriteLine("Agg Root States DB created/configured.");
 
 			// ***
 
 			// Projections database. Single database will share multiple contexts.
-			var projectionsDbConnStr = _config.GetConnectionString("ProjectionsDb");	
-			await EnsureDatabaseCreatedAsync<Projections.EmailReport.EmailReportDb.EmailReportDbContext>(aggRootStatesDbConnStr, o => new Projections.EmailReport.EmailReportDb.EmailReportDbContext(o));
-			await EnsureDatabaseCreatedAsync<Projections.SalesReport.SalesReportDb.SalesReportDbContext>(aggRootStatesDbConnStr, o => new Projections.SalesReport.SalesReportDb.SalesReportDbContext(o));
+			var projectionsDbConnStr = _config.GetConnectionString("ProjectionsDb");
+			await EnsureDatabaseCreatedAsync<Projections.EmailReport.EmailReportDb.EmailReportDbContext>(projectionsDbConnStr, o => new Projections.EmailReport.EmailReportDb.EmailReportDbContext(o));
+			await EnsureDatabaseCreatedAsync<Projections.SalesReport.SalesReportDb.SalesReportDbContext>(projectionsDbConnStr, o => new Projections.SalesReport.SalesReportDb.SalesReportDbContext(o));
 			// ... any other projection contexts.
 
-			Console.WriteLine("Projections DB configured.");
+			Console.WriteLine("Projections DB created/configured.");
 		}
 
 		private async Task EnsureDatabaseCreatedAsync<TContext>(string connectionString, Func<DbContextOptions<TContext>, TContext> ctor) where TContext : DbContext
 		{
-			var builder = new DbContextOptionsBuilder<TContext>();
-			builder.UseSqlServer(connectionString);
-			await ctor(builder.Options).Database.EnsureCreatedAsync();
+			var context = ctor(new DbContextOptionsBuilder<TContext>().UseSqlServer(connectionString).Options);
+			var creator = ((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>());
+			if(!(await creator.ExistsAsync()))
+			{
+				await creator.CreateAsync();
+			}
+			await creator.CreateTablesAsync();
 		}
 
 		private const string PROJECTION___ALL_NON_SYSTEM_EVENTS =

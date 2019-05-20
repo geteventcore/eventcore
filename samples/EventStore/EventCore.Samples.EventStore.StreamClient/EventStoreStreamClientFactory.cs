@@ -40,7 +40,7 @@ namespace EventCore.Samples.EventStore.StreamClient
 		private IEventStoreConnection CreateConnection(string regionId)
 		{
 			var uri = _eventStoreUris[regionId];
-			var builder = ConnectionSettings.Create().KeepReconnecting();
+			var builder = ConnectionSettings.Create().KeepReconnecting(); // Very important. Attempt reconnect infinitely.
 			var connection = EventStoreConnection.Create(uri, builder, $"Connection-{regionId}");
 
 			connection.Connected += new EventHandler<ClientConnectionEventArgs>(delegate (Object o, ClientConnectionEventArgs a)

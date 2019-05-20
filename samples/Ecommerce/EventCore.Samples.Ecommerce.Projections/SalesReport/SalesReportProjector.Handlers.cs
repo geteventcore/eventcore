@@ -13,6 +13,7 @@ namespace EventCore.Samples.Ecommerce.Projections.SalesReport
 		{
 			using (var scope = _dbScopeFactory.Create())
 			{
+				System.Console.WriteLine($"sales order... {e.SalesOrderId}");
 				if (!scope.Db.ExistsSalesOrderId(e.SalesOrderId))
 				{
 					scope.Db.SalesOrder.Add(new SalesOrderDbModel() { SalesOrderId = e.SalesOrderId });
