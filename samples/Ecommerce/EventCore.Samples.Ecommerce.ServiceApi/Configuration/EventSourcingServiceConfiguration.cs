@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 
-namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
+namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 {
 	public static class EventSourcingServiceConfiguration
 	{

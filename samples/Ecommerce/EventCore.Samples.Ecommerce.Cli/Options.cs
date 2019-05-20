@@ -15,5 +15,10 @@ namespace EventCore.Samples.Ecommerce.Cli
 			[Value(0, MetaName = "verbose", Required = false, Default = false, HelpText = "True to decode and show event payloads.")]
 			public bool Verbose { get; set; }
 		}
+
+		[Verb("clearErrors", HelpText = "Clear errors on all subscriber stream states.")]
+		public class ClearErrorsOptions
+		{
+		}
 	}
 }

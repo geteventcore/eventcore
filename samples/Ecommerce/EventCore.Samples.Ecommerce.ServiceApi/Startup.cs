@@ -32,7 +32,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi
 					});
 			});
 
-			StartupSupport.ServiceConfiguration.Configure(_config, services);
+			Configuration.ServiceConfiguration.Configure(_config, services);
 		}
 
 		// This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

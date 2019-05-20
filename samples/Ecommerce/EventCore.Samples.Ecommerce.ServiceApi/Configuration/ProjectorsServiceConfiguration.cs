@@ -13,7 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
+namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 {
 	public static class ProjectorsServiceConfiguration
 	{

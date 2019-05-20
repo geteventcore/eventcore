@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
+namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 {
 	public static class ServiceConfiguration
 	{
