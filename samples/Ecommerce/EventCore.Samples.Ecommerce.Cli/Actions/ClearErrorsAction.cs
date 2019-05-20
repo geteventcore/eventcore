@@ -33,7 +33,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 			// handler where a bug caused the unhandled exception.
 
 			// Clear stream state errors for projectors.
-			await ClearStreamStateAsync(_config.GetValue<string>("StreamStatePaths:EmailQueueProjector"));
+			await ClearStreamStateAsync(_config.GetValue<string>("StreamStatePaths:EmailReportProjector"));
 			await ClearStreamStateAsync(_config.GetValue<string>("StreamStatePaths:SalesReportProjector"));
 
 			// Clear stream state errors for process managers.

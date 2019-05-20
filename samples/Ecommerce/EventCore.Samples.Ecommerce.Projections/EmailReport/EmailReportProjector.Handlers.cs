@@ -1,12 +1,12 @@
 ﻿using EventCore.Projectors;
 using EventCore.Samples.Ecommerce.Domain.Events;
-using EventCore.Samples.Ecommerce.Projections.EmailQueue.EmailQueueDb.DbModels;
+using EventCore.Samples.Ecommerce.Projections.EmailReport.EmailReportDb.DbModels;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.Projections.EmailQueue
+namespace EventCore.Samples.Ecommerce.Projections.EmailReport
 {
-	public partial class EmailQueueProjector :
+	public partial class EmailReportProjector :
 		IHandleBusinessEvent<EmailEnqueuedEvent>
 	{
 		public async Task HandleBusinessEventAsync(string streamId, long position, EmailEnqueuedEvent e, CancellationToken cancellationToken)

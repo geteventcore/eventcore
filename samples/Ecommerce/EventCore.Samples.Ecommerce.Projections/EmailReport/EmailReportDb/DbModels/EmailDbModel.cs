@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace EventCore.Samples.Ecommerce.Projections.EmailQueue.EmailQueueDb.DbModels
+namespace EventCore.Samples.Ecommerce.Projections.EmailReport.EmailReportDb.DbModels
 {
 	public class EmailDbModel
 	{

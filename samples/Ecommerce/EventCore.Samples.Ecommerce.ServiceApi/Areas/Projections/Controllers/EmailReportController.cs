@@ -1,5 +1,5 @@
-﻿using EventCore.Samples.Ecommerce.Projections.EmailQueue.EmailQueueDb;
-using EventCore.Samples.Ecommerce.Projections.EmailQueue.EmailQueueDb.DbModels;
+﻿using EventCore.Samples.Ecommerce.Projections.EmailReport.EmailReportDb;
+using EventCore.Samples.Ecommerce.Projections.EmailReport.EmailReportDb.DbModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -13,9 +13,9 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Areas.Projections.Controllers
 	[Area("projections")]
 	public class EmailReportController : ControllerBase
 	{
-		private readonly EmailQueueDbContext _db;
+		private readonly EmailReportDbContext _db;
 
-		public EmailReportController(EmailQueueDbContext db)
+		public EmailReportController(EmailReportDbContext db)
 		{
 			_db = db;
 		}

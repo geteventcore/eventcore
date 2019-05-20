@@ -84,7 +84,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 
 			// Projections database. Single database will share multiple contexts.
 			var projectionsDbConnStr = _config.GetConnectionString("ProjectionsDb");	
-			await EnsureDatabaseCreatedAsync<Projections.EmailQueue.EmailQueueDb.EmailQueueDbContext>(aggRootStatesDbConnStr, o => new Projections.EmailQueue.EmailQueueDb.EmailQueueDbContext(o));
+			await EnsureDatabaseCreatedAsync<Projections.EmailReport.EmailReportDb.EmailReportDbContext>(aggRootStatesDbConnStr, o => new Projections.EmailReport.EmailReportDb.EmailReportDbContext(o));
 			await EnsureDatabaseCreatedAsync<Projections.SalesReport.SalesReportDb.SalesReportDbContext>(aggRootStatesDbConnStr, o => new Projections.SalesReport.SalesReportDb.SalesReportDbContext(o));
 			// ... any other projection contexts.
 
