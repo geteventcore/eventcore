@@ -203,21 +203,53 @@ namespace EventCore.StatefulSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task stream_eligible_for_resolution_when_stream_state_exists()
+		public async Task stream_event_eligibility_uses_correct_stream_id_when_event_has_link()
 		{
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
-			var mockResolver = new Mock<IBusinessEventResolver>();
+			var committedStreamId = "orig";
+			var committedPosition = 0;
+			var subStreamId = "sub";
+			var subPosition = 20;
+			var manager = new ResolutionManager(NullStandardLogger.Instance, null, mockStreamStateRepo.Object, null, null);
+			var streamEvent = new StreamEvent(subStreamId, subPosition, new StreamEventLink(committedStreamId, committedPosition), null, new byte[] { });
+
+			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(committedStreamId)).ReturnsAsync((StreamState)null);
+
+			var eligibility = await manager.IsStreamEventEligibleForResolution(streamEvent, committedPosition);
+
+			mockStreamStateRepo.Verify(x => x.LoadStreamStateAsync(committedStreamId));
+		}
+
+		[Fact]
+		public async Task stream_event_eligibility_uses_correct_stream_id_when_event_does_not_have_link()
+		{
+			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
+			var committedStreamId = "orig";
+			var committedPosition = 0;
+			var manager = new ResolutionManager(NullStandardLogger.Instance, null, mockStreamStateRepo.Object, null, null);
+			var streamEvent = new StreamEvent(committedStreamId, committedPosition, null, null, new byte[] { });
+
+			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(committedStreamId)).ReturnsAsync((StreamState)null);
+
+			var eligibility = await manager.IsStreamEventEligibleForResolution(streamEvent, committedPosition);
+
+			mockStreamStateRepo.Verify(x => x.LoadStreamStateAsync(committedStreamId));
+		}
+
+		[Fact]
+		public async Task stream_event_eligible_for_resolution_when_stream_state_exists()
+		{
+			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var streamId = "s";
 			var newPosition = 1;
 			var eventType = "x";
 			var lastAttemptedPosition = 0;
 			var firstPositionInStream = 0;
 			var streamState = new StreamState(lastAttemptedPosition, false);
-			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, mockStreamStateRepo.Object, null, null);
+			var manager = new ResolutionManager(NullStandardLogger.Instance, null, mockStreamStateRepo.Object, null, null);
 			var streamEvent = new StreamEvent(streamId, newPosition, null, eventType, new byte[] { });
 
 			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(streamId)).ReturnsAsync(streamState);
-			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(true);
 
 			var eligibility = await manager.IsStreamEventEligibleForResolution(streamEvent, firstPositionInStream);
 
@@ -225,7 +257,7 @@ namespace EventCore.StatefulSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task stream_eligible_for_resolution_when_stream_state_not_exists()
+		public async Task stream_event_eligible_for_resolution_when_stream_state_not_exists()
 		{
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var streamId = "s";
@@ -243,7 +275,7 @@ namespace EventCore.StatefulSubscriber.Tests
 		}
 
 		[Fact]
-		public async Task stream_ineligible_for_resolution_skipped_already_processed()
+		public async Task stream_event_ineligible_for_resolution_skipped_already_processed()
 		{
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var streamId = "s";

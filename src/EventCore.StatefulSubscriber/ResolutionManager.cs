@@ -90,20 +90,22 @@ namespace EventCore.StatefulSubscriber
 
 		public async Task<ResolutionEligibility> IsStreamEventEligibleForResolution(StreamEvent streamEvent, long firstPositionInStream)
 		{
-			var streamState = await _streamStateRepo.LoadStreamStateAsync(streamEvent.StreamId);
+			var streamId = streamEvent.IsLink ? streamEvent.Link.StreamId : streamEvent.StreamId;
+			var position = streamEvent.IsLink ? streamEvent.Link.Position : streamEvent.Position;
+			var streamState = await _streamStateRepo.LoadStreamStateAsync(streamId);
 
 			long expectedPosition = firstPositionInStream;
 			if (streamState != null)
 			{
 				if (streamState.HasError) return ResolutionEligibility.UnableStreamHasError;
 
-				if (streamEvent.Position <= streamState.LastAttemptedPosition) return ResolutionEligibility.SkippedAlreadyProcessed;
+				if (position <= streamState.LastAttemptedPosition) return ResolutionEligibility.SkippedAlreadyProcessed;
 
 				expectedPosition = streamState.LastAttemptedPosition + 1;
 			}
 
 			// Sanity check to ensure events arrive sequentially for a given stream.
-			if (streamEvent.Position != expectedPosition)
+			if (position != expectedPosition)
 			{
 				throw new InvalidOperationException($"Expected sequential event position {expectedPosition} from stream {streamEvent.StreamId} but received {streamEvent.Position}. Unable to continue.");
 			}
