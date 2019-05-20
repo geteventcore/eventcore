@@ -16,7 +16,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 
 			// Connection factory must be able to create a new connection for each region.
 			// ... For now we only have one region.
-			var eventStoreRegionXUri = config.GetConnectionString("EventStoreRegionX");
+			var eventStoreRegionXUri = ConnectionStrings.Get(config).EventStoreRegionX;
 			var eventStoreUris = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase) { { Shared.Constants.DEFAULT_REGION_ID, eventStoreRegionXUri } };
 
 			var settings = EventSourcingSettings.Get(config);

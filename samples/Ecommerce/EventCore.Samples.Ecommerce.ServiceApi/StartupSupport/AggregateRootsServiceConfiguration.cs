@@ -61,7 +61,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 		{
 			ConfigureGenericAggregateRoot<Domain.EmailBuilder.EmailBuilderAggregate, Domain.EmailBuilder.EmailBuilderState>(services);
 
-			services.AddDbContext<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>(o => o.UseSqlServer(config.GetConnectionString("AggRootStatesDb")));
+			services.AddDbContext<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>(o => o.UseSqlServer(ConnectionStrings.Get(config).AggRootStatesDb));
 
 			services.AddScoped<Domain.EmailBuilder.EmailBuilderStateFactory>(
 				sp => new Domain.EmailBuilder.EmailBuilderStateFactory(
