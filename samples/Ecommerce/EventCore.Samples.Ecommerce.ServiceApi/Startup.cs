@@ -23,7 +23,13 @@ namespace EventCore.Samples.Ecommerce.ServiceApi
 
 			services.AddSwaggerGen(c =>
 			{
-				c.SwaggerDoc("v1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "Ecommerce Sample - Domain API", Version = "v1" });
+				c.SwaggerDoc("v1",
+					new Swashbuckle.AspNetCore.Swagger.Info
+					{
+						Title = "Ecommerce Sample - Service API",
+						Version = "v1",
+						Description = "API and host for backend services, including: aggregate roots, projectors, and  process managers."
+					});
 			});
 
 			StartupSupport.ServiceConfiguration.Configure(Configuration, services);
@@ -58,7 +64,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi
 				c.DocumentTitle = "Ecommerce Sample API Docs";
 				// c.RoutePrefix = "_openapi";
 				c.RoutePrefix = string.Empty;
-				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "Ecommerce Sample - Domain API v1");
+				c.SwaggerEndpoint("/_openapi/v1/openapi.json", "Ecommerce Sample - Service API v1");
 			});
 
 			// Force event store connections to start.

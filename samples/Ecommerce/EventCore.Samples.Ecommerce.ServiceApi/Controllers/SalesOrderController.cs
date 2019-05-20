@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.ServiceApi.Controllers
 {
-	[Route("[controller]")]
+	[Route("domain/[controller]")]
 	[ApiController]
 	public class SalesOrderController : ControllerBase
 	{
