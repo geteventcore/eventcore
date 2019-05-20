@@ -1,14 +1,11 @@
-﻿using EventCore.StatefulSubscriber;
-
-namespace EventCore.Samples.Ecommerce.ProjectorsHost
+﻿namespace EventCore.Samples.Ecommerce.ServiceApi.Settings
 {
-	public class ProjectorSettings
+	public class ProjectorsSharedSettings
 	{
 		public int MaxResolutionQueueSize { get; set; }
 		public int MaxSortingQueueSize { get; set; }
 		public int MaxHandlingQueuesSharedSize { get; set; }
 		public int MaxParallelHandlerExecutions { get; set; }
-		public string StreamStateBasePath { get; set; }
 		public SubscriptionStream[] SubscriptionStreams { get; set; }
 
 		public class SubscriptionStream

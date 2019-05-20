@@ -55,7 +55,6 @@ namespace EventCore.StatefulSubscriber
 			if (_isSubscribing) throw new InvalidOperationException("Already subscribing.");
 
 			_isSubscribing = true;
-			_logger.LogInformation("Stateful subscriber started.");
 
 			var tasks = new List<Task>();
 
@@ -73,7 +72,6 @@ namespace EventCore.StatefulSubscriber
 
 			await Task.WhenAny(tasks);
 
-			_logger.LogInformation("Stateful subscriber stopped.");
 			_isSubscribing = false;
 		}
 

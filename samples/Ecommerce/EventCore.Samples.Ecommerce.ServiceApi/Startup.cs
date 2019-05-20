@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using EventCore.Utilities;
 using System;
 
-namespace EventCore.Samples.Ecommerce.DomainApi
+namespace EventCore.Samples.Ecommerce.ServiceApi
 {
 	public class Startup
 	{

@@ -5,7 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.ProjectorsHost
+namespace EventCore.Samples.Ecommerce.ServiceApi.Infrastructure
 {
 	public class ProjectorHostedService<TProjector> : BackgroundService where TProjector : IProjector
 	{

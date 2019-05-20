@@ -2,25 +2,25 @@
 using EventCore.EventSourcing;
 using EventCore.Samples.Ecommerce.Domain;
 using EventCore.Samples.Ecommerce.Domain.State;
-using EventCore.Samples.Ecommerce.DomainApi.Options;
+using EventCore.Samples.Ecommerce.ServiceApi.Settings;
 using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
+namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 {
 	public static class AggregateRootsServiceConfiguration
 	{
-		public static void Configure(IConfiguration config, IServiceCollection services, ServicesOptions options)
+		public static void Configure(IConfiguration config, IServiceCollection services)
 		{
-			// ConfigureEmailBuilder(services, options, config);
-			// ConfigureEmailQueue(services, options);
-			ConfigureSalesOrder(services, options);
+			ConfigureEmailBuilder(services, config);
+			ConfigureEmailQueue(services, config);
+			ConfigureSalesOrder(services, config);
 		}
 
-		private static void ConfigureGenericAggregateRoot<TAggregate, TState>(IServiceCollection services, ServicesOptions options)
+		private static void ConfigureGenericAggregateRoot<TAggregate, TState>(IServiceCollection services)
 			where TAggregate : AggregateRoot<TState>
 			where TState : IAggregateRootState
 		{
@@ -40,13 +40,15 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			services.AddScoped<TAggregate>();
 		}
 
-		private static void ConfigureGenericSerializableState<TState>(IServiceCollection services, Func<IServiceProvider, string, TState> stateConstructor, ServicesOptions options)
+		private static void ConfigureGenericSerializableState<TState>(IServiceCollection services, IConfiguration config, Func<IServiceProvider, string, TState> stateConstructor)
 			where TState : ISerializableAggregateRootState
 		{
+			var settings = config.GetSection("Services:AggregateRoots").Get<AggregateRootsSharedSettings>();
+
 			services.AddScoped<IAggregateRootStateRepo<TState>>(
 				sp => new FlatFileAggregateRootStateRepo<TState>(
 					sp.GetRequiredService<IStreamClientFactory>(),
-					(regionId) => stateConstructor(sp, regionId), options.AggregateRootStateBasePath
+					(regionId) => stateConstructor(sp, regionId), settings.AggregateRootStateBasePath
 				)
 			);
 		}
@@ -55,9 +57,9 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 		// Everything below this line configures specific aggregate roots.
 		// ***
 
-		private static void ConfigureEmailBuilder(IServiceCollection services, ServicesOptions options, IConfiguration config)
+		private static void ConfigureEmailBuilder(IServiceCollection services, IConfiguration config)
 		{
-			ConfigureGenericAggregateRoot<Domain.EmailBuilder.EmailBuilderAggregate, Domain.EmailBuilder.EmailBuilderState>(services, options);
+			ConfigureGenericAggregateRoot<Domain.EmailBuilder.EmailBuilderAggregate, Domain.EmailBuilder.EmailBuilderState>(services);
 
 			services.AddDbContext<Domain.EmailBuilder.StateModels.EmailBuilderDbContext>(o => o.UseSqlite(config.GetConnectionString("EmailBuilderStateDb")));
 
@@ -83,25 +85,23 @@ namespace EventCore.Samples.Ecommerce.DomainApi.StartupSupport
 			);
 		}
 
-		private static void ConfigureEmailQueue(IServiceCollection services, ServicesOptions options)
+		private static void ConfigureEmailQueue(IServiceCollection services, IConfiguration config)
 		{
-			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services, options);
+			ConfigureGenericAggregateRoot<Domain.EmailQueue.EmailQueueAggregate, Domain.EmailQueue.EmailQueueState>(services);
 
 			ConfigureGenericSerializableState<Domain.EmailQueue.EmailQueueState>(
-				services,
-				(sp, regionId) => new Domain.EmailQueue.EmailQueueState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>>()),
-				options
+				services, config,
+				(sp, regionId) => new Domain.EmailQueue.EmailQueueState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.EmailQueue.EmailQueueState>>())
 			);
 		}
 
-		private static void ConfigureSalesOrder(IServiceCollection services, ServicesOptions options)
+		private static void ConfigureSalesOrder(IServiceCollection services, IConfiguration config)
 		{
-			ConfigureGenericAggregateRoot<Domain.SalesOrder.SalesOrderAggregate, Domain.SalesOrder.SalesOrderState>(services, options);
+			ConfigureGenericAggregateRoot<Domain.SalesOrder.SalesOrderAggregate, Domain.SalesOrder.SalesOrderState>(services);
 
 			ConfigureGenericSerializableState<Domain.SalesOrder.SalesOrderState>(
-				services,
-				(sp, regionId) => new Domain.SalesOrder.SalesOrderState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>>()),
-				options
+				services, config,
+				(sp, regionId) => new Domain.SalesOrder.SalesOrderState(sp.GetRequiredService<AggregateRootStateBusinessEventResolver<Domain.SalesOrder.SalesOrderState>>())
 			);
 		}
 	}

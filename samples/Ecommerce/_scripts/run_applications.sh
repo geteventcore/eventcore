@@ -1,1 +1,1 @@
-. dotnet_run_domainapi.sh
+. dotnet_run_serviceapi.sh

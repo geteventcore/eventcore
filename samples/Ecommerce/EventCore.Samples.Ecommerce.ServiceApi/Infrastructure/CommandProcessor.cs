@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.DomainApi.Infrastructure
+namespace EventCore.Samples.Ecommerce.ServiceApi.Infrastructure
 {
 	public static class CommandProcessor
 	{

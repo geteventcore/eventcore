@@ -45,7 +45,7 @@ namespace EventCore.Samples.EventStore.StreamClient
 
 			connection.Connected += new EventHandler<ClientConnectionEventArgs>(delegate (Object o, ClientConnectionEventArgs a)
 			{
-				_logger.LogDebug($"Event Store client connected. ({a.Connection.ConnectionName})");
+				// _logger.LogDebug($"Event Store client connected. ({a.Connection.ConnectionName})");
 			});
 
 			connection.ErrorOccurred += new EventHandler<ClientErrorEventArgs>(delegate (Object o, ClientErrorEventArgs a)

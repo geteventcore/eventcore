@@ -5,7 +5,7 @@
 ### PublicApi
 HTTP REST interface exposed to public applications such as single page apps and mobile apps.
 
-### DomainApi
+### ServiceApi
 RPC over HTTP interface for executing commands on aggregate roots. All commands are POSTed to this HTTP. Do not call directly, but instead use Domain.Clients to execute commands from client applications.
 
 ### Cli

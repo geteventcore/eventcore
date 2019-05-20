@@ -25,7 +25,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.AggregateRoots.Te
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.PublicApi", "samples\Ecommerce\EventCore.Samples.Ecommerce.PublicApi\EventCore.Samples.Ecommerce.PublicApi.csproj", "{55B24448-6229-4772-89FE-4A136DFB5118}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.DomainApi", "samples\Ecommerce\EventCore.Samples.Ecommerce.DomainApi\EventCore.Samples.Ecommerce.DomainApi.csproj", "{F4564733-4D06-4A49-B67D-6759188B4E30}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.ServiceApi", "samples\Ecommerce\EventCore.Samples.Ecommerce.ServiceApi\EventCore.Samples.Ecommerce.ServiceApi.csproj", "{F4564733-4D06-4A49-B67D-6759188B4E30}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.Cli", "samples\Ecommerce\EventCore.Samples.Ecommerce.Cli\EventCore.Samples.Ecommerce.Cli.csproj", "{CE39B02C-6CAF-4EF8-B703-7BD627AF3BEF}"
 EndProject
@@ -48,8 +48,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Projectors", "src\EventCore.Projectors\EventCore.Projectors.csproj", "{97207631-9319-426F-ACC7-494662B7AD4F}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.Projections", "samples\Ecommerce\EventCore.Samples.Ecommerce.Projections\EventCore.Samples.Ecommerce.Projections.csproj", "{5EE99301-C673-44FB-9FB3-DCDE5CC6F983}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.ProjectorsHost", "samples\Ecommerce\EventCore.Samples.Ecommerce.ProjectorsHost\EventCore.Samples.Ecommerce.ProjectorsHost.csproj", "{125CFD71-2C53-4165-AF0E-8A37D44B2014}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EventCore.Samples.Ecommerce.Shared", "samples\Ecommerce\EventCore.Samples.Ecommerce.Shared\EventCore.Samples.Ecommerce.Shared.csproj", "{7DB61888-3A12-4F73-ABC2-2A49268C8A24}"
 EndProject
@@ -270,18 +268,6 @@ Global
 		{5EE99301-C673-44FB-9FB3-DCDE5CC6F983}.Release|x64.Build.0 = Release|Any CPU
 		{5EE99301-C673-44FB-9FB3-DCDE5CC6F983}.Release|x86.ActiveCfg = Release|Any CPU
 		{5EE99301-C673-44FB-9FB3-DCDE5CC6F983}.Release|x86.Build.0 = Release|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Debug|x64.Build.0 = Debug|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Debug|x86.Build.0 = Debug|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Release|Any CPU.Build.0 = Release|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Release|x64.ActiveCfg = Release|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Release|x64.Build.0 = Release|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Release|x86.ActiveCfg = Release|Any CPU
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014}.Release|x86.Build.0 = Release|Any CPU
 		{7DB61888-3A12-4F73-ABC2-2A49268C8A24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7DB61888-3A12-4F73-ABC2-2A49268C8A24}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7DB61888-3A12-4F73-ABC2-2A49268C8A24}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -315,7 +301,6 @@ Global
 		{7C0C9963-DCB8-46CE-9B8A-3503087641D9} = {09E331DB-98DB-47CA-9633-E01228EE5284}
 		{97207631-9319-426F-ACC7-494662B7AD4F} = {F2687D8C-5761-49C0-80B6-BFAAA89AE534}
 		{5EE99301-C673-44FB-9FB3-DCDE5CC6F983} = {09E331DB-98DB-47CA-9633-E01228EE5284}
-		{125CFD71-2C53-4165-AF0E-8A37D44B2014} = {09E331DB-98DB-47CA-9633-E01228EE5284}
 		{7DB61888-3A12-4F73-ABC2-2A49268C8A24} = {09E331DB-98DB-47CA-9633-E01228EE5284}
 	EndGlobalSection
 EndGlobal

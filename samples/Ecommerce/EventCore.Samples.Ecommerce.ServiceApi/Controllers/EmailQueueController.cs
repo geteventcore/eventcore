@@ -1,11 +1,11 @@
 ﻿using EventCore.Samples.Ecommerce.Domain.EmailQueue;
 using EventCore.Samples.Ecommerce.Domain.EmailQueue.Commands;
-using EventCore.Samples.Ecommerce.DomainApi.Infrastructure;
+using EventCore.Samples.Ecommerce.ServiceApi.Infrastructure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.DomainApi.Controllers
+namespace EventCore.Samples.Ecommerce.ServiceApi.Controllers
 {
 	[Route("[controller]")]
 	[ApiController]

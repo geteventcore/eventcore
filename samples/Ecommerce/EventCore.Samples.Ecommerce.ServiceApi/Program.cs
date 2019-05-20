@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 
-namespace EventCore.Samples.Ecommerce.DomainApi
+namespace EventCore.Samples.Ecommerce.ServiceApi
 {
 	public class Program
 	{

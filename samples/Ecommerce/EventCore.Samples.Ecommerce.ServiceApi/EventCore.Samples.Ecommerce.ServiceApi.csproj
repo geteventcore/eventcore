@@ -15,10 +15,13 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\src\EventCore.AggregateRoots\EventCore.AggregateRoots.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
+		<ProjectReference Include="..\..\..\src\EventCore.Projectors\EventCore.Projectors.csproj" />
+		<ProjectReference Include="..\..\..\src\EventCore.StatefulSubscriber\EventCore.StatefulSubscriber.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />
 		<ProjectReference Include="..\..\EventStore\EventCore.Samples.EventStore.StreamClient\EventCore.Samples.EventStore.StreamClient.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain\EventCore.Samples.Ecommerce.Domain.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.State\EventCore.Samples.Ecommerce.Domain.State.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Projections\EventCore.Samples.Ecommerce.Projections.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Shared\EventCore.Samples.Ecommerce.Shared.csproj" />
   </ItemGroup>
 
