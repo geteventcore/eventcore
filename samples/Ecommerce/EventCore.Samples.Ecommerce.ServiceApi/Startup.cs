@@ -3,11 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System.IO;
-using Microsoft.EntityFrameworkCore.Sqlite;
-using Microsoft.EntityFrameworkCore.Extensions;
-using Microsoft.EntityFrameworkCore;
-using EventCore.Utilities;
 using System;
 
 namespace EventCore.Samples.Ecommerce.ServiceApi

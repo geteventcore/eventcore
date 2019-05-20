@@ -84,7 +84,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 
 			// ... any other agg root state contexts.
 
-			Console.WriteLine("Agg Root State DB configured.");
+			Console.WriteLine("Agg Root States DB configured.");
 
 			// ***
 

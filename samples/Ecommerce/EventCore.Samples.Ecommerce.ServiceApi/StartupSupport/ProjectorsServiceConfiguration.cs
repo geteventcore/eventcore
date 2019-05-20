@@ -20,10 +20,10 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 			services.AddSingleton<ISubscriberFactory, SubscriberFactory>();
 
 			services.AddSingleton<Projections.EmailQueue.EmailQueueProjector>(sp => (Projections.EmailQueue.EmailQueueProjector)BuildProjector<Projections.EmailQueue.EmailQueueProjector>(sp, config));
-			services.AddHostedService<ProjectorHostedService<Projections.EmailQueue.EmailQueueProjector>>();
+			// services.AddHostedService<ProjectorHostedService<Projections.EmailQueue.EmailQueueProjector>>();
 
 			services.AddSingleton<Projections.SalesReport.SalesReportProjector>(sp => (Projections.SalesReport.SalesReportProjector)BuildProjector<Projections.SalesReport.SalesReportProjector>(sp, config));
-			services.AddHostedService<ProjectorHostedService<Projections.SalesReport.SalesReportProjector>>();
+			// services.AddHostedService<ProjectorHostedService<Projections.SalesReport.SalesReportProjector>>();
 		}
 
 		private static IProjector BuildProjector<TProjector>(IServiceProvider sp, IConfiguration config)

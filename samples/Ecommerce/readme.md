@@ -7,3 +7,11 @@ Ports...
 5733 - Projections DB
 5501, 5502 - Domain API
 
+
+Getting started...
+
+cd /_scripts
+sh reset_infrastructure.sh
+sh run_infrastructure.sh
+... Wait 30 seconds to make sure containers have started.
+sh initialize_infrastructure.sh
