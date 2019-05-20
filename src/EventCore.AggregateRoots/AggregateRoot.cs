@@ -13,14 +13,14 @@ namespace EventCore.AggregateRoots
 	public abstract class AggregateRoot<TState> : IAggregateRoot
 		where TState : IAggregateRootState
 	{
-		private readonly IStandardLogger _logger;
-		private readonly IAggregateRootStateRepo<TState> _stateRepo;
-		private readonly IStreamIdBuilder _streamIdBuilder;
-		private readonly IStreamClientFactory _streamClientFactory;
-		private readonly IBusinessEventResolver _resolver;
+		protected readonly IStandardLogger _logger;
+		protected readonly IAggregateRootStateRepo<TState> _stateRepo;
+		protected readonly IStreamIdBuilder _streamIdBuilder;
+		protected readonly IStreamClientFactory _streamClientFactory;
+		protected readonly IBusinessEventResolver _resolver;
 
-		private readonly string _context;
-		private readonly string _aggregateRootName;
+		protected readonly string _context;
+		protected readonly string _aggregateRootName;
 
 		public AggregateRoot(AggregateRootDependencies<TState> dependencies, string context, string aggregateRootName)
 		{

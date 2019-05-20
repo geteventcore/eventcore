@@ -1,6 +1,7 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Projectors;
 using EventCore.Samples.Ecommerce.Domain;
+using EventCore.Samples.Ecommerce.Projections;
 using EventCore.Samples.Ecommerce.ServiceApi.Infrastructure;
 using EventCore.Samples.Ecommerce.ServiceApi.Settings;
 using EventCore.StatefulSubscriber;
@@ -41,11 +42,13 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.StartupSupport
 
 			var projectorType = typeof(TProjector);
 
+			var baseDependencies = new ProjectorBaseDependencies(logger, subscriberFactory, streamClientFactory, streamStateRepo, resolver, subFactoryOptions, MapSubscriptionStreams(sharedSettings.SubscriptionStreams));
+
 			if (projectorType == typeof(Projections.EmailQueue.EmailQueueProjector))
-				return new Projections.EmailQueue.EmailQueueProjector(logger, subscriberFactory, streamClientFactory, streamStateRepo, resolver, subFactoryOptions, MapSubscriptionStreams(sharedSettings.SubscriptionStreams));
+				return new Projections.EmailQueue.EmailQueueProjector(baseDependencies);
 
 			if (projectorType == typeof(Projections.SalesReport.SalesReportProjector))
-				return new Projections.SalesReport.SalesReportProjector(logger, subscriberFactory, streamClientFactory, streamStateRepo, resolver, subFactoryOptions, MapSubscriptionStreams(sharedSettings.SubscriptionStreams));
+				return new Projections.SalesReport.SalesReportProjector(baseDependencies);
 
 			return null;
 		}

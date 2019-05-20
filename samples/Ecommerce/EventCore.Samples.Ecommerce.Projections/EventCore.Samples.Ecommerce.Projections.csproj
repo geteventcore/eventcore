@@ -5,9 +5,14 @@
   </PropertyGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="Microsoft.EntityFrameworkCore" Version="2.2.4" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<ProjectReference Include="..\..\..\src\EventCore.EventSourcing\EventCore.EventSourcing.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.Projectors\EventCore.Projectors.csproj" />
 		<ProjectReference Include="..\..\..\src\EventCore.Utilities\EventCore.Utilities.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.Events\EventCore.Samples.Ecommerce.Domain.Events.csproj" />
   </ItemGroup>
 
 </Project>

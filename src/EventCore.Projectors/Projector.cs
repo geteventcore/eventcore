@@ -13,15 +13,15 @@ namespace EventCore.Projectors
 	{
 		// This can be anything except null or empty.
 		// Must have a default way to group events to be handled.
-		private const string DEFAULT_PARALLEL_KEY = ".";
+		protected const string DEFAULT_PARALLEL_KEY = ".";
 
-		private readonly IStandardLogger _logger;
-		private readonly ISubscriber _subscriber;
+		protected readonly IStandardLogger _logger;
+		protected readonly ISubscriber _subscriber;
 
-		public Projector(IStandardLogger logger, ISubscriberFactory subscriberFactory, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver resolver, SubscriberFactoryOptions factoryOptions, IList<SubscriptionStreamId> subscriptionStreamIds)
+		public Projector(IStandardLogger logger, ISubscriberFactory subscriberFactory, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver eventResolver, SubscriberFactoryOptions subscriberFactoryOptions, IList<SubscriptionStreamId> subscriptionStreamIds)
 		{
 			_logger = logger;
-			_subscriber = subscriberFactory.Create(logger, streamClientFactory, streamStateRepo, resolver, this, this, factoryOptions, subscriptionStreamIds);
+			_subscriber = subscriberFactory.Create(logger, streamClientFactory, streamStateRepo, eventResolver, this, this, subscriberFactoryOptions, subscriptionStreamIds);
 		}
 
 		public async Task RunAsync(CancellationToken cancellationToken)
