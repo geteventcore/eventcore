@@ -1,4 +1,5 @@
 ﻿using EventCore.Projectors;
+using EventCore.Samples.Ecommerce.Projections.SalesReport.SalesReportDb;
 using EventCore.StatefulSubscriber;
 using System;
 using System.Threading;
@@ -8,13 +9,11 @@ namespace EventCore.Samples.Ecommerce.Projections.SalesReport
 {
 	public class SalesReportProjector : Projector
 	{
-		public SalesReportProjector(ProjectorBaseDependencies dependencies) : base(dependencies.Logger, dependencies.SubscriberFactory, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds)
-		{
-		}
+		private readonly IDbContextScopeFactory<SalesReportDbContext> _dbScopeFactory;
 
-		public override Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
+		public SalesReportProjector(ProjectorBaseDependencies dependencies, IDbContextScopeFactory<SalesReportDbContext> dbScopeFactory) : base(dependencies.Logger, dependencies.SubscriberFactory, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds)
 		{
-			throw new NotImplementedException();
+			_dbScopeFactory = dbScopeFactory;
 		}
 	}
 }

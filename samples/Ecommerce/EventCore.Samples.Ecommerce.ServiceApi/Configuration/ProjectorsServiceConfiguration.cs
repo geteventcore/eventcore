@@ -20,14 +20,18 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 		public static void Configure(IConfiguration config, IServiceCollection services)
 		{
 			services.AddSingleton<ISubscriberFactory, SubscriberFactory>();
+
+			// EmailQueue
 			AddDbContextScopeFactory<Projections.EmailQueue.EmailQueueDb.EmailQueueDbContext>(services);
 			services.AddDbContext<Projections.EmailQueue.EmailQueueDb.EmailQueueDbContext>(o => o.UseSqlServer(ConnectionStrings.Get(config).ProjectionsDb));
-
 			services.AddSingleton<Projections.EmailQueue.EmailQueueProjector>(sp => (Projections.EmailQueue.EmailQueueProjector)BuildProjector<Projections.EmailQueue.EmailQueueProjector>(sp, config));
 			services.AddHostedService<ProjectorHostedService<Projections.EmailQueue.EmailQueueProjector>>();
 
-			// services.AddSingleton<Projections.SalesReport.SalesReportProjector>(sp => (Projections.SalesReport.SalesReportProjector)BuildProjector<Projections.SalesReport.SalesReportProjector>(sp, config));
-			// services.AddHostedService<ProjectorHostedService<Projections.SalesReport.SalesReportProjector>>();
+			// SalesReport
+			AddDbContextScopeFactory<Projections.SalesReport.SalesReportDb.SalesReportDbContext>(services);
+			services.AddDbContext<Projections.SalesReport.SalesReportDb.SalesReportDbContext>(o => o.UseSqlServer(ConnectionStrings.Get(config).ProjectionsDb));
+			services.AddSingleton<Projections.SalesReport.SalesReportProjector>(sp => (Projections.SalesReport.SalesReportProjector)BuildProjector<Projections.SalesReport.SalesReportProjector>(sp, config));
+			services.AddHostedService<ProjectorHostedService<Projections.SalesReport.SalesReportProjector>>();
 		}
 
 		private static void AddDbContextScopeFactory<TContext>(IServiceCollection services)
@@ -57,7 +61,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 				return new Projections.EmailQueue.EmailQueueProjector(baseDependencies, sp.GetRequiredService<IDbContextScopeFactory<Projections.EmailQueue.EmailQueueDb.EmailQueueDbContext>>());
 
 			if (projectorType == typeof(Projections.SalesReport.SalesReportProjector))
-				return new Projections.SalesReport.SalesReportProjector(baseDependencies);
+				return new Projections.SalesReport.SalesReportProjector(baseDependencies, sp.GetRequiredService<IDbContextScopeFactory<Projections.SalesReport.SalesReportDb.SalesReportDbContext>>());
 
 			return null;
 		}

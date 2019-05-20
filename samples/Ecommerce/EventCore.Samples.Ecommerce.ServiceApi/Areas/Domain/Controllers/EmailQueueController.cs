@@ -5,10 +5,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.ServiceApi.Controllers
+namespace EventCore.Samples.Ecommerce.ServiceApi.Areas.Domain.Controllers
 {
-	[Route("domain/[controller]")]
+	[Route("[area]/[controller]")]
 	[ApiController]
+	[Area("domain")]
 	public class EmailQueueController : ControllerBase
 	{
 		private readonly EmailQueueAggregate _ar;
