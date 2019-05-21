@@ -46,12 +46,12 @@ namespace EventCore.ProcessManagers
 
 		protected virtual async Task EnqueueProcessAsync<TProcess>(string processId, DateTime? dueUtc) where TProcess : IProcess
 		{
-			await _stateRepo.AddOrUpdateProcessAsync(typeof(TProcess).Name, processId, dueUtc.GetValueOrDefault(DateTime.UtcNow));
+			await _stateRepo.AddOrUpdateQueuedProcessAsync(typeof(TProcess).Name, processId, dueUtc.GetValueOrDefault(DateTime.UtcNow));
 		}
 
 		protected virtual async Task TerminateProcessAsync<TProcess>(string processId) where TProcess : IProcess
 		{
-			await _stateRepo.RemoveProcessAsync(typeof(TProcess).Name, processId);
+			await _stateRepo.RemoveQueuedProcessAsync(typeof(TProcess).Name, processId);
 		}
 
 		protected virtual async Task ExecuteProcessAsync(string processType, string processId)
@@ -75,6 +75,8 @@ namespace EventCore.ProcessManagers
 
 		public virtual async Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
 		{
+			// TODO: Check for caught-up condition and trigger signal...
+
 			// Does nothing if no handler - event is ignored.
 			if (this.GetType().GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IHandleBusinessEvent<>) && x.GetGenericArguments()[0] == subscriberEvent.ResolvedEventType))
 			{
