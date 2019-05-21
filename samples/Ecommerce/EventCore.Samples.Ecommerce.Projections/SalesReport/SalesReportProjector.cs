@@ -19,13 +19,13 @@ namespace EventCore.Samples.Ecommerce.Projections.SalesReport
 
 		public override string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
 		{
-			if (subscriberEvent.IsResolved)
-			{
-				switch (subscriberEvent.ResolvedEvent)
-				{
-					case SalesOrderRaisedEvent e: return e.SalesOrderId;
-				}
-			}
+			// if (subscriberEvent.IsResolved)
+			// {
+			// 	switch (subscriberEvent.ResolvedEvent)
+			// 	{
+			// 		case SalesOrderRaisedEvent e: return e.SalesOrderId;
+			// 	}
+			// }
 
 			return base.SortSubscriberEventToParallelKey(subscriberEvent);
 		}

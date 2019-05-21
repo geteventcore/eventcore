@@ -14,6 +14,5 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 			AggregateRootsServiceConfiguration.Configure(config, services);
 			ProjectorsServiceConfiguration.Configure(config, services);
 		}
-
 	}
 }

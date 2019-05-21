@@ -46,17 +46,15 @@ namespace EventCore.StatefulSubscriber
 			}
 		}
 
-		public StreamEvent TryDequeue()
+		public bool TryDequeue(out StreamEvent streamEvent)
 		{
-			StreamEvent streamEvent;
-
 			if (_queue.TryDequeue(out streamEvent))
 			{
 				_awaiter.SetDequeueSignal(); // Signal that we've dequeued an item.
-				return streamEvent;
+				return true;
 			}
 
-			return null;
+			return false;
 		}
 
 		public  Task AwaitEnqueueSignalAsync() => _awaiter.AwaitEnqueueSignalAsync();

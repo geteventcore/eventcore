@@ -219,7 +219,7 @@ namespace EventCore.Samples.EventStore.StreamClient
 			{
 				// Known bug in ES, must manually stop subscription or sub will continue delivering events.
 				// https://groups.google.com/forum/#!searchin/event-store/subscription/event-store/AdKzv8TxabM/6RzudeuAAgAJ
-				_sub.Stop(); 
+				_sub.Stop();
 				Subscribe();
 			}
 

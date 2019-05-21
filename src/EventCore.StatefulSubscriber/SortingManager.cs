@@ -28,8 +28,9 @@ namespace EventCore.StatefulSubscriber
 			{
 				while (!cancellationToken.IsCancellationRequested)
 				{
-					var subscriberEvent = _sortingQueue.TryDequeue();
-					if (subscriberEvent != null)
+					SubscriberEvent subscriberEvent;
+
+					while (_sortingQueue.TryDequeue(out subscriberEvent))
 					{
 						// Expecting a case INsensitive key used to group executions.
 						var parallelKey = _sorter.SortSubscriberEventToParallelKey(subscriberEvent);
@@ -40,6 +41,7 @@ namespace EventCore.StatefulSubscriber
 						// Send to the handling manager.
 						await _handlingManager.ReceiveSubscriberEventAsync(parallelKey, subscriberEvent, cancellationToken);
 					}
+
 					await Task.WhenAny(new Task[] { _sortingQueue.AwaitEnqueueSignalAsync(), cancellationToken.WaitHandle.AsTask() });
 				}
 			}

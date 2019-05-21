@@ -9,11 +9,11 @@ namespace EventCore.Samples.Ecommerce.Projections.SalesReport
 	public partial class SalesReportProjector :
 		IHandleBusinessEvent<SalesOrderRaisedEvent>
 	{
+		private static int _counter = 0;
 		public async Task HandleBusinessEventAsync(string streamId, long position, SalesOrderRaisedEvent e, CancellationToken cancellationToken)
 		{
 			using (var scope = _dbScopeFactory.Create())
 			{
-				System.Console.WriteLine($"sales order... {e.SalesOrderId}");
 				if (!scope.Db.ExistsSalesOrderId(e.SalesOrderId))
 				{
 					scope.Db.SalesOrder.Add(new SalesOrderDbModel() { SalesOrderId = e.SalesOrderId });

@@ -32,8 +32,8 @@ namespace EventCore.StatefulSubscriber
 			{
 				while (!cancellationToken.IsCancellationRequested)
 				{
-					var streamEvent = _resolutionQueue.TryDequeue();
-					if (streamEvent != null)
+					StreamEvent streamEvent;
+					while (_resolutionQueue.TryDequeue(out streamEvent))
 					{
 						IBusinessEvent businessEvent = null;
 

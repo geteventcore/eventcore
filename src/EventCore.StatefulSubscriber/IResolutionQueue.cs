@@ -8,6 +8,6 @@ namespace EventCore.StatefulSubscriber
 	{
 		Task AwaitEnqueueSignalAsync();
 		Task EnqueueWithWaitAsync(StreamEvent streamEvent, CancellationToken cancellationToken);
-		StreamEvent TryDequeue();
+		bool TryDequeue(out StreamEvent streamEvent);
 	}
 }
