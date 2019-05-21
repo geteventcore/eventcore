@@ -21,11 +21,11 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 		{
 			services.AddSingleton<ISubscriberFactory, SubscriberFactory>();
 
-			// // EmailQueue
-			// AddDbContextScopeFactory<Projections.EmailReport.EmailReportDb.EmailReportDbContext>(services);
-			// services.AddDbContext<Projections.EmailReport.EmailReportDb.EmailReportDbContext>(o => o.UseSqlServer(ConnectionStrings.Get(config).ProjectionsDb));
-			// services.AddSingleton<Projections.EmailReport.EmailReportProjector>(sp => (Projections.EmailReport.EmailReportProjector)BuildProjector<Projections.EmailReport.EmailReportProjector>(sp, config));
-			// services.AddHostedService<ProjectorHostedService<Projections.EmailReport.EmailReportProjector>>();
+			// EmailQueue
+			AddDbContextScopeFactory<Projections.EmailReport.EmailReportDb.EmailReportDbContext>(services);
+			services.AddDbContext<Projections.EmailReport.EmailReportDb.EmailReportDbContext>(o => o.UseSqlServer(ConnectionStrings.Get(config).ProjectionsDb));
+			services.AddSingleton<Projections.EmailReport.EmailReportProjector>(sp => (Projections.EmailReport.EmailReportProjector)BuildProjector<Projections.EmailReport.EmailReportProjector>(sp, config));
+			services.AddHostedService<ProjectorHostedService<Projections.EmailReport.EmailReportProjector>>();
 
 			// SalesReport
 			AddDbContextScopeFactory<Projections.SalesReport.SalesReportDb.SalesReportDbContext>(services);
