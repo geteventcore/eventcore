@@ -26,7 +26,7 @@ namespace EventCore.Projectors
 			_subscriber = subscriberFactory.Create(logger, streamClientFactory, streamStateRepo, eventResolver, this, this, subscriberFactoryOptions, subscriptionStreamIds);
 		}
 
-		public async Task RunAsync(CancellationToken cancellationToken)
+		public virtual async Task RunAsync(CancellationToken cancellationToken)
 		{
 			await _subscriber.SubscribeAsync(cancellationToken);
 		}
