@@ -13,6 +13,11 @@ namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement
 	{
 		private readonly IDbContextScopeFactory<ProcessManagerStateDbContext> _dbScopeFactory;
 
+		public ProcessManagerStateRepo(IDbContextScopeFactory<ProcessManagerStateDbContext> dbScopeFactory)
+		{
+			_dbScopeFactory = dbScopeFactory;
+		}
+
 		public async Task AddOrUpdateQueuedProcessAsync(string processType, string processId, DateTime dueUtc)
 		{
 			using (var dbScope = _dbScopeFactory.Create())
