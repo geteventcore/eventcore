@@ -1,7 +1,7 @@
 using System;
 using Xunit;
 
-namespace EventCore.ProcessManagers
+namespace EventCore.Projectors.Tests
 {
     public class UnitTest1
     {

@@ -1,4 +1,5 @@
 ﻿using EventCore.Samples.Ecommerce.Projections;
+using EventCore.Samples.Ecommerce.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

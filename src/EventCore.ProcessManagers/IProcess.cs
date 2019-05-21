@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace EventCore.ProcessManagers
 {
-	public interface IProcess : IDisposable
+	public interface IProcess
 	{
 		Task ExecuteAsync(string processId);
 	}

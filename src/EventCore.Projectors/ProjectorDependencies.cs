@@ -3,9 +3,9 @@ using EventCore.StatefulSubscriber;
 using EventCore.Utilities;
 using System.Collections.Generic;
 
-namespace EventCore.Samples.Ecommerce.Projections
+namespace EventCore.Projectors
 {
-	public class ProjectorBaseDependencies
+	public class ProjectorDependencies
 	{
 		public readonly IStandardLogger Logger;
 		public readonly ISubscriberFactory SubscriberFactory;
@@ -15,7 +15,7 @@ namespace EventCore.Samples.Ecommerce.Projections
 		public readonly SubscriberFactoryOptions SubscriberFactoryOptions;
 		public readonly IList<SubscriptionStreamId> SubscriptionStreamIds;
 
-		public ProjectorBaseDependencies(IStandardLogger logger, ISubscriberFactory subscriberFactory, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver eventResolver, SubscriberFactoryOptions subscriberFactoryOptions, IList<SubscriptionStreamId> subscriptionStreamIds)
+		public ProjectorDependencies(IStandardLogger logger, ISubscriberFactory subscriberFactory, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver eventResolver, SubscriberFactoryOptions subscriberFactoryOptions, IList<SubscriptionStreamId> subscriptionStreamIds)
 		{
 			Logger = logger;
 			SubscriberFactory = subscriberFactory;

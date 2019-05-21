@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace EventCore.Samples.Ecommerce.Projections
+namespace EventCore.Samples.Ecommerce.Shared
 {
 	public interface IDbContextScopeFactory<TContext> where TContext : DbContext
 	{

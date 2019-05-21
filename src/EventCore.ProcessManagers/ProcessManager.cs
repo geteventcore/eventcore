@@ -1,66 +1,85 @@
-﻿using System;
+﻿using EventCore.StatefulSubscriber;
+using EventCore.Utilities;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventCore.ProcessManagers
 {
-	public abstract class ProcessManager : IProcessManager
+	public abstract class ProcessManager : IProcessManager, ISubscriberEventSorter, ISubscriberEventHandler
 	{
-		protected readonly Dictionary<string, Type> _processTypesByName;
-		protected readonly Dictionary<Type, string> _processTypesByType;
+		// This can be anything except null or empty.
+		// Must have a default way to group events to be handled.
+		protected const string DEFAULT_PARALLEL_KEY = ".";
 
+		protected readonly IStandardLogger _logger;
+		protected readonly ISubscriber _subscriber;
 		protected readonly IProcessManagerStateRepo _stateRepo;
 
-		public ProcessManager()
+		protected readonly HashSet<IProcess> _processes = new HashSet<IProcess>();
+		protected readonly ManualResetEventSlim _isHydrationCaughtUpSignal = new ManualResetEventSlim(false);
+
+		public ProcessManager(ProcessManagerDependencies dependencies)
 		{
-			MapProcessTypes();
+			_logger = dependencies.Logger;
+			_subscriber = dependencies.SubscriberFactory.Create(dependencies.Logger, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, this, this, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds);
+			_stateRepo = dependencies.ProcessManagerStateRepo;
 		}
 
-		protected virtual void MapProcessTypes()
+		public virtual async Task RunAsync(CancellationToken cancellationToken)
 		{
-			// Populate _processTypes for each IHaveProcess<TProcess>.
+			await Task.WhenAll(new[] { _subscriber.SubscribeAsync(cancellationToken), ManageAsync(cancellationToken) });
 		}
 
-		public virtual Task RunAsync(CancellationToken cancellationToken)
+		protected virtual async Task ManageAsync(CancellationToken cancellationToken)
 		{
-			// Run hydration.
+			await Task.WhenAny(new[] { _isHydrationCaughtUpSignal.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
 
-			// Wait for caught-up signal, then run manager.
-
-			// Wait for both tasks to complete.
-
-			throw new NotImplementedException();
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				// Run processes in order of due date.
+			}
 		}
 
-		protected virtual Task HydrateAsync(CancellationToken cancellationToken)
+		protected virtual async Task EnqueueProcessAsync<TProcess>(string processId, DateTime? dueUtc) where TProcess : IProcess
 		{
-			throw new NotImplementedException();
-		}
-
-		protected virtual Task ManageAsync(CancellationToken cancellationToken)
-		{
-			throw new NotImplementedException();
-		}
-
-		protected virtual async Task EnqueueProcessAsync<TProcess>(string processId, DateTime dueUtc) where TProcess : IProcess
-		{
-			await _stateRepo.AddOrUpdateProcessAsync(_processTypesByType[typeof(TProcess)], processId, dueUtc);
+			await _stateRepo.AddOrUpdateProcessAsync(typeof(TProcess).Name, processId, dueUtc.GetValueOrDefault(DateTime.UtcNow));
 		}
 
 		protected virtual async Task TerminateProcessAsync<TProcess>(string processId) where TProcess : IProcess
 		{
-			await _stateRepo.RemoveProcessAsync(_processTypesByType[typeof(TProcess)], processId);
+			await _stateRepo.RemoveProcessAsync(typeof(TProcess).Name, processId);
 		}
 
 		protected virtual async Task ExecuteProcessAsync(string processType, string processId)
 		{
-			var type = _processTypesByName[processType];
-			var method = this.GetType().GetMethod("CreateProcess");
-			var generic = method.MakeGenericMethod(type);
-			var process = (IProcess)generic.Invoke(this, null);
+			var process = (IProcess)_processes.First(x => string.Equals(x.GetType().Name, processType, StringComparison.OrdinalIgnoreCase));
 			await process.ExecuteAsync(processId);
+		}
+
+		protected virtual void RegisterProcess<TProcess>(TProcess process) where TProcess : IProcess
+		{
+			_processes.Add(process);
+		}
+
+		public virtual string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
+		{
+			// Default is no parallel key, i.e. all events from the subscription stream
+			// will be handled sequentially with no optimization to execute events in parallel.
+			// The implementing class should override this if events can be consumed in parallel.
+			return DEFAULT_PARALLEL_KEY; // Sorting keys may not be null or empty.
+		}
+
+		public virtual async Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
+		{
+			// Does nothing if no handler - event is ignored.
+			if (this.GetType().GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IHandleBusinessEvent<>) && x.GetGenericArguments()[0] == subscriberEvent.ResolvedEventType))
+			{
+				await (Task)this.GetType().InvokeMember("HandleBusinessEventAsync", BindingFlags.InvokeMethod, null, this, new object[] { subscriberEvent.StreamId, subscriberEvent.Position, subscriberEvent.ResolvedEvent, cancellationToken });
+			}
 		}
 	}
 }

@@ -1,10 +1,7 @@
 ﻿using EventCore.Projectors;
-using EventCore.Samples.Ecommerce.Domain.Events;
 using EventCore.Samples.Ecommerce.Projections.SalesReport.SalesReportDb;
+using EventCore.Samples.Ecommerce.Shared;
 using EventCore.StatefulSubscriber;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.Projections.SalesReport
 {
@@ -12,7 +9,7 @@ namespace EventCore.Samples.Ecommerce.Projections.SalesReport
 	{
 		private readonly IDbContextScopeFactory<SalesReportDbContext> _dbScopeFactory;
 
-		public SalesReportProjector(ProjectorBaseDependencies dependencies, IDbContextScopeFactory<SalesReportDbContext> dbScopeFactory) : base(dependencies.Logger, dependencies.SubscriberFactory, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds)
+		public SalesReportProjector(ProjectorDependencies dependencies, IDbContextScopeFactory<SalesReportDbContext> dbScopeFactory) : base(dependencies)
 		{
 			_dbScopeFactory = dbScopeFactory;
 		}

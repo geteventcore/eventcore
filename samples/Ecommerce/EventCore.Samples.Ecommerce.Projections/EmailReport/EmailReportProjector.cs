@@ -1,6 +1,7 @@
 ﻿using EventCore.Projectors;
 using EventCore.Samples.Ecommerce.Domain.Events;
 using EventCore.Samples.Ecommerce.Projections.EmailReport.EmailReportDb;
+using EventCore.Samples.Ecommerce.Shared;
 using EventCore.StatefulSubscriber;
 using System;
 using System.Threading;
@@ -12,7 +13,7 @@ namespace EventCore.Samples.Ecommerce.Projections.EmailReport
 	{
 		private readonly IDbContextScopeFactory<EmailReportDbContext> _dbScopeFactory;
 
-		public EmailReportProjector(ProjectorBaseDependencies dependencies, IDbContextScopeFactory<EmailReportDbContext> dbScopeFactory) : base(dependencies.Logger, dependencies.SubscriberFactory, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds)
+		public EmailReportProjector(ProjectorDependencies dependencies, IDbContextScopeFactory<EmailReportDbContext> dbScopeFactory) : base(dependencies)
 		{
 			_dbScopeFactory = dbScopeFactory;
 		}

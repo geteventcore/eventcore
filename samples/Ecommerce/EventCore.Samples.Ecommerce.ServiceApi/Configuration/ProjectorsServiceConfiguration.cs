@@ -4,6 +4,7 @@ using EventCore.Samples.Ecommerce.Domain;
 using EventCore.Samples.Ecommerce.Projections;
 using EventCore.Samples.Ecommerce.ServiceApi.Infrastructure;
 using EventCore.Samples.Ecommerce.ServiceApi.Settings;
+using EventCore.Samples.Ecommerce.Shared;
 using EventCore.StatefulSubscriber;
 using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;
@@ -55,7 +56,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 
 			var projectorType = typeof(TProjector);
 
-			var baseDependencies = new ProjectorBaseDependencies(logger, subscriberFactory, streamClientFactory, streamStateRepo, resolver, subFactoryOptions, MapSubscriptionStreams(sharedSettings.SubscriptionStreams));
+			var baseDependencies = new ProjectorDependencies(logger, subscriberFactory, streamClientFactory, streamStateRepo, resolver, subFactoryOptions, MapSubscriptionStreams(sharedSettings.SubscriptionStreams));
 
 			if (projectorType == typeof(Projections.EmailReport.EmailReportProjector))
 				return new Projections.EmailReport.EmailReportProjector(baseDependencies, sp.GetRequiredService<IDbContextScopeFactory<Projections.EmailReport.EmailReportDb.EmailReportDbContext>>());
