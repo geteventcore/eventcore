@@ -1,0 +1,1 @@
+. dotnet_run_cli.sh clearStatefulSubscriberErrors

@@ -16,8 +16,13 @@ namespace EventCore.Samples.Ecommerce.Cli
 			public bool Verbose { get; set; }
 		}
 
-		[Verb("clearErrors", HelpText = "Clear errors on all subscriber stream states.")]
-		public class ClearErrorsOptions
+		[Verb("clearStatefulSubscriberErrors", HelpText = "Clear errors on all stateful subscriber stream states.")]
+		public class ClearStatefulSubscriberErrorsOptions
+		{
+		}
+
+		[Verb("resetStatefulSubscribers", HelpText = "Reset stream states for all stateful subscribers.")]
+		public class ResetStatefulSubscribersOptions
 		{
 		}
 	}

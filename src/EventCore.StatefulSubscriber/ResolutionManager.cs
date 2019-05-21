@@ -33,7 +33,7 @@ namespace EventCore.StatefulSubscriber
 				while (!cancellationToken.IsCancellationRequested)
 				{
 					StreamEvent streamEvent;
-					while (_resolutionQueue.TryDequeue(out streamEvent))
+					while (!cancellationToken.IsCancellationRequested && _resolutionQueue.TryDequeue(out streamEvent))
 					{
 						IBusinessEvent businessEvent = null;
 

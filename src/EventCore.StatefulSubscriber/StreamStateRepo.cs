@@ -152,12 +152,10 @@ namespace EventCore.StatefulSubscriber
 			return Task.CompletedTask;
 		}
 
-		public async Task ClearStreamStateErrorsAsync(CancellationToken cancellationToken)
+		public async Task ClearStreamStateErrorsAsync()
 		{
 			foreach (var stateFilePath in Directory.EnumerateFiles(BuildStreamStateDirectoryPath()))
-			{
-				if(cancellationToken.IsCancellationRequested) return;
-				
+			{	
 				var state = TryLoadStreamState(stateFilePath);
 				if(state != null && state.HasError)
 				{

@@ -91,14 +91,14 @@ namespace EventCore.StatefulSubscriber
 			}
 		}
 
-		public async Task ClearStreamStateErrorsAsync(CancellationToken cancellationToken)
+		public async Task ClearStreamStateErrorsAsync()
 		{
 			if (_isSubscribing)
 				throw new InvalidOperationException("Can't clear stream state errors while subscribing.");
 
 			try
 			{
-				await _streamStateRepo.ClearStreamStateErrorsAsync(cancellationToken);
+				await _streamStateRepo.ClearStreamStateErrorsAsync();
 			}
 			catch (Exception ex)
 			{

@@ -7,13 +7,13 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.Cli.Actions
 {
-	public class ClearErrorsAction : IAction
+	public class ResetStatefulSubscribersAction : IAction
 	{
-		private readonly Options.ClearErrorsOptions _options;
+		private readonly Options.ResetStatefulSubscribersOptions _options;
 		private readonly IStandardLogger _logger;
 		private readonly IConfiguration _config;
 
-		public ClearErrorsAction(Options.ClearErrorsOptions options, IStandardLogger logger, IConfiguration config)
+		public ResetStatefulSubscribersAction(Options.ResetStatefulSubscribersOptions options, IStandardLogger logger, IConfiguration config)
 		{
 			_options = options;
 			_logger = logger;
@@ -22,7 +22,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 
 		public async Task RunAsync()
 		{
-			Console.WriteLine("Clearing errors for all subscriber stream states.");
+			Console.WriteLine("Resetting all stateful subscriber stream states.");
 
 			// StatefulSubscriber keeps track of streams for which handlers have thrown errors.
 			// When a handler throws an unhandled exception, no further events will be handled on the stream
@@ -33,8 +33,8 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 			// handler where a bug caused the unhandled exception.
 
 			// Clear stream state errors for projectors.
-			await ClearStreamStateAsync(_config.GetValue<string>("StreamStatePaths:EmailReportProjector"));
-			await ClearStreamStateAsync(_config.GetValue<string>("StreamStatePaths:SalesReportProjector"));
+			await ResetStreamStateAsync(_config.GetValue<string>("StatefulSubscriberStreamStatePaths:EmailReportProjector"));
+			await ResetStreamStateAsync(_config.GetValue<string>("StatefulSubscriberStreamStatePaths:SalesReportProjector"));
 
 			// Clear stream state errors for process managers.
 			// ...
@@ -42,9 +42,9 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 			// Clear stream state errors for integrators.
 			// ...
 
-			Console.WriteLine("Done clearing errors.");
+			Console.WriteLine("Done resetting states.");
 		}
 
-		public Task ClearStreamStateAsync(string basePath) => new StreamStateRepo(_logger, basePath).ClearStreamStateErrorsAsync(CancellationToken.None);
+		private Task ResetStreamStateAsync(string basePath) => new StreamStateRepo(_logger, basePath).ResetStreamStatesAsync();
 	}
 }

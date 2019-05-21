@@ -158,14 +158,13 @@ namespace EventCore.StatefulSubscriber.Tests
 		[Fact]
 		public async Task clear_stream_state_errors()
 		{
-			var cts = new CancellationTokenSource();
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var options = new SubscriberOptions(new List<SubscriptionStreamId>());
 			var subscriber = new Subscriber(NullStandardLogger.Instance, null, null, null, null, mockStreamStateRepo.Object, options);
 
-			await subscriber.ClearStreamStateErrorsAsync(cts.Token);
+			await subscriber.ClearStreamStateErrorsAsync();
 
-			mockStreamStateRepo.Verify(x => x.ClearStreamStateErrorsAsync(cts.Token));
+			mockStreamStateRepo.Verify(x => x.ClearStreamStateErrorsAsync());
 		}
 	}
 }

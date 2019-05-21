@@ -22,7 +22,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
 
-			mockQueue.Setup(x => x.TryDequeue()).Returns((SubscriberEvent)null);
+			mockQueue.Setup(x => x.TryDequeue(out It.Ref<SubscriberEvent>.IsAny)).Returns(false);
 			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockEnqueueSignal.WaitHandle.AsTask());
 
 			var manageTask = manager.ManageAsync(cts.Token);
@@ -46,7 +46,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockQueue = new Mock<ISortingQueue>();
 			var manager = new SortingManager(NullStandardLogger.Instance, mockQueue.Object, null, null);
 
-			mockQueue.Setup(x => x.TryDequeue()).Throws(ex);
+			mockQueue.Setup(x => x.TryDequeue(out It.Ref<SubscriberEvent>.IsAny)).Throws(ex);
 
 			await Assert.ThrowsAsync<TestException>(() => manager.ManageAsync(cts.Token));
 		}
@@ -61,7 +61,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = ""; // Must be empty (or null).
 
-			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
+			mockQueue.Setup(x => x.TryDequeue(out subscriberEvent)).Returns(true);
 			mockSorter.Setup(x => x.SortSubscriberEventToParallelKey(subscriberEvent)).Returns(parallelKey);
 
 			await Assert.ThrowsAsync<ArgumentException>(() => manager.ManageAsync(cts.Token));
@@ -78,7 +78,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 			var parallelKey = "x";
 
-			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
+			mockQueue.Setup(x => x.TryDequeue(out subscriberEvent)).Returns(true);
 			mockSorter.Setup(x => x.SortSubscriberEventToParallelKey(subscriberEvent)).Returns(parallelKey);
 			mockHandlingManager
 				.Setup(x => x.ReceiveSubscriberEventAsync(It.IsAny<string>(), It.IsAny<SubscriberEvent>(), It.IsAny<CancellationToken>()))
@@ -103,7 +103,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
 
-			mockQueue.Setup(x => x.TryDequeue()).Returns(subscriberEvent);
+			mockQueue.Setup(x => x.TryDequeue(out It.Ref<SubscriberEvent>.IsAny)).Returns(false);
 			mockSorter.Setup(x => x.SortSubscriberEventToParallelKey(subscriberEvent)).Returns(parallelKey);
 			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockEnqueueSignal.WaitHandle.AsTask());
 

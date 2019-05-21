@@ -20,8 +20,11 @@ namespace EventCore.StatefulSubscriber.Tests
 			var streamEvent = new StreamEvent("s", 1, null, "x", new byte[] { });
 
 			await queue.EnqueueWithWaitAsync(streamEvent, cts.Token);
-			var dequeuedStreamEvent = queue.TryDequeue();
+			StreamEvent dequeuedStreamEvent;
 
+			var tryResult = queue.TryDequeue(out dequeuedStreamEvent);
+
+			Assert.True(tryResult);
 			Assert.Equal(streamEvent, dequeuedStreamEvent);
 		}
 
@@ -34,7 +37,8 @@ namespace EventCore.StatefulSubscriber.Tests
 			var queue = new ResolutionQueue(mockQueueAwaiter.Object, maxQueueSize);
 			var streamEvent = new StreamEvent("s", 1, null, "x", new byte[] { });
 
-			queue.TryDequeue();
+			StreamEvent se1;
+			queue.TryDequeue(out se1);
 
 			mockQueueAwaiter.VerifyNoOtherCalls();
 
@@ -43,7 +47,9 @@ namespace EventCore.StatefulSubscriber.Tests
 			mockQueueAwaiter.Verify(x => x.SetEnqueueSignal());
 			mockQueueAwaiter.VerifyNoOtherCalls();
 
-			queue.TryDequeue();
+
+			StreamEvent se2;
+			queue.TryDequeue(out se2);
 			mockQueueAwaiter.Verify(x => x.SetDequeueSignal());
 		}
 
@@ -86,7 +92,8 @@ namespace EventCore.StatefulSubscriber.Tests
 			Assert.Equal(2, enqueueuSignalSetCount);
 			Assert.Equal(maxQueueSize, queue.QueueCount);
 
-			queue.TryDequeue();
+			StreamEvent se1;
+			queue.TryDequeue(out se1);
 			Assert.Equal(maxQueueSize - 1, queue.QueueCount);
 
 			mockDequeueSignal.Set();

@@ -30,7 +30,7 @@ namespace EventCore.StatefulSubscriber
 				{
 					SubscriberEvent subscriberEvent;
 
-					while (_sortingQueue.TryDequeue(out subscriberEvent))
+					while (!cancellationToken.IsCancellationRequested && _sortingQueue.TryDequeue(out subscriberEvent))
 					{
 						// Expecting a case INsensitive key used to group executions.
 						var parallelKey = _sorter.SortSubscriberEventToParallelKey(subscriberEvent);

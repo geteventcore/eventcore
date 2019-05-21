@@ -1,1 +1,0 @@
-. dotnet_run_cli.sh clearErrors

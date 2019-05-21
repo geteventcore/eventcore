@@ -9,6 +9,6 @@ namespace EventCore.StatefulSubscriber
 		Task SaveStreamStateAsync(string streamId, long lastAttemptedPosition, bool hasError);
 		Task<StreamState> LoadStreamStateAsync(string streamId);
 		Task ResetStreamStatesAsync();
-		Task ClearStreamStateErrorsAsync(CancellationToken cancellationToken);
+		Task ClearStreamStateErrorsAsync();
 	}
 }

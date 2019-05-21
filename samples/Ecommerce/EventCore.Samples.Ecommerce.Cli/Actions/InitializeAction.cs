@@ -1,4 +1,5 @@
-﻿using EventCore.Utilities;
+﻿using EventCore.StatefulSubscriber;
+using EventCore.Utilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -8,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.Cli.Actions
@@ -97,7 +99,7 @@ namespace EventCore.Samples.Ecommerce.Cli.Actions
 		{
 			var context = ctor(new DbContextOptionsBuilder<TContext>().UseSqlServer(connectionString).Options);
 			var creator = ((RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>());
-			if(!(await creator.ExistsAsync()))
+			if (!(await creator.ExistsAsync()))
 			{
 				await creator.CreateAsync();
 			}

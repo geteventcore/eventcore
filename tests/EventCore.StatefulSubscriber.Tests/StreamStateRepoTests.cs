@@ -146,7 +146,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			Assert.NotNull(await repo.LoadStreamStateAsync(streamId1));
 			Assert.NotNull(await repo.LoadStreamStateAsync(streamId2));
 
-			await repo.ClearStreamStateErrorsAsync(CancellationToken.None);
+			await repo.ClearStreamStateErrorsAsync();
 
 			var state1 = await repo.LoadStreamStateAsync(streamId1);
 			var state2 = await repo.LoadStreamStateAsync(streamId2);

@@ -20,8 +20,11 @@ namespace EventCore.StatefulSubscriber.Tests
 			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 
 			await queue.EnqueueWithWaitAsync(subscriberEvent, cts.Token);
-			var dequeuedSubscriberEvent = queue.TryDequeue();
+			SubscriberEvent dequeuedSubscriberEvent;
 
+			var tryResult = queue.TryDequeue(out dequeuedSubscriberEvent);
+
+			Assert.True(tryResult);
 			Assert.Equal(subscriberEvent, dequeuedSubscriberEvent);
 		}
 
@@ -34,7 +37,8 @@ namespace EventCore.StatefulSubscriber.Tests
 			var queue = new SortingQueue(mockQueueAwaiter.Object, maxQueueSize);
 			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
 
-			queue.TryDequeue();
+			SubscriberEvent se1;
+			queue.TryDequeue(out se1);
 
 			mockQueueAwaiter.VerifyNoOtherCalls();
 
@@ -43,7 +47,8 @@ namespace EventCore.StatefulSubscriber.Tests
 			mockQueueAwaiter.Verify(x => x.SetEnqueueSignal());
 			mockQueueAwaiter.VerifyNoOtherCalls();
 
-			queue.TryDequeue();
+			SubscriberEvent se2;
+			queue.TryDequeue(out se2);
 			mockQueueAwaiter.Verify(x => x.SetDequeueSignal());
 		}
 
@@ -85,7 +90,8 @@ namespace EventCore.StatefulSubscriber.Tests
 			Assert.Equal(2, enqueueuSignalSetCount);
 			Assert.Equal(maxQueueSize, queue.QueueCount);
 
-			queue.TryDequeue();
+			SubscriberEvent se1;
+			queue.TryDequeue(out se1);
 			Assert.Equal(maxQueueSize - 1, queue.QueueCount);
 
 			mockDequeueSignal.Set();

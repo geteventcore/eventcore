@@ -9,6 +9,6 @@ namespace EventCore.StatefulSubscriber
 	{
 		Task SubscribeAsync(CancellationToken cancellationToken);
 		Task ResetStreamStatesAsync();
-		Task ClearStreamStateErrorsAsync(CancellationToken cancellationToken);
+		Task ClearStreamStateErrorsAsync();
 	}
 }
