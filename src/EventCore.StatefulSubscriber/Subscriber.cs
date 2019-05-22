@@ -109,7 +109,7 @@ namespace EventCore.StatefulSubscriber
 			}
 		}
 
-		public async Task<IDictionary<string, long?>> GetEndsOfSubscriptionAsync()
+		public async Task<IDictionary<string, long?>> GetRegionalEndsOfSubscriptionAsync()
 		{
 			try
 			{
@@ -120,7 +120,7 @@ namespace EventCore.StatefulSubscriber
 					using (var streamClient = _streamClientFactory.Create(subStreamId.RegionId))
 					{
 						var position = await streamClient.GetLastPositionInStreamAsync(subStreamId.StreamId);
-						ends.Add(subStreamId.StreamId, position);
+						ends.Add(subStreamId.RegionId, position);
 					}
 				}
 

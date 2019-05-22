@@ -19,7 +19,7 @@ namespace EventCore.EventSourcing.Tests
 			var builder = new StreamIdBuilder();
 			var aggregateRootName = "testAr";
 			var streamId = builder.Build(null, null, aggregateRootName, null);
-			Assert.Equal(streamId, aggregateRootName);
+			Assert.Equal(streamId, aggregateRootName, StringComparer.OrdinalIgnoreCase);
 		}
 
 		[Fact]
@@ -33,7 +33,7 @@ namespace EventCore.EventSourcing.Tests
 			var expectedStreamId = string.Join(StreamIdBuilder.SEPARATOR, regionId, context, aggregateRootName, aggregateRootId);
 			var actualStreamId = builder.Build(regionId, context, aggregateRootName, aggregateRootId);
 
-			Assert.Equal(expectedStreamId, actualStreamId);
+			Assert.Equal(expectedStreamId, actualStreamId, StringComparer.OrdinalIgnoreCase);
 		}
 	}
 }

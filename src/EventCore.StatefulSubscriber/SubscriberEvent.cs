@@ -5,6 +5,7 @@ namespace EventCore.StatefulSubscriber
 {
 	public class SubscriberEvent
 	{
+		public readonly string RegionId;
 		public readonly string StreamId;
 		public readonly long Position;
 		public readonly string SubscriptionStreamId;
@@ -14,20 +15,14 @@ namespace EventCore.StatefulSubscriber
 		public readonly Type ResolvedEventType;
 		public readonly IBusinessEvent ResolvedEvent;
 
-		public SubscriberEvent(string streamId, long position, string eventType, IBusinessEvent resolvedEvent)
+		public SubscriberEvent(string regionId, string streamId, long position, string eventType, IBusinessEvent resolvedEvent)
+			: this(regionId, streamId, position, streamId, position, eventType, resolvedEvent)
 		{
-			StreamId = streamId;
-			Position = position;
-			SubscriptionStreamId = streamId;
-			SubscriptionPosition = position;
-			EventType = eventType;
-			IsResolved = resolvedEvent != null;
-			ResolvedEventType = resolvedEvent?.GetType();
-			ResolvedEvent = resolvedEvent;
 		}
 
-		public SubscriberEvent(string streamId, long position, string subscriptionStreamId, long subscriptionPosition, string eventType, IBusinessEvent resolvedEvent)
+		public SubscriberEvent(string regionId, string streamId, long position, string subscriptionStreamId, long subscriptionPosition, string eventType, IBusinessEvent resolvedEvent)
 		{
+			RegionId = regionId;
 			StreamId = streamId;
 			Position = position;
 			SubscriptionStreamId = subscriptionStreamId;

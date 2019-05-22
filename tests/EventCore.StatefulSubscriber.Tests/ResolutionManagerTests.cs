@@ -21,7 +21,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var awaitingEnqueueSignal = new ManualResetEventSlim(false);
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
 
-			mockQueue.Setup(x => x.TryDequeue(out It.Ref<StreamEvent>.IsAny)).Returns(false);
+			mockQueue.Setup(x => x.TryDequeue(out It.Ref<ResolutionStreamEvent>.IsAny)).Returns(false);
 			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockEnqueueSignal.WaitHandle.AsTask());
 
 			var manageTask = manager.ManageAsync(cts.Token);
@@ -45,7 +45,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockQueue = new Mock<IResolutionQueue>();
 			var manager = new ResolutionManager(NullStandardLogger.Instance, null, null, mockQueue.Object, null);
 
-			mockQueue.Setup(x => x.TryDequeue(out It.Ref<StreamEvent>.IsAny)).Throws(ex);
+			mockQueue.Setup(x => x.TryDequeue(out It.Ref<ResolutionStreamEvent>.IsAny)).Throws(ex);
 
 			await Assert.ThrowsAsync<TestException>(() => manager.ManageAsync(cts.Token));
 		}
@@ -58,11 +58,12 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockQueue = new Mock<IResolutionQueue>();
 			var mockSortingManager = new Mock<ISortingManager>();
 			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, null, mockQueue.Object, mockSortingManager.Object);
+			var regionId = "r";
 			var streamId = "s";
 			var position = 1;
 			var eventType = "x";
 			var data = new byte[] { };
-			var streamEvent = new StreamEvent(streamId, position, null, eventType, data);
+			var streamEvent = new ResolutionStreamEvent(regionId, new StreamEvent(streamId, position, null, eventType, data));
 			var streamEventDequeued = false;
 			var mockBusinessEvent = new Mock<IBusinessEvent>();
 
@@ -78,7 +79,8 @@ namespace EventCore.StatefulSubscriber.Tests
 
 			mockSortingManager.Verify(x => x.ReceiveSubscriberEventAsync(
 				It.Is<SubscriberEvent>(e =>
-					e.StreamId == streamId && e.Position == position
+					e.RegionId == regionId
+					&& e.StreamId == streamId && e.Position == position
 					&& e.SubscriptionStreamId == streamId && e.SubscriptionPosition == position
 					&& e.ResolvedEvent == mockBusinessEvent.Object
 					),
@@ -94,13 +96,14 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockQueue = new Mock<IResolutionQueue>();
 			var mockSortingManager = new Mock<ISortingManager>();
 			var manager = new ResolutionManager(NullStandardLogger.Instance, mockResolver.Object, null, mockQueue.Object, mockSortingManager.Object);
+			var regionId = "r";
 			var streamId = "str";
 			var position = 1;
 			var subStreamId = "sub";
 			var subPosition = 20;
 			var eventType = "x";
 			var data = new byte[] { };
-			var streamEvent = new StreamEvent(subStreamId, subPosition, new StreamEventLink(streamId, position), eventType, data);
+			var streamEvent = new ResolutionStreamEvent(regionId, new StreamEvent(subStreamId, subPosition, new StreamEventLink(streamId, position), eventType, data));
 			var streamEventDequeued = false;
 			var mockBusinessEvent = new Mock<IBusinessEvent>();
 
@@ -116,7 +119,8 @@ namespace EventCore.StatefulSubscriber.Tests
 
 			mockSortingManager.Verify(x => x.ReceiveSubscriberEventAsync(
 				It.Is<SubscriberEvent>(e =>
-					e.StreamId == streamId && e.Position == position
+					e.RegionId == regionId
+					&& e.StreamId == streamId && e.Position == position
 					&& e.SubscriptionStreamId == subStreamId && e.SubscriptionPosition == subPosition
 					&& e.EventType == eventType
 					&& e.ResolvedEvent == mockBusinessEvent.Object
@@ -143,7 +147,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockEnqueueSignal = new ManualResetEventSlim(false);
 
 			mockResolver.Setup(x => x.Resolve(eventType, data)).Returns(mockBusinessEvent.Object);
-			mockQueue.Setup(x => x.TryDequeue(out It.Ref<StreamEvent>.IsAny)).Returns(false);
+			mockQueue.Setup(x => x.TryDequeue(out It.Ref<ResolutionStreamEvent>.IsAny)).Returns(false);
 			mockQueue.Setup(x => x.AwaitEnqueueSignalAsync()).Callback(() => awaitingEnqueueSignal.Set()).Returns(mockEnqueueSignal.WaitHandle.AsTask());
 
 			var manageTask = manager.ManageAsync(cts.Token);
@@ -161,6 +165,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var mockResolver = new Mock<IBusinessEventResolver>();
 			var mockQueue = new Mock<IResolutionQueue>();
+			var regionId = "r";
 			var streamId = "s";
 			var newPosition = 1;
 			var eventType = "x";
@@ -173,10 +178,10 @@ namespace EventCore.StatefulSubscriber.Tests
 			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(streamId)).ReturnsAsync(streamState);
 			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(true);
 
-			await manager.ReceiveStreamEventAsync(streamEvent, firstPositionInStream, cts.Token);
+			await manager.ReceiveStreamEventAsync(regionId, streamEvent, firstPositionInStream, cts.Token);
 			if (cts.IsCancellationRequested) throw new TimeoutException();
 
-			mockQueue.Verify(x => x.EnqueueWithWaitAsync(streamEvent, cts.Token));
+			mockQueue.Verify(x => x.EnqueueWithWaitAsync(It.Is<ResolutionStreamEvent>(e => e.RegionId == regionId && e.StreamEvent == streamEvent), cts.Token));
 		}
 
 		[Fact]
@@ -186,6 +191,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var mockResolver = new Mock<IBusinessEventResolver>();
 			var mockQueue = new Mock<IResolutionQueue>();
+			var regionId = "r";
 			var streamId = "s";
 			var newPosition = 1;
 			var eventType = "x";
@@ -198,7 +204,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			mockStreamStateRepo.Setup(x => x.LoadStreamStateAsync(streamId)).ReturnsAsync(streamState);
 			mockResolver.Setup(x => x.CanResolve(eventType)).Returns(false); // Make this event ineligible.
 
-			await manager.ReceiveStreamEventAsync(streamEvent, firstPositionInStream, cts.Token);
+			await manager.ReceiveStreamEventAsync(regionId, streamEvent, firstPositionInStream, cts.Token);
 			if (cts.IsCancellationRequested) throw new TimeoutException();
 
 			mockQueue.VerifyNoOtherCalls();

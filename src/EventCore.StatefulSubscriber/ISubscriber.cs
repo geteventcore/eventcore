@@ -8,7 +8,7 @@ namespace EventCore.StatefulSubscriber
 {
 	public interface ISubscriber
 	{
-		Task<IDictionary<string, long?>> GetEndsOfSubscriptionAsync();
+		Task<IDictionary<string, long?>> GetRegionalEndsOfSubscriptionAsync();
 		Task SubscribeAsync(CancellationToken cancellationToken);
 		Task ResetStreamStatesAsync();
 		Task ClearStreamStateErrorsAsync();

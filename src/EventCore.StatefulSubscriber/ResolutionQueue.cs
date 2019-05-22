@@ -13,7 +13,7 @@ namespace EventCore.StatefulSubscriber
 
 		private readonly IQueueAwaiter _awaiter;
 		private readonly int _maxQueueSize;
-		private readonly ConcurrentQueue<StreamEvent> _queue = new ConcurrentQueue<StreamEvent>();
+		private readonly ConcurrentQueue<ResolutionStreamEvent> _queue = new ConcurrentQueue<ResolutionStreamEvent>();
 
 		// Need these for testing.
 		public int QueueCount { get => _queue.Count; }
@@ -24,7 +24,7 @@ namespace EventCore.StatefulSubscriber
 			_maxQueueSize = maxQueueSize;
 		}
 
-		public async Task EnqueueWithWaitAsync(StreamEvent streamEvent, CancellationToken cancellationToken)
+		public async Task EnqueueWithWaitAsync(ResolutionStreamEvent streamEvent, CancellationToken cancellationToken)
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
@@ -46,7 +46,7 @@ namespace EventCore.StatefulSubscriber
 			}
 		}
 
-		public bool TryDequeue(out StreamEvent streamEvent)
+		public bool TryDequeue(out ResolutionStreamEvent streamEvent)
 		{
 			if (_queue.TryDequeue(out streamEvent))
 			{

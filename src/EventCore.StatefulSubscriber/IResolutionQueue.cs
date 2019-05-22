@@ -7,7 +7,7 @@ namespace EventCore.StatefulSubscriber
 	public interface IResolutionQueue
 	{
 		Task AwaitEnqueueSignalAsync();
-		Task EnqueueWithWaitAsync(StreamEvent streamEvent, CancellationToken cancellationToken);
-		bool TryDequeue(out StreamEvent streamEvent);
+		Task EnqueueWithWaitAsync(ResolutionStreamEvent streamEvent, CancellationToken cancellationToken);
+		bool TryDequeue(out ResolutionStreamEvent streamEvent);
 	}
 }

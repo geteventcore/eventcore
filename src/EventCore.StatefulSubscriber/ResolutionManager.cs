@@ -32,9 +32,10 @@ namespace EventCore.StatefulSubscriber
 			{
 				while (!cancellationToken.IsCancellationRequested)
 				{
-					StreamEvent streamEvent;
-					while (!cancellationToken.IsCancellationRequested && _resolutionQueue.TryDequeue(out streamEvent))
+					ResolutionStreamEvent resolutionStreamEvent;
+					while (!cancellationToken.IsCancellationRequested && _resolutionQueue.TryDequeue(out resolutionStreamEvent))
 					{
+						var streamEvent = resolutionStreamEvent.StreamEvent;
 						IBusinessEvent businessEvent = null;
 
 						try
@@ -64,7 +65,7 @@ namespace EventCore.StatefulSubscriber
 							streamId = streamEvent.Link.StreamId;
 							position = streamEvent.Link.Position;
 						}
-						var subscriberEvent = new SubscriberEvent(streamId, position, subscriptionStreamId, subscriptionPosition, streamEvent.EventType, businessEvent);
+						var subscriberEvent = new SubscriberEvent(resolutionStreamEvent.RegionId, streamId, position, subscriptionStreamId, subscriptionPosition, streamEvent.EventType, businessEvent);
 
 						// Send to the sorting manager.
 						await _sortingManager.ReceiveSubscriberEventAsync(subscriberEvent, cancellationToken);
@@ -79,12 +80,12 @@ namespace EventCore.StatefulSubscriber
 			}
 		}
 
-		public async Task ReceiveStreamEventAsync(StreamEvent streamEvent, long firstPositionInStream, CancellationToken cancellationToken)
+		public async Task ReceiveStreamEventAsync(string regionId, StreamEvent streamEvent, long firstPositionInStream, CancellationToken cancellationToken)
 		{
 			if ((await IsStreamEventEligibleForResolution(streamEvent, firstPositionInStream)) == ResolutionEligibility.Eligible)
 			{
 				// Send to the resolution queue when space opens up.
-				await _resolutionQueue.EnqueueWithWaitAsync(streamEvent, cancellationToken);
+				await _resolutionQueue.EnqueueWithWaitAsync(new ResolutionStreamEvent(regionId, streamEvent), cancellationToken);
 			}
 		}
 

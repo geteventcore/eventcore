@@ -170,6 +170,7 @@ namespace EventCore.StatefulSubscriber.Tests
 		[Fact]
 		public async Task missing_test_for_end_of_subscriptions()
 		{
+			await Task.Delay(100);
 			throw new NotImplementedException();
 		}
 	}

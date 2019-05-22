@@ -28,7 +28,7 @@ namespace EventCore.StatefulSubscriber
 				{
 					var listenerTask = streamClient.SubscribeToStreamAsync(
 						subscriptionStreamId, streamClient.FirstPositionInStream,
-						(se) => _resolutionManager.ReceiveStreamEventAsync(se, streamClient.FirstPositionInStream, cancellationToken),
+						(se) => _resolutionManager.ReceiveStreamEventAsync(regionId, se, streamClient.FirstPositionInStream, cancellationToken),
 						cancellationToken
 					);
 					await Task.WhenAny(new[] { listenerTask, cancellationToken.WaitHandle.AsTask() });

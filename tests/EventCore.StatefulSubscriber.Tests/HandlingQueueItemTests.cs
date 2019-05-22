@@ -9,7 +9,7 @@ namespace EventCore.StatefulSubscriber.Tests
 		public void construct()
 		{
 			var parallelKey = "pk";
-			var subscriberEvent = new SubscriberEvent(null, 0, null, null);
+			var subscriberEvent = new SubscriberEvent(null, null, 0, null, null);
 
 			var item = new HandlingQueueItem(parallelKey, subscriberEvent);
 

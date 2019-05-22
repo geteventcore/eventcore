@@ -1,6 +1,7 @@
 ﻿using EventCore.StatefulSubscriber;
 using EventCore.Utilities;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -24,8 +25,8 @@ namespace EventCore.ProcessManagers
 		protected readonly ManualResetEventSlim _caughtUpSignal = new ManualResetEventSlim(false);
 		protected readonly ManualResetEventSlim _enqueueSignal = new ManualResetEventSlim(false);
 
-		protected IDictionary<string, long?> _endsOfSubscription;
-		
+		protected IDictionary<string, long?> _regionalEndsOfSubscription;
+		protected readonly ConcurrentDictionary<string, bool> _regionalEndsReached = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
 		public ProcessManager(ProcessManagerDependencies dependencies, ProcessManagerOptions options)
 		{
@@ -37,7 +38,12 @@ namespace EventCore.ProcessManagers
 
 		public virtual async Task RunAsync(CancellationToken cancellationToken)
 		{
-			_endsOfSubscription = await _subscriber.GetEndsOfSubscriptionAsync();
+			_regionalEndsOfSubscription = await _subscriber.GetRegionalEndsOfSubscriptionAsync();
+			foreach (var regionId in _regionalEndsOfSubscription.Keys)
+			{
+				_regionalEndsReached.TryAdd(regionId, false);
+			}
+
 			await Task.WhenAll(new[] { _subscriber.SubscribeAsync(cancellationToken), ManageAsync(cancellationToken) });
 		}
 
@@ -163,11 +169,19 @@ namespace EventCore.ProcessManagers
 			_processes.Add(typeof(TProcess).Name, process);
 		}
 
-		// protected virtual bool IsHydrationCaughtUp()
-		// {
-		// 	// TODO: Check for caught-up condition and trigger signal...
-		// 	if (!_caughtUpSignal.IsSet && _end)
-		// }
+		protected virtual bool IsHydrationCaughtUp(SubscriberEvent subscriberEvent)
+		{
+			var regionalEndOfSubscription = _regionalEndsOfSubscription[subscriberEvent.RegionId];
+			// Reached the end of the regional subscription stream?
+			if (!regionalEndOfSubscription.HasValue || subscriberEvent.SubscriptionPosition >= regionalEndOfSubscription.Value)
+			{
+				_regionalEndsReached.TryUpdate(subscriberEvent.RegionId, true, false);
+			}
+
+			// Is end of stream reached for all regional subscription streams?
+			// (End of stream as of the moment the last positions were retrieved. Subscriptions may have accumulated more events since then.)
+			return (!_regionalEndsReached.Any(x => x.Value == false));
+		}
 
 		public virtual string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
 		{
@@ -180,7 +194,10 @@ namespace EventCore.ProcessManagers
 
 		public virtual async Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
 		{
-
+			if (!_caughtUpSignal.IsSet && IsHydrationCaughtUp(subscriberEvent))
+			{
+				_caughtUpSignal.Set();
+			}
 
 			// Does nothing if no handler - event is ignored.
 			if (this.GetType().GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IHandleBusinessEvent<>) && x.GetGenericArguments()[0] == subscriberEvent.ResolvedEventType))
