@@ -3,7 +3,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement
+namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement.Processes
 {
 	public class EmailSendProcess : IProcess
 	{

@@ -1,14 +1,14 @@
 ﻿using EventCore.ProcessManagers;
 using EventCore.Samples.Ecommerce.Domain.Events;
+using EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement.Processes;
+using EventCore.StatefulSubscriber;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement
 {
-	public class EmailManager : ProcessManager,
-		IHandleBusinessEvent<SalesOrderRaisedEvent>,
-		IHandleBusinessEvent<EmailEnqueuedEvent>
+	public partial class EmailManager : ProcessManager
 	{
 		public EmailManager(ProcessManagerDependencies dependencies, ProcessManagerOptions options) : base(dependencies, options)
 		{
@@ -16,14 +16,17 @@ namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement
 			RegisterProcess(new EmailBuilderProcess());
 		}
 
-		public Task HandleBusinessEventAsync(string streamId, long position, SalesOrderRaisedEvent e, CancellationToken cancellationToken)
+		public override string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
 		{
-			throw new NotImplementedException();
-		}
+			if (subscriberEvent.IsResolved)
+			{
+				// switch (subscriberEvent.ResolvedEvent)
+				// {
+					
+				// }
+			}
 
-		public Task HandleBusinessEventAsync(string streamId, long position, EmailEnqueuedEvent e, CancellationToken cancellationToken)
-		{
-			throw new NotImplementedException();
+			return base.SortSubscriberEventToParallelKey(subscriberEvent);
 		}
 	}
 }
