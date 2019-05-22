@@ -10,7 +10,7 @@ namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement
 		IHandleBusinessEvent<SalesOrderRaisedEvent>,
 		IHandleBusinessEvent<EmailEnqueuedEvent>
 	{
-		public EmailManager(ProcessManagerDependencies dependencies) : base(dependencies)
+		public EmailManager(ProcessManagerDependencies dependencies, ProcessManagerOptions options) : base(dependencies, options)
 		{
 			RegisterProcess(new EmailSendProcess());
 			RegisterProcess(new EmailBuilderProcess());

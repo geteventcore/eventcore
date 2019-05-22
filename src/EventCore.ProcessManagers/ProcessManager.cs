@@ -18,15 +18,18 @@ namespace EventCore.ProcessManagers
 		protected readonly IStandardLogger _logger;
 		protected readonly ISubscriber _subscriber;
 		protected readonly IProcessManagerStateRepo _stateRepo;
+		protected readonly ProcessManagerOptions _options;
 
-		protected readonly HashSet<IProcess> _processes = new HashSet<IProcess>();
+		protected readonly Dictionary<string, IProcess> _processes = new Dictionary<string, IProcess>();
 		protected readonly ManualResetEventSlim _isHydrationCaughtUpSignal = new ManualResetEventSlim(false);
+		protected readonly ManualResetEventSlim _enqueueSignal = new ManualResetEventSlim(false);
 
-		public ProcessManager(ProcessManagerDependencies dependencies)
+		public ProcessManager(ProcessManagerDependencies dependencies, ProcessManagerOptions options)
 		{
 			_logger = dependencies.Logger;
 			_subscriber = dependencies.SubscriberFactory.Create(dependencies.Logger, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, this, this, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds);
 			_stateRepo = dependencies.ProcessManagerStateRepo;
+			_options = options;
 		}
 
 		public virtual async Task RunAsync(CancellationToken cancellationToken)
@@ -41,12 +44,86 @@ namespace EventCore.ProcessManagers
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				// Run processes in order of due date.
+
+				var nextProcess = await TryGetNextQueuedProcessAsync(cancellationToken);
+				while (nextProcess != null)
+				{
+					try
+					{
+						await TryExecuteProcessAsync(nextProcess.ProcessType, nextProcess.ProcessId, cancellationToken);
+					}
+					catch (Exception ex)
+					{
+						_logger.LogError(ex, $"Exceeded max execution attempts for {nextProcess.ProcessType} ({nextProcess.ProcessId}). Moving on.");
+					}
+
+					nextProcess = await TryGetNextQueuedProcessAsync(cancellationToken);
+				}
+
+				await Task.WhenAny(new[] { _enqueueSignal.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
+				_enqueueSignal.Reset();
 			}
+		}
+
+		private async Task TryExecuteProcessAsync(string processType, string processId, CancellationToken cancellationToken)
+		{
+			var tryCount = _options.MaxProcessExecutionAttempts; // How many times to try in case of transient error?
+			var attempt = 1;
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				try
+				{
+					var process = _processes[processType];
+					await process.ExecuteAsync(processId, cancellationToken);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, $"Exception while executing process {processType} ({processId}). Assuming transient error and retrying {tryCount - attempt} more times.");
+
+					if (attempt >= tryCount)
+					{
+						throw ex;
+					}
+
+					await Task.Delay(1000 * (3 ^ attempt)); // Crude exponential backoff delay.
+
+					attempt++;
+				}
+			}
+			throw new InvalidOperationException(); // Should never get here.
+		}
+
+		private async Task<QueuedProcess> TryGetNextQueuedProcessAsync(CancellationToken cancellationToken)
+		{
+			var tryCount = 3; // How many times to try in case of transient error?
+			var attempt = 1;
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				try
+				{
+					return await _stateRepo.GetNextQueuedProcessAsync(DateTime.UtcNow, _options.MaxProcessExecutionAttempts);
+				}
+				catch (Exception ex)
+				{
+					_logger.LogError(ex, $"Exception while getting queued processes. Assuming transient error and retrying {tryCount - attempt} more times.");
+
+					if (attempt >= tryCount)
+					{
+						throw ex;
+					}
+
+					await Task.Delay(1000 * (3 ^ attempt)); // Crude exponential backoff delay.
+
+					attempt++;
+				}
+			}
+			throw new InvalidOperationException(); // Should never get here.
 		}
 
 		protected virtual async Task EnqueueProcessAsync<TProcess>(string processId, DateTime? dueUtc) where TProcess : IProcess
 		{
-			await _stateRepo.AddOrUpdateQueuedProcessAsync(typeof(TProcess).Name, processId, dueUtc.GetValueOrDefault(DateTime.UtcNow));
+			await _stateRepo.AddOrUpdateQueuedProcessAsync(typeof(TProcess).Name, processId, dueUtc, DateTime.UtcNow, 0);
+			_enqueueSignal.Set();
 		}
 
 		protected virtual async Task TerminateProcessAsync<TProcess>(string processId) where TProcess : IProcess
@@ -54,15 +131,9 @@ namespace EventCore.ProcessManagers
 			await _stateRepo.RemoveQueuedProcessAsync(typeof(TProcess).Name, processId);
 		}
 
-		protected virtual async Task ExecuteProcessAsync(string processType, string processId)
-		{
-			var process = (IProcess)_processes.First(x => string.Equals(x.GetType().Name, processType, StringComparison.OrdinalIgnoreCase));
-			await process.ExecuteAsync(processId);
-		}
-
 		protected virtual void RegisterProcess<TProcess>(TProcess process) where TProcess : IProcess
 		{
-			_processes.Add(process);
+			_processes.Add(typeof(TProcess).Name, process);
 		}
 
 		public virtual string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
