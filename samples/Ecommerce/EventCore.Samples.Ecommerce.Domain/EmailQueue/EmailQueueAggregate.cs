@@ -22,7 +22,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailQueue
 
 			var e = new EmailEnqueuedEvent(
 				BusinessEventMetadata.FromCausalId(c.GetCommandId()),
-				c.EmailId, c.FromAddress, c.ToAddress, c.Subject, c.Body, c.IsHtml
+				c.EmailId, c.From, c.To, c.Subject, c.Body
 			);
 			return CommandResult.FromEventIAsync(e);
 		}

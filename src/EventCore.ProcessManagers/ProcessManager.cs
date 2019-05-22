@@ -44,17 +44,46 @@ namespace EventCore.ProcessManagers
 				_regionalEndsReached.TryAdd(regionId, false);
 			}
 
-			await Task.WhenAll(new[] { _subscriber.SubscribeAsync(cancellationToken), ManageAsync(cancellationToken) });
+			await Task.WhenAll(new[] { _subscriber.SubscribeAsync(cancellationToken), ProcessQueueAsync(cancellationToken) });
 		}
 
-		protected virtual async Task ManageAsync(CancellationToken cancellationToken)
+		// ***
+		// ***
+		// ***
+		//
+		/*
+			Big revision....
+			Treat process queue like a simple work queue where multiple processes of the same type/id can
+			be added, but they are prioritized by due date. This makes for duplicate executions, but guarantees
+			a process will be called for every enqueue made by an event handler. It also simplifies things
+			so processes are not terminated and never deleted. That way we don't have to worry about a situation
+			where a process deletes itself concurrently when an event is added the same process type/id to the queue.
+			Event handlers update state and enqueue processes. Once hydration is "caught up" the manager starts.
+			The manager goes through in order and executes queued processes. "Caught up" is be default defined
+			as once all events have been handled to the end of the subscription stream (or multiple streams if multiple regions)
+			as of the time of service startup. So that means events could be appending to the subscription while
+			we're catching up, but we will consider hydration to be "caught up" before reading those events.
+			I.e. hydration will continue handling events and adding to the process queue indefinitely,
+			but at some point during hydration we'll reach whatever
+			the end of the subscription was at the moment of service startup and at that point we'll start running
+			queueud processed.
+
+			This will require revising ProcessManagerStateRepo to allow for duplicate process type/id.
+		 */
+		//
+		// ***
+		// ***
+		// ***
+
+		protected virtual async Task ProcessQueueAsync(CancellationToken cancellationToken)
 		{
 			// Wait for hydration to "catch up" before executing processes.
-			// This allows the service to replay events and hydrate to the latest state before making decision
-			// about what actions to take when a process is executed. Whether the service needs to catch up will depend
+			// This allows the service to replay events and hydrate to current state before making decision
+			// about what actions to take when a process is executed. Whether the service needs to fully catch up will depend
 			// on the needs of each specific service. For example, if a process is time-based, when the service comes
 			// back online after a down period then it will need the latest state to determine if the time-based process
-			// should still be executed.
+			// should still be executed, etc.
+			// (However, many processes are much simpler and translate directly from incoming events to outgoing commands.)
 			await Task.WhenAny(new[] { _caughtUpSignal.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
 
 			var parallelSignal = new SemaphoreSlim(_options.MaxParallelProcessExecutions, _options.MaxParallelProcessExecutions);
@@ -78,6 +107,13 @@ namespace EventCore.ProcessManagers
 					{
 						try
 						{
+							// All processes should be idempotent, capable of being executed
+							// more than once in case a transient failure prevents us
+							// from updating process queue state, but more importantly this is
+							// necessary by design to allow event handlers to enqueue the same
+							// process type/id more than once during hydration, e.g. when a process
+							// depends on multiple events happening in no particular order, they will all
+							// kick off the same process to check for the collective result of those events.
 							await TryExecuteProcessAsync(nextProcess, cancellationToken);
 						}
 						catch (Exception ex)
