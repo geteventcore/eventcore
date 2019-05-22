@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 {
 	public class EmailBuilderAggregate : AggregateRoot<EmailBuilderState>,
-		IHandleCommand<EmailBuilderState, BuildSalesOrderEmailCommand>
+		IHandleCommand<EmailBuilderState, BuildSalesReceiptEmailCommand>
 	{
 		public const string NAME = "EmailBuilder";
 
@@ -15,7 +15,7 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder
 		{
 		}
 
-		public Task<ICommandResult> HandleCommandAsync(EmailBuilderState s, BuildSalesOrderEmailCommand c, CancellationToken ct)
+		public Task<ICommandResult> HandleCommandAsync(EmailBuilderState s, BuildSalesReceiptEmailCommand c, CancellationToken ct)
 		{
 			// if (state.Message != null) return CommandResult.FromErrorIAsync("Duplicate email id.");
 			// return CommandResult.FromEventIAsync(new EmailEnqueuedEvent(BusinessEventMetadata.FromCausalId(c.Metadata.CommandId), c.EmailId));

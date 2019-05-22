@@ -27,6 +27,7 @@ namespace EventCore.StatefulSubscriber
 
 		private readonly IStandardLogger _logger;
 		private readonly ISubscriptionListener _subscriptionListener;
+		private readonly IStreamClientFactory _streamClientFactory;
 		private readonly IResolutionManager _resolutionManager;
 		private readonly ISortingManager _sortingManager;
 		private readonly IHandlingManager _handlingManager;
@@ -36,12 +37,13 @@ namespace EventCore.StatefulSubscriber
 		private bool _isSubscribing = false;
 
 		public Subscriber(
-			IStandardLogger logger, ISubscriptionListener subscriptionListener,
+			IStandardLogger logger, IStreamClientFactory streamClientFactory, ISubscriptionListener subscriptionListener,
 			IResolutionManager resolutionManager, ISortingManager sortingManager, IHandlingManager handlingManager,
 			IStreamStateRepo streamStateRepo,
 			SubscriberOptions options)
 		{
 			_logger = logger;
+			_streamClientFactory = streamClientFactory;
 			_subscriptionListener = subscriptionListener;
 			_resolutionManager = resolutionManager;
 			_sortingManager = sortingManager;
@@ -99,6 +101,30 @@ namespace EventCore.StatefulSubscriber
 			try
 			{
 				await _streamStateRepo.ClearStreamStateErrorsAsync();
+			}
+			catch (Exception ex)
+			{
+				_logger.LogError(ex, "Error while clearing stream state errors.");
+				throw;
+			}
+		}
+
+		public async Task<IDictionary<string, long?>> GetEndsOfSubscriptionAsync()
+		{
+			try
+			{
+				var ends = new Dictionary<string, long?>();
+
+				foreach (var subStreamId in _options.SubscriptionStreamIds)
+				{
+					using (var streamClient = _streamClientFactory.Create(subStreamId.RegionId))
+					{
+						var position = await streamClient.GetLastPositionInStreamAsync(subStreamId.StreamId);
+						ends.Add(subStreamId.StreamId, position);
+					}
+				}
+
+				return ends;
 			}
 			catch (Exception ex)
 			{

@@ -25,7 +25,7 @@ namespace EventCore.StatefulSubscriber
 
 			var subscriberOptions = new SubscriberOptions(subscriptionStreamIds);
 
-			return new Subscriber(logger, listener, resolutionManager, sortingManager, handlingManager, streamStateRepo, subscriberOptions);
+			return new Subscriber(logger, streamClientFactory, listener, resolutionManager, sortingManager, handlingManager, streamStateRepo, subscriberOptions);
 		}
 	}
 }

@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 namespace EventCore.Samples.Ecommerce.Domain.Clients
 {
 	public class EmailBuilderClient : HttpDomainClient,
-		IExecuteClientCommand<BuildSalesOrderEmailCommand>
+		IExecuteClientCommand<BuildSalesReceiptEmailCommand>
 	{
 		public EmailBuilderClient(string baseUrl, HttpClient httpClient) : base(baseUrl, httpClient)
 		{
 		}
 
-		public Task ExecuteAsync(BuildSalesOrderEmailCommand command) => PostCommandAsync(command);
+		public Task ExecuteAsync(BuildSalesReceiptEmailCommand command) => PostCommandAsync(command);
 	}
 }

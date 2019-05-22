@@ -26,15 +26,12 @@ namespace EventCore.StatefulSubscriber
 			{
 				using (var streamClient = _streamClientFactory.Create(regionId))
 				{
-					while (!cancellationToken.IsCancellationRequested)
-					{
-						var listenerTask = streamClient.SubscribeToStreamAsync(
-							subscriptionStreamId, streamClient.FirstPositionInStream,
-							(se) => _resolutionManager.ReceiveStreamEventAsync(se, streamClient.FirstPositionInStream, cancellationToken),
-							cancellationToken
-						);
-						await Task.WhenAny(new[] { listenerTask, cancellationToken.WaitHandle.AsTask() });
-					}
+					var listenerTask = streamClient.SubscribeToStreamAsync(
+						subscriptionStreamId, streamClient.FirstPositionInStream,
+						(se) => _resolutionManager.ReceiveStreamEventAsync(se, streamClient.FirstPositionInStream, cancellationToken),
+						cancellationToken
+					);
+					await Task.WhenAny(new[] { listenerTask, cancellationToken.WaitHandle.AsTask() });
 				}
 			}
 			catch (Exception ex)

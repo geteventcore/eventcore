@@ -37,7 +37,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			mockSortingManager.Setup(x => x.ManageAsync(It.IsAny<CancellationToken>())).Callback(() => sortingManagingSignal.Set()).Returns(mockAwaiter.WaitHandle.AsTask());
 			mockHandlingManager.Setup(x => x.ManageAsync(It.IsAny<CancellationToken>())).Callback(() => handlingManagingSignal.Set()).Returns(mockAwaiter.WaitHandle.AsTask());
 
-			var subscriber = new Subscriber(NullStandardLogger.Instance, mockSubscriptionListener.Object, mockResolutionManager.Object, mockSortingManager.Object, mockHandlingManager.Object, null, options);
+			var subscriber = new Subscriber(NullStandardLogger.Instance, null, mockSubscriptionListener.Object, mockResolutionManager.Object, mockSortingManager.Object, mockHandlingManager.Object, null, options);
 
 			var subscribeTask = subscriber.SubscribeAsync(cts.Token);
 
@@ -73,7 +73,7 @@ namespace EventCore.StatefulSubscriber.Tests
 				new SubscriptionStreamId(regionId1, streamId),
 				new SubscriptionStreamId(regionId2, streamId)
 				});
-			var subscriber = new Subscriber(NullStandardLogger.Instance, mockSubscriptionListener.Object, mockResolutionManager.Object, mockSortingManager.Object, mockHandlingManager.Object, null, options);
+			var subscriber = new Subscriber(NullStandardLogger.Instance, null, mockSubscriptionListener.Object, mockResolutionManager.Object, mockSortingManager.Object, mockHandlingManager.Object, null, options);
 			var mockAwaiter = new ManualResetEventSlim(false);
 			var listeningSignal = new ManualResetEventSlim(false);
 			var resolutionManagingSignal = new ManualResetEventSlim(false);
@@ -108,7 +108,7 @@ namespace EventCore.StatefulSubscriber.Tests
 				new SubscriptionStreamId(regionId1, streamId),
 				new SubscriptionStreamId(regionId2, streamId)
 				});
-			var subscriber = new Subscriber(NullStandardLogger.Instance, mockSubscriptionListener.Object, mockResolutionManager.Object, mockSortingManager.Object, mockHandlingManager.Object, null, options);
+			var subscriber = new Subscriber(NullStandardLogger.Instance, null, mockSubscriptionListener.Object, mockResolutionManager.Object, mockSortingManager.Object, mockHandlingManager.Object, null, options);
 			var mockAwaiter = new ManualResetEventSlim(false);
 
 			mockSubscriptionListener.Setup(x => x.ListenAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<CancellationToken>())).Returns(mockAwaiter.WaitHandle.AsTask());
@@ -134,7 +134,7 @@ namespace EventCore.StatefulSubscriber.Tests
 			var mockHandlingManager = new Mock<IHandlingManager>();
 			var mockStreamClient = new Mock<IStreamClient>();
 			var options = new SubscriberOptions(new List<SubscriptionStreamId>());
-			var subscriber = new Subscriber(NullStandardLogger.Instance, mockSubscriptionListener.Object, mockResolutionManager.Object, mockSortingManager.Object, mockHandlingManager.Object, null, options);
+			var subscriber = new Subscriber(NullStandardLogger.Instance, null, mockSubscriptionListener.Object, mockResolutionManager.Object, mockSortingManager.Object, mockHandlingManager.Object, null, options);
 
 			mockResolutionManager.Setup(x => x.ManageAsync(It.IsAny<CancellationToken>())).Throws(new TestException());
 			mockSortingManager.Setup(x => x.ManageAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
@@ -148,7 +148,7 @@ namespace EventCore.StatefulSubscriber.Tests
 		{
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var options = new SubscriberOptions(new List<SubscriptionStreamId>());
-			var subscriber = new Subscriber(NullStandardLogger.Instance, null, null, null, null, mockStreamStateRepo.Object, options);
+			var subscriber = new Subscriber(NullStandardLogger.Instance, null, null, null, null, null, mockStreamStateRepo.Object, options);
 
 			await subscriber.ResetStreamStatesAsync();
 
@@ -160,11 +160,17 @@ namespace EventCore.StatefulSubscriber.Tests
 		{
 			var mockStreamStateRepo = new Mock<IStreamStateRepo>();
 			var options = new SubscriberOptions(new List<SubscriptionStreamId>());
-			var subscriber = new Subscriber(NullStandardLogger.Instance, null, null, null, null, mockStreamStateRepo.Object, options);
+			var subscriber = new Subscriber(NullStandardLogger.Instance, null, null, null, null, null, mockStreamStateRepo.Object, options);
 
 			await subscriber.ClearStreamStateErrorsAsync();
 
 			mockStreamStateRepo.Verify(x => x.ClearStreamStateErrorsAsync());
+		}
+
+		[Fact]
+		public async Task missing_test_for_end_of_subscriptions()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

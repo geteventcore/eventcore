@@ -22,6 +22,6 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Areas.Domain.Controllers
 		[HttpPost("BuildSalesOrderEmail")]
 		[ProducesResponseType(StatusCodes.Status200OK)]
 		[ProducesResponseType(StatusCodes.Status400BadRequest)]
-		public Task<IActionResult> BuildSalesOrderEmailAsync([FromBody] BuildSalesOrderEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
+		public Task<IActionResult> BuildSalesOrderEmailAsync([FromBody] BuildSalesReceiptEmailCommand c) => CommandProcessor.ProcessCommandAsync(_ar, c);
 	}
 }

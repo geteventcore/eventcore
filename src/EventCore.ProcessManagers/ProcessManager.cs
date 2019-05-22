@@ -21,8 +21,11 @@ namespace EventCore.ProcessManagers
 		protected readonly ProcessManagerOptions _options;
 
 		protected readonly Dictionary<string, IProcess> _processes = new Dictionary<string, IProcess>();
-		protected readonly ManualResetEventSlim _isHydrationCaughtUpSignal = new ManualResetEventSlim(false);
+		protected readonly ManualResetEventSlim _caughtUpSignal = new ManualResetEventSlim(false);
 		protected readonly ManualResetEventSlim _enqueueSignal = new ManualResetEventSlim(false);
+
+		protected IDictionary<string, long?> _endsOfSubscription;
+		
 
 		public ProcessManager(ProcessManagerDependencies dependencies, ProcessManagerOptions options)
 		{
@@ -34,12 +37,19 @@ namespace EventCore.ProcessManagers
 
 		public virtual async Task RunAsync(CancellationToken cancellationToken)
 		{
+			_endsOfSubscription = await _subscriber.GetEndsOfSubscriptionAsync();
 			await Task.WhenAll(new[] { _subscriber.SubscribeAsync(cancellationToken), ManageAsync(cancellationToken) });
 		}
 
 		protected virtual async Task ManageAsync(CancellationToken cancellationToken)
 		{
-			await Task.WhenAny(new[] { _isHydrationCaughtUpSignal.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
+			// Wait for hydration to "catch up" before executing processes.
+			// This allows the service to replay events and hydrate to the latest state before making decision
+			// about what actions to take when a process is executed. Whether the service needs to catch up will depend
+			// on the needs of each specific service. For example, if a process is time-based, when the service comes
+			// back online after a down period then it will need the latest state to determine if the time-based process
+			// should still be executed.
+			await Task.WhenAny(new[] { _caughtUpSignal.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
 
 			var parallelSignal = new SemaphoreSlim(_options.MaxParallelProcessExecutions, _options.MaxParallelProcessExecutions);
 
@@ -153,6 +163,12 @@ namespace EventCore.ProcessManagers
 			_processes.Add(typeof(TProcess).Name, process);
 		}
 
+		// protected virtual bool IsHydrationCaughtUp()
+		// {
+		// 	// TODO: Check for caught-up condition and trigger signal...
+		// 	if (!_caughtUpSignal.IsSet && _end)
+		// }
+
 		public virtual string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
 		{
 			// Default is no parallel key, i.e. all events from the subscription stream
@@ -164,7 +180,7 @@ namespace EventCore.ProcessManagers
 
 		public virtual async Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
 		{
-			// TODO: Check for caught-up condition and trigger signal...
+
 
 			// Does nothing if no handler - event is ignored.
 			if (this.GetType().GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IHandleBusinessEvent<>) && x.GetGenericArguments()[0] == subscriberEvent.ResolvedEventType))
