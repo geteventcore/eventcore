@@ -157,7 +157,8 @@ namespace EventCore.ProcessManagers
 		{
 			// Default is no parallel key, i.e. all events from the subscription stream
 			// will be handled sequentially with no optimization to execute events in parallel.
-			// The implementing class should override this if events can be consumed in parallel.
+			// The implementing class should override this if events can be consumed in parallel,
+			// for example, for independent processes that are unrelated to one another.
 			return DEFAULT_PARALLEL_KEY; // Sorting keys may not be null or empty.
 		}
 
