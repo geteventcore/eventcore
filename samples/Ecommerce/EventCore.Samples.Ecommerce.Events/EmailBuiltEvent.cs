@@ -1,7 +1,7 @@
 ﻿using EventCore.EventSourcing;
 using System;
 
-namespace EventCore.Samples.Ecommerce.Domain.Events
+namespace EventCore.Samples.Ecommerce.Events
 {
 	public class EmailBuiltEvent : BusinessEvent
 	{

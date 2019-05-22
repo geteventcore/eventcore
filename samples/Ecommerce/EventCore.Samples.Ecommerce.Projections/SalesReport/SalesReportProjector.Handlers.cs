@@ -1,5 +1,5 @@
 ﻿using EventCore.Projectors;
-using EventCore.Samples.Ecommerce.Domain.Events;
+using EventCore.Samples.Ecommerce.Events;
 using EventCore.Samples.Ecommerce.Projections.SalesReport.SalesReportDb.DbModels;
 using System.Threading;
 using System.Threading.Tasks;

@@ -1,5 +1,5 @@
 ﻿using EventCore.ProcessManagers;
-using EventCore.Samples.Ecommerce.Domain.Events;
+using EventCore.Samples.Ecommerce.Events;
 using EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement.Processes;
 using System;
 using System.Threading;

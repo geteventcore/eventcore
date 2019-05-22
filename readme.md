@@ -13,7 +13,7 @@ Console application (command line interface) for driving demos and observing sys
 
 ## Supporting Libraries
 
-### Domain.Events
+### Events
 Defines system-wide business events. No application logic here. All events are in a single context.
 
 ### Domain

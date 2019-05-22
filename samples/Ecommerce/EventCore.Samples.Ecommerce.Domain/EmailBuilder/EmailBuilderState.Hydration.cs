@@ -1,5 +1,5 @@
 ﻿using EventCore.AggregateRoots;
-using EventCore.Samples.Ecommerce.Domain.Events;
+using EventCore.Samples.Ecommerce.Events;
 using System.Threading;
 using System.Threading.Tasks;
 

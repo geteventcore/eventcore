@@ -1,5 +1,5 @@
 ﻿using EventCore.EventSourcing;
-using EventCore.Samples.Ecommerce.Domain.Events;
+using EventCore.Samples.Ecommerce.Events;
 using EventCore.Utilities;
 using System;
 using System.Collections.Generic;

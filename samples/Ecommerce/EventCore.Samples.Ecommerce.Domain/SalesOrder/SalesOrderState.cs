@@ -1,6 +1,6 @@
 ﻿using EventCore.AggregateRoots;
 using EventCore.EventSourcing;
-using EventCore.Samples.Ecommerce.Domain.Events;
+using EventCore.Samples.Ecommerce.Events;
 using EventCore.Samples.Ecommerce.Domain.SalesOrder.StateModels;
 using EventCore.Samples.Ecommerce.Domain.State;
 using System.Threading;
