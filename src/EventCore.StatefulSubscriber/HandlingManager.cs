@@ -50,9 +50,6 @@ namespace EventCore.StatefulSubscriber
 							// When a stream has an error there may already be subscriber events in the
 							// handling queue that have made it past the first check for errored stream state
 							// prior to deserialization. If that's the case we just ignore the event.
-							// Note this may represent an opportunity for optimization - if loading from disk
-							// is a bottleneck then we need some other way to receive feedback from the handlers when
-							// a stream is in an error state.
 							var state = await _streamStateRepo.LoadStreamStateAsync(item.SubscriberEvent.StreamId);
 							if (state == null || !state.HasError)
 							{

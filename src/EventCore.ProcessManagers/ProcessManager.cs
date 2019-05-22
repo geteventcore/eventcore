@@ -41,21 +41,38 @@ namespace EventCore.ProcessManagers
 		{
 			await Task.WhenAny(new[] { _isHydrationCaughtUpSignal.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
 
+			var parallelSignal = new SemaphoreSlim(_options.MaxParallelProcessExecutions, _options.MaxParallelProcessExecutions);
+
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				// Run processes in order of due date.
+				// Run processes in order of due date, in parallel.
 
 				var nextProcess = await TryGetNextQueuedProcessAsync(cancellationToken);
 				while (nextProcess != null)
 				{
-					try
+					// Throttle the number of processes we execute in parallel.
+					await parallelSignal.WaitAsync(cancellationToken);
+					if (cancellationToken.IsCancellationRequested)
 					{
-						await TryExecuteProcessAsync(nextProcess.ProcessType, nextProcess.ProcessId, cancellationToken);
+						break;
 					}
-					catch (Exception ex)
+
+					// Execute the process and make sure to release the semaphore.
+					var _ = Task.Run(async () =>
 					{
-						_logger.LogError(ex, $"Exceeded max execution attempts for {nextProcess.ProcessType} ({nextProcess.ProcessId}). Moving on.");
-					}
+						try
+						{
+							await TryExecuteProcessAsync(nextProcess, cancellationToken);
+						}
+						catch (Exception ex)
+						{
+							_logger.LogError(ex, $"Exceeded max execution attempts for {nextProcess.ProcessType} ({nextProcess.ProcessId}). Moving on.");
+						}
+						finally
+						{
+							parallelSignal.Release();
+						}
+					});
 
 					nextProcess = await TryGetNextQueuedProcessAsync(cancellationToken);
 				}
@@ -65,7 +82,7 @@ namespace EventCore.ProcessManagers
 			}
 		}
 
-		private async Task TryExecuteProcessAsync(string processType, string processId, CancellationToken cancellationToken)
+		private async Task TryExecuteProcessAsync(QueuedProcess queuedProcess, CancellationToken cancellationToken)
 		{
 			var tryCount = _options.MaxProcessExecutionAttempts; // How many times to try in case of transient error?
 			var attempt = 1;
@@ -73,12 +90,12 @@ namespace EventCore.ProcessManagers
 			{
 				try
 				{
-					var process = _processes[processType];
-					await process.ExecuteAsync(processId, cancellationToken);
+					var process = _processes[queuedProcess.ProcessType];
+					await process.ExecuteAsync(queuedProcess.ProcessId, cancellationToken);
 				}
 				catch (Exception ex)
 				{
-					_logger.LogError(ex, $"Exception while executing process {processType} ({processId}). Assuming transient error and retrying {tryCount - attempt} more times.");
+					_logger.LogError(ex, $"Exception while executing process {queuedProcess.ProcessType} ({queuedProcess.ProcessId}). Assuming transient error and retrying {tryCount - attempt} more times.");
 
 					if (attempt >= tryCount)
 					{
