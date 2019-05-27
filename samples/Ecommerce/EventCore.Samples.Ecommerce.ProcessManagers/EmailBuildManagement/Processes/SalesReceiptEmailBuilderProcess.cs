@@ -3,13 +3,13 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement.Processes
+namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailBuildManagement.Processes
 {
-	public class EmailBuilderProcess : IProcess
+	public class SalesReceiptEmailBuilderProcess : IProcess
 	{
 		public Task ExecuteAsync(string processId, CancellationToken cancellationToken)
 		{
-			Console.WriteLine($"EmailBuilderProcess: {processId}");
+			Console.WriteLine($"SalesReceiptEmailBuilderProcess: {processId}");
 			return Task.CompletedTask;
 		}
 	}

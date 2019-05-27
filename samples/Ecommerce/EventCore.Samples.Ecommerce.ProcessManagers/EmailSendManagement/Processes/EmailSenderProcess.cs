@@ -3,9 +3,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailManagement.Processes
+namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailQueueManagement.Processes
 {
-	public class EmailSendProcess : IProcess
+	public class EmailSenderProcess : IProcess
 	{
 		public Task ExecuteAsync(string processId, CancellationToken cancellationToken)
 		{

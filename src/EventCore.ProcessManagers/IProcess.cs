@@ -6,6 +6,6 @@ namespace EventCore.ProcessManagers
 {
 	public interface IProcess
 	{
-		Task ExecuteAsync(string processId, CancellationToken cancellationToken);
+		Task ExecuteAsync(string correlationId, CancellationToken cancellationToken);
 	}
 }

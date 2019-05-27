@@ -14,9 +14,9 @@ namespace EventCore.ProcessManagers
 		public readonly IBusinessEventResolver EventResolver;
 		public readonly SubscriberFactoryOptions SubscriberFactoryOptions;
 		public readonly IList<SubscriptionStreamId> SubscriptionStreamIds;
-		public readonly IProcessManagerStateRepo ProcessManagerStateRepo;
+		public readonly IProcessExecutionQueue ExecutionQueue;
 
-		public ProcessManagerDependencies(IStandardLogger logger, ISubscriberFactory subscriberFactory, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver eventResolver, SubscriberFactoryOptions subscriberFactoryOptions, IList<SubscriptionStreamId> subscriptionStreamIds, IProcessManagerStateRepo processManagerStateRepo)
+		public ProcessManagerDependencies(IStandardLogger logger, ISubscriberFactory subscriberFactory, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver eventResolver, SubscriberFactoryOptions subscriberFactoryOptions, IList<SubscriptionStreamId> subscriptionStreamIds, IProcessExecutionQueue executionQueue)
 		{
 			Logger = logger;
 			SubscriberFactory = subscriberFactory;
@@ -25,7 +25,7 @@ namespace EventCore.ProcessManagers
 			EventResolver = eventResolver;
 			SubscriberFactoryOptions = subscriberFactoryOptions;
 			SubscriptionStreamIds = subscriptionStreamIds;
-			ProcessManagerStateRepo = processManagerStateRepo;
+			ExecutionQueue = executionQueue;
 		}
 	}
 }

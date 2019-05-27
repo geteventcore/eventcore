@@ -18,7 +18,7 @@ namespace EventCore.ProcessManagers
 
 		protected readonly IStandardLogger _logger;
 		protected readonly ISubscriber _subscriber;
-		protected readonly IProcessManagerStateRepo _stateRepo;
+		protected readonly IProcessExecutionQueue _executionQueue;
 		protected readonly ProcessManagerOptions _options;
 
 		protected readonly Dictionary<string, IProcess> _processes = new Dictionary<string, IProcess>();
@@ -32,7 +32,7 @@ namespace EventCore.ProcessManagers
 		{
 			_logger = dependencies.Logger;
 			_subscriber = dependencies.SubscriberFactory.Create(dependencies.Logger, dependencies.StreamClientFactory, dependencies.StreamStateRepo, dependencies.EventResolver, this, this, dependencies.SubscriberFactoryOptions, dependencies.SubscriptionStreamIds);
-			_stateRepo = dependencies.ProcessManagerStateRepo;
+			_executionQueue = dependencies.ExecutionQueue;
 			_options = options;
 		}
 
@@ -44,56 +44,34 @@ namespace EventCore.ProcessManagers
 				_regionalEndsReached.TryAdd(regionId, false);
 			}
 
-			await Task.WhenAll(new[] { _subscriber.SubscribeAsync(cancellationToken), ProcessQueueAsync(cancellationToken) });
+			await Task.WhenAll(new[] { _subscriber.SubscribeAsync(cancellationToken), ExecuteProcessesAsync(cancellationToken) });
 		}
 
-		// ***
-		// ***
-		// ***
-		//
-		/*
-			Big revision....
-			Treat process queue like a simple work queue where multiple processes of the same type/id can
-			be added, but they are prioritized by due date. This makes for duplicate executions, but guarantees
-			a process will be called for every enqueue made by an event handler. It also simplifies things
-			so processes are not terminated and never deleted. That way we don't have to worry about a situation
-			where a process deletes itself concurrently when an event is added the same process type/id to the queue.
-			Event handlers update state and enqueue processes. Once hydration is "caught up" the manager starts.
-			The manager goes through in order and executes queued processes. "Caught up" is be default defined
-			as once all events have been handled to the end of the subscription stream (or multiple streams if multiple regions)
-			as of the time of service startup. So that means events could be appending to the subscription while
-			we're catching up, but we will consider hydration to be "caught up" before reading those events.
-			I.e. hydration will continue handling events and adding to the process queue indefinitely,
-			but at some point during hydration we'll reach whatever
-			the end of the subscription was at the moment of service startup and at that point we'll start running
-			queueud processed.
-
-			This will require revising ProcessManagerStateRepo to allow for duplicate process type/id.
-		 */
-		//
-		// ***
-		// ***
-		// ***
-
-		protected virtual async Task ProcessQueueAsync(CancellationToken cancellationToken)
+		protected virtual async Task ExecuteProcessesAsync(CancellationToken cancellationToken)
 		{
 			// Wait for hydration to "catch up" before executing processes.
-			// This allows the service to replay events and hydrate to current state before making decision
-			// about what actions to take when a process is executed. Whether the service needs to fully catch up will depend
+			// This allows the service to replay events and hydrate to current state before making decisions
+			// about what actions to take when a process is executed. The catch-up point will depend
 			// on the needs of each specific service. For example, if a process is time-based, when the service comes
 			// back online after a down period then it will need the latest state to determine if the time-based process
 			// should still be executed, etc.
-			// (However, many processes are much simpler and translate directly from incoming events to outgoing commands.)
 			await Task.WhenAny(new[] { _caughtUpSignal.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
 
 			var parallelSignal = new SemaphoreSlim(_options.MaxParallelProcessExecutions, _options.MaxParallelProcessExecutions);
+			var executingProcessIds = new ConcurrentDictionary<string, ProcessIdentifier>();
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				// Run processes in order of due date, in parallel.
+				// Run queued process executions in order of execution date.
+				// Execute in parallel based on dinstinct process identifier.
+				// I.e. There may be more than one queued execution with the same
+				// process identifier (process type and correlation id) - make sure
+				// we don't execute those in parallel because those represent sequential
+				// processing requests. But other process types or correlation ids may
+				// be executed in parallel.
 
-				var nextProcess = await TryGetNextQueuedProcessAsync(cancellationToken);
-				while (nextProcess != null)
+				var nextExecution = await GetNextProcessExecutionAsync(executingProcessIds.Values, cancellationToken);
+				while (nextExecution != null)
 				{
 					// Throttle the number of processes we execute in parallel.
 					await parallelSignal.WaitAsync(cancellationToken);
@@ -102,6 +80,10 @@ namespace EventCore.ProcessManagers
 						break;
 					}
 
+					// We need to keep track of which process ids are executing because we want to exclude
+					// duplicates when fetching the next process execution - see note about parallel execution above.
+					executingProcessIds.TryAdd(string.Join(nextExecution.ProcessId.ProcessType, nextExecution.ProcessId.CorrelationId), nextExecution.ProcessId);
+
 					// Execute the process and make sure to release the semaphore.
 					var _ = Task.Run(async () =>
 					{
@@ -109,24 +91,22 @@ namespace EventCore.ProcessManagers
 						{
 							// All processes should be idempotent, capable of being executed
 							// more than once in case a transient failure prevents us
-							// from updating process queue state, but more importantly this is
+							// from marking the execution queue item as complete, but more importantly this is
 							// necessary by design to allow event handlers to enqueue the same
 							// process type/id more than once during hydration, e.g. when a process
 							// depends on multiple events happening in no particular order, they will all
 							// kick off the same process to check for the collective result of those events.
-							await TryExecuteProcessAsync(nextProcess, cancellationToken);
-						}
-						catch (Exception ex)
-						{
-							_logger.LogError(ex, $"Exceeded max execution attempts for {nextProcess.ProcessType} ({nextProcess.ProcessId}). Moving on.");
+							await TryExecuteProcessAsync(nextExecution, cancellationToken);
 						}
 						finally
 						{
 							parallelSignal.Release();
+							ProcessIdentifier removedPid;
+							executingProcessIds.TryRemove(string.Join(nextExecution.ProcessId.ProcessType, nextExecution.ProcessId.CorrelationId), out removedPid);
 						}
 					});
 
-					nextProcess = await TryGetNextQueuedProcessAsync(cancellationToken);
+					nextExecution = await GetNextProcessExecutionAsync(executingProcessIds.Values, cancellationToken);
 				}
 
 				await Task.WhenAny(new[] { _enqueueSignal.WaitHandle.AsTask(), cancellationToken.WaitHandle.AsTask() });
@@ -134,7 +114,7 @@ namespace EventCore.ProcessManagers
 			}
 		}
 
-		private async Task TryExecuteProcessAsync(QueuedProcess queuedProcess, CancellationToken cancellationToken)
+		protected virtual async Task TryExecuteProcessAsync(ExecutionQueueItem execution, CancellationToken cancellationToken)
 		{
 			var tryCount = _options.MaxProcessExecutionAttempts; // How many times to try in case of transient error?
 			var attempt = 1;
@@ -142,62 +122,58 @@ namespace EventCore.ProcessManagers
 			{
 				try
 				{
-					var process = _processes[queuedProcess.ProcessType];
-					await process.ExecuteAsync(queuedProcess.ProcessId, cancellationToken);
+					var process = _processes[execution.ProcessId.ProcessType];
+					await process.ExecuteAsync(execution.ProcessId.CorrelationId, cancellationToken);
+					await _executionQueue.CompleteExecutionAsync(execution.ExecutionId, null);
 				}
 				catch (Exception ex)
 				{
-					_logger.LogError(ex, $"Exception while executing process {queuedProcess.ProcessType} ({queuedProcess.ProcessId}). Assuming transient error and retrying {tryCount - attempt} more times.");
+					_logger.LogError(ex, $"Exception while executing process {execution.ProcessId.ProcessType} ({execution.ProcessId.CorrelationId}). Assuming transient error and retrying {tryCount - attempt} more times.");
 
 					if (attempt >= tryCount)
 					{
-						throw ex;
+						try
+						{
+							await _executionQueue.CompleteExecutionAsync(execution.ExecutionId, ex.Message);
+						}
+						catch (Exception ex2)
+						{
+							_logger.LogError(ex2, "Secondary exception while trying to complete execution queue item with error information. This execution will remain in the queue.");
+							return;
+						}
 					}
 
 					await Task.Delay(1000 * (3 ^ attempt)); // Crude exponential backoff delay.
-
 					attempt++;
 				}
 			}
 			throw new InvalidOperationException(); // Should never get here.
 		}
 
-		private async Task<QueuedProcess> TryGetNextQueuedProcessAsync(CancellationToken cancellationToken)
+		protected virtual async Task<ExecutionQueueItem> GetNextProcessExecutionAsync(IEnumerable<ProcessIdentifier> excludeProcessIds, CancellationToken cancellationToken)
 		{
-			var tryCount = 3; // How many times to try in case of transient error?
 			var attempt = 1;
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				try
 				{
-					return await _stateRepo.GetNextQueuedProcessAsync(DateTime.UtcNow, _options.MaxProcessExecutionAttempts);
+					return await _executionQueue.GetNextExecutionAsync(DateTime.UtcNow, excludeProcessIds);
 				}
 				catch (Exception ex)
 				{
-					_logger.LogError(ex, $"Exception while getting queued processes. Assuming transient error and retrying {tryCount - attempt} more times.");
-
-					if (attempt >= tryCount)
-					{
-						throw ex;
-					}
-
-					await Task.Delay(1000 * (3 ^ attempt)); // Crude exponential backoff delay.
-
+					var delaySeconds = 3 ^ attempt; // Crude exponential backoff delay.
+					_logger.LogError(ex, $"Exception while getting next process execution. Assuming transient error and retrying in {delaySeconds} seconds.");
+					await Task.Delay(delaySeconds * 1000);
 					attempt++;
 				}
 			}
 			throw new InvalidOperationException(); // Should never get here.
 		}
 
-		protected virtual async Task EnqueueProcessAsync<TProcess>(string processId, DateTime? dueUtc) where TProcess : IProcess
+		protected virtual async Task EnqueueProcessExecutionAsync<TProcess>(string processId, DateTime? executeAfterUtc = null) where TProcess : IProcess
 		{
-			await _stateRepo.AddOrUpdateQueuedProcessAsync(typeof(TProcess).Name, processId, dueUtc, DateTime.UtcNow, 0);
+			await _executionQueue.EnqueueExecutionAsync(Guid.NewGuid().ToString(), new ProcessIdentifier(typeof(TProcess).Name, processId), executeAfterUtc.GetValueOrDefault(DateTime.UtcNow));
 			_enqueueSignal.Set();
-		}
-
-		protected virtual async Task TerminateProcessAsync<TProcess>(string processId) where TProcess : IProcess
-		{
-			await _stateRepo.RemoveQueuedProcessAsync(typeof(TProcess).Name, processId);
 		}
 
 		protected virtual void RegisterProcess<TProcess>(TProcess process) where TProcess : IProcess
