@@ -7,12 +7,16 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="2.2.4" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="2.2.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="4.0.1" />
   </ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\src\EventCore.AggregateRoots\EventCore.AggregateRoots.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.Clients\EventCore.Samples.Ecommerce.Domain.Clients.csproj" />
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Projections\EventCore.Samples.Ecommerce.Projections.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Shared\EventCore.Samples.Ecommerce.Shared.csproj" />
   </ItemGroup>
 
 </Project>

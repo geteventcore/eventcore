@@ -5,5 +5,8 @@ namespace EventCore.Samples.Ecommerce.Projections.SalesReport.SalesReportDb.DbMo
 	public class SalesOrderDbModel
 	{
 		public string SalesOrderId { get; set; }
+		public string CustomerName { get; set; }
+		public string CustomerEmail { get; set; }
+		public decimal TotalPrice { get; set; }
 	}
 }

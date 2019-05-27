@@ -28,7 +28,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi
 					{
 						Title = "Ecommerce Sample - Service API",
 						Version = "v1",
-						Description = "API and host for backend services, including: aggregate roots, projectors, and  process managers."
+						Description = "API and host for backend services, including aggregate roots and projectors."
 					});
 			});
 
