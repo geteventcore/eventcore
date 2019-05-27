@@ -1,4 +1,5 @@
 ﻿using EventCore.ProcessManagers;
+using EventCore.Samples.Ecommerce.Domain.Clients;
 using EventCore.Samples.Ecommerce.Events;
 using EventCore.Samples.Ecommerce.ProcessManagers.EmailBuildManagement.Processes;
 using EventCore.StatefulSubscriber;
@@ -12,7 +13,7 @@ namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailBuildManagement
 	{
 		public EmailBuildManager(ProcessManagerDependencies dependencies, ProcessManagerOptions options) : base(dependencies, options)
 		{
-			RegisterProcess(new SalesReceiptEmailBuilderProcess());
+			RegisterProcess(new BuildSalesReceiptEmailProcess());
 		}
 
 		public override string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)

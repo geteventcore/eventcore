@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailBuildManagement.Processes
 {
-	public class SalesReceiptEmailBuilderProcess : IProcess
+	public class BuildSalesReceiptEmailProcess : IProcess
 	{
-		public Task ExecuteAsync(string processId, CancellationToken cancellationToken)
+		public Task ExecuteAsync(string correlationId, CancellationToken cancellationToken)
 		{
-			Console.WriteLine($"SalesReceiptEmailBuilderProcess: {processId}");
+			Console.WriteLine($"BuildSalesReceiptEmailProcess: {correlationId}");
 			return Task.CompletedTask;
 		}
 	}

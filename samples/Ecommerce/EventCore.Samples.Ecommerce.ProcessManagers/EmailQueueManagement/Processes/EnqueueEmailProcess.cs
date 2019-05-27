@@ -5,11 +5,11 @@ using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailQueueManagement.Processes
 {
-	public class EmailSenderProcess : IProcess
+	public class EnqueueEmailProcess : IProcess
 	{
-		public Task ExecuteAsync(string processId, CancellationToken cancellationToken)
+		public Task ExecuteAsync(string correlationId, CancellationToken cancellationToken)
 		{
-			Console.WriteLine($"EmailSendProcess: {processId}");
+			Console.WriteLine($"EnqueueEmailProcess: {correlationId}");
 			return Task.CompletedTask;
 		}
 	}

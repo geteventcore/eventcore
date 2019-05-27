@@ -12,8 +12,7 @@ namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailQueueManagement
 	{
 		public EmailQueueManager(ProcessManagerDependencies dependencies, ProcessManagerOptions options) : base(dependencies, options)
 		{
-			RegisterProcess(new EmailSenderProcess());
-			RegisterProcess(new SalesReceiptEmailBuilderProcess());
+			RegisterProcess(new EnqueueEmailProcess());
 		}
 
 		public override string SortSubscriberEventToParallelKey(SubscriberEvent subscriberEvent)
@@ -22,7 +21,6 @@ namespace EventCore.Samples.Ecommerce.ProcessManagers.EmailQueueManagement
 			{
 				switch (subscriberEvent.ResolvedEvent)
 				{
-					case SalesOrderRaisedEvent e: return e.SalesOrderId;
 					case EmailBuiltEvent e: return e.EmailId.ToString();
 					case EmailEnqueuedEvent e: return e.EmailId.ToString();
 				}
