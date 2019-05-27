@@ -12,6 +12,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Domain.Clients\EventCore.Samples.Ecommerce.Domain.Clients.csproj" />
+		<ProjectReference Include="..\EventCore.Samples.Ecommerce.Projections\EventCore.Samples.Ecommerce.Projections.csproj" />
   </ItemGroup>
 
 </Project>

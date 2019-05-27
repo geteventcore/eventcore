@@ -1,7 +1,6 @@
 ﻿using EventCore.EventSourcing;
 using EventCore.Projectors;
 using EventCore.Samples.Ecommerce.Domain;
-using EventCore.Samples.Ecommerce.Projections;
 using EventCore.Samples.Ecommerce.ServiceApi.Infrastructure;
 using EventCore.Samples.Ecommerce.ServiceApi.Settings;
 using EventCore.Samples.Ecommerce.Shared;

@@ -17,7 +17,7 @@ namespace EventCore.Samples.Ecommerce.PublicApi.Controllers
 			return new List<SalesOrder>();
 		}
 
-		// GET api/salesOrders/so123
+		// GET api/salesOrders/so123/total
 		[HttpGet("{id}")]
 		public async Task<IActionResult> Get(string salesOrderId)
 		{
@@ -27,7 +27,7 @@ namespace EventCore.Samples.Ecommerce.PublicApi.Controllers
 
 		// POST api/salesOrders
 		[HttpPost]
-		public async Task<IActionResult> Post(string salesOrderId, [FromBody] SalesOrderPost salesOrder)
+		public async Task<IActionResult> Post(string salesOrderId, [FromBody] NewSalesOrder salesOrder)
 		{
 			await Task.Delay(10);
 			return Ok();
