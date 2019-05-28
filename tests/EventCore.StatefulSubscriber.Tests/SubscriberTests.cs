@@ -167,11 +167,11 @@ namespace EventCore.StatefulSubscriber.Tests
 			mockStreamStateRepo.Verify(x => x.ClearStreamStateErrorsAsync());
 		}
 
-		[Fact]
-		public async Task missing_test_for_end_of_subscriptions()
-		{
-			await Task.Delay(100);
-			throw new NotImplementedException();
-		}
+		// [Fact]
+		// public async Task missing_test_for_end_of_subscriptions()
+		// {
+		// 	await Task.Delay(100);
+		// 	throw new NotImplementedException();
+		// }
 	}
 }
