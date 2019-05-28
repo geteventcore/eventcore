@@ -1,1 +1,0 @@
-Implements IStreamClient for use with Greg Young's Event Store.
