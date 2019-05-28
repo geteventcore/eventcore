@@ -11,7 +11,7 @@ namespace EventCore.Projectors
 	{
 		// This can be anything except null or empty.
 		// Must have a default way to group events to be handled.
-		protected const string DEFAULT_PARALLEL_KEY = ".";
+		public const string DEFAULT_PARALLEL_KEY = ".";
 
 		protected readonly IStandardLogger _logger;
 		protected readonly ISubscriber _subscriber;
@@ -39,6 +39,8 @@ namespace EventCore.Projectors
 
 		public virtual async Task HandleSubscriberEventAsync(SubscriberEvent subscriberEvent, CancellationToken cancellationToken)
 		{
+			var allInterfaces = this.GetType().GetInterfaces();
+			
 			// Does nothing if no handler - event is ignored.
 			if (this.GetType().GetInterfaces().Any(x => x.IsGenericType && x.GetGenericTypeDefinition() == typeof(IHandleBusinessEvent<>) && x.GetGenericArguments()[0] == subscriberEvent.ResolvedEventType))
 			{

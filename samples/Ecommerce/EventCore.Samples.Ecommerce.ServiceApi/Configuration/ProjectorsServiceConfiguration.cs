@@ -55,7 +55,7 @@ namespace EventCore.Samples.Ecommerce.ServiceApi.Configuration
 
 			var projectorType = typeof(TProjector);
 
-			var baseDependencies = new ProjectorDependencies(logger, subscriberFactory, streamClientFactory, streamStateRepo, resolver, subFactoryOptions, MapSubscriptionStreams(sharedSettings.SubscriptionStreams));
+			var baseDependencies = new ProjectorDependencies(logger, subscriberFactory, subFactoryOptions, streamClientFactory, streamStateRepo, resolver, MapSubscriptionStreams(sharedSettings.SubscriptionStreams));
 
 			if (projectorType == typeof(Projections.EmailReport.EmailReportProjector))
 				return new Projections.EmailReport.EmailReportProjector(baseDependencies, sp.GetRequiredService<IDbContextScopeFactory<Projections.EmailReport.EmailReportDb.EmailReportDbContext>>());

@@ -15,7 +15,7 @@ namespace EventCore.Projectors
 		public readonly SubscriberFactoryOptions SubscriberFactoryOptions;
 		public readonly IList<SubscriptionStreamId> SubscriptionStreamIds;
 
-		public ProjectorDependencies(IStandardLogger logger, ISubscriberFactory subscriberFactory, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver eventResolver, SubscriberFactoryOptions subscriberFactoryOptions, IList<SubscriptionStreamId> subscriptionStreamIds)
+		public ProjectorDependencies(IStandardLogger logger, ISubscriberFactory subscriberFactory, SubscriberFactoryOptions subscriberFactoryOptions, IStreamClientFactory streamClientFactory, IStreamStateRepo streamStateRepo, IBusinessEventResolver eventResolver, IList<SubscriptionStreamId> subscriptionStreamIds)
 		{
 			Logger = logger;
 			SubscriberFactory = subscriberFactory;
