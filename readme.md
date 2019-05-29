@@ -19,12 +19,12 @@ This code repository is structured as a single .NET Core/Standard solution with 
 
 The fastest way to get up and running is to use the provided bash scripts to run the pre-built Ecommerce sample. No scripts are provided for Windows.
 
-Requirements:
+**Requirements:**
 - Bash / Linux / Mac
 - .NET Core 2.2
 - Docker
 
-There is one main sample applications and a secondary/independent client library.
+There is one main sample application and a secondary/independent client library.
 
 ### EventCore.Samples.EventStore
 
@@ -54,21 +54,22 @@ sh reset_infrastructure.sh
 # Run Docker containers.
 sh run_infrastructure.sh
 
-# Wait 30 seconds to make sure containers have started, then initialize SQL Server databases and Event Store.
+# Wait 30 seconds to make sure containers have started,
+# then initialize SQL Server databases and Event Store.
 sh initialize_infrastructure.sh
 ```
 
-Run the service host in a separate tab/terminal window:
+In a separate tab/terminal window, run the service host:
 ```
 sh dotnet_run_serviceapi.sh
 ```
 
-Run the UI app in a separate tab/terminal window:
+In a separate tab/terminal window, run the UI app:
 ```
 sh dotnet_run_publicui.sh
 ```
 
-Run the CLI to watch a real-time event feed in a separate tab/terminal window:
+In a separate tab/terminal window, run the CLI to watch a real-time event feed:
 ```
 sh listen_all_events.sh
 ```
