@@ -7,13 +7,13 @@ namespace EventCore.Samples.Ecommerce.Domain.EmailBuilder.Commands
 	{
 		public readonly string CustomerEmail;
 		public readonly string SalesOrderId;
-		public readonly decimal TotalPrice;
+		public readonly decimal Price;
 
-		public BuildSalesReceiptEmailCommand(CommandMetadata _metadata, Guid emailId, string customerEmail, string salesOrderId, decimal totalPrice) : base(_metadata, emailId)
+		public BuildSalesReceiptEmailCommand(CommandMetadata _metadata, Guid emailId, string customerEmail, string salesOrderId, decimal price) : base(_metadata, emailId)
 		{
 			CustomerEmail = customerEmail;
 			SalesOrderId = salesOrderId;
-			TotalPrice = totalPrice;
+			Price = price;
 		}
 	}
 }

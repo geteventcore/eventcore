@@ -15,7 +15,7 @@ namespace EventCore.Samples.Ecommerce.Projections.SalesReport
 			{
 				if (!scope.Db.ExistsSalesOrderId(e.SalesOrderId))
 				{
-					scope.Db.SalesOrder.Add(new SalesOrderDbModel() { SalesOrderId = e.SalesOrderId, CustomerName = e.CustomerName, CustomerEmail = e.CustomerEmail, TotalPrice = e.TotalPrice });
+					scope.Db.SalesOrder.Add(new SalesOrderDbModel() { SalesOrderId = e.SalesOrderId, CustomerName = e.CustomerName, CustomerEmail = e.CustomerEmail, Price = e.Price });
 					await scope.Db.SaveChangesAsync();
 				}
 			}

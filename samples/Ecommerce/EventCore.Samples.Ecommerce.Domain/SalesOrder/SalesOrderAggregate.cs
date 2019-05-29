@@ -23,7 +23,7 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder
 
 			var e = new SalesOrderRaisedEvent(
 				BusinessEventMetadata.FromCausalId(c.GetCommandId()),
-				c.SalesOrderId, c.CustomerName, c.CustomerEmail, c.TotalPrice
+				c.SalesOrderId, c.CustomerName, c.CustomerEmail, c.Price
 			);
 			return CommandResult.FromEventIAsync(e);
 		}

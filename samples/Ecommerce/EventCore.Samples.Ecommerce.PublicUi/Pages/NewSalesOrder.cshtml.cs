@@ -24,7 +24,7 @@ namespace EventCore.Samples.Ecommerce.PublicUi.Pages
 		public string CustomerEmail { get; set; }
 
 		[BindProperty]
-		public decimal TotalPrice { get; set; }
+		public decimal Price { get; set; }
 
 		public async Task<IActionResult> OnPostAsync()
 		{
@@ -34,7 +34,7 @@ namespace EventCore.Samples.Ecommerce.PublicUi.Pages
 			}
 
 			await _salesOrderClient.ExecuteAsync(
-				new RaiseSalesOrderCommand(CommandMetadata.Default, Guid.NewGuid().ToString(), CustomerName, CustomerEmail, TotalPrice)
+				new RaiseSalesOrderCommand(CommandMetadata.Default, Guid.NewGuid().ToString(), CustomerName, CustomerEmail, Price)
 				);
 
 			return RedirectToPage("/Index", new { rand = new Random().Next(1, int.MaxValue) }); // Random number to force refresh.

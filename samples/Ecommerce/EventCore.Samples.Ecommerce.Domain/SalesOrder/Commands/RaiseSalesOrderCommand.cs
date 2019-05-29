@@ -7,13 +7,13 @@ namespace EventCore.Samples.Ecommerce.Domain.SalesOrder.Commands
 	{
 		public readonly string CustomerName;
 		public readonly string CustomerEmail;
-		public readonly decimal TotalPrice;
+		public readonly decimal Price;
 
-		public RaiseSalesOrderCommand(CommandMetadata _metadata, string salesOrderId, string customerName, string customerEmail, decimal totalPrice) : base(_metadata, salesOrderId)
+		public RaiseSalesOrderCommand(CommandMetadata _metadata, string salesOrderId, string customerName, string customerEmail, decimal price) : base(_metadata, salesOrderId)
 		{
 			CustomerName = customerName;
 			CustomerEmail = customerEmail;
-			TotalPrice = totalPrice;
+			Price = price;
 		}
 	}
 }

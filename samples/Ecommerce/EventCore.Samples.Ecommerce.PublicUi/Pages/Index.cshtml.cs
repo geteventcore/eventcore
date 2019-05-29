@@ -22,7 +22,7 @@ namespace EventCore.Samples.Ecommerce.PublicUi.Pages
 		public async Task OnGetAsync()
 		{
 			SalesOrders = await _db.SalesOrder.AsNoTracking().ToListAsync();
-			Total = await _db.SalesOrder.SumAsync(x => x.TotalPrice);
+			Total = await _db.SalesOrder.SumAsync(x => x.Price);
 		}
 	}
 }
