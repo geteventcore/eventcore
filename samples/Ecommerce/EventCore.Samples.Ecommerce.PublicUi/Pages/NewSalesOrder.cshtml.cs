@@ -1,13 +1,20 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EventCore.AggregateRoots;
+using EventCore.Samples.Ecommerce.Domain.Clients;
+using EventCore.Samples.Ecommerce.Domain.SalesOrder.Commands;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System;
 using System.Threading.Tasks;
 
 namespace EventCore.Samples.Ecommerce.PublicUi.Pages
 {
 	public class NewSalesOrderModel : PageModel
 	{
-		public NewSalesOrderModel()
+		private readonly SalesOrderClient _salesOrderClient;
+
+		public NewSalesOrderModel(SalesOrderClient salesOrderClient)
 		{
+			_salesOrderClient = salesOrderClient;
 		}
 
 		[BindProperty]
@@ -26,10 +33,11 @@ namespace EventCore.Samples.Ecommerce.PublicUi.Pages
 				return Page();
 			}
 
-			await Task.Delay(10);
-			System.Console.WriteLine($"Raising new sales order: {CustomerName} {CustomerEmail} {TotalPrice}");
+			await _salesOrderClient.ExecuteAsync(
+				new RaiseSalesOrderCommand(CommandMetadata.Default, Guid.NewGuid().ToString(), CustomerName, CustomerEmail, TotalPrice)
+				);
 
-			return RedirectToPage("/Index");
+			return RedirectToPage("/Index", new { rand = new Random().Next(1, int.MaxValue) }); // Random number to force refresh.
 		}
 	}
 }

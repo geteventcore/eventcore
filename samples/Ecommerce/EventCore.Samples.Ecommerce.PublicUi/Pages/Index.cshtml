@@ -1,4 +1,4 @@
-﻿@page
+﻿@page "{rand:int}"
 @model EventCore.Samples.Ecommerce.PublicUi.Pages.SalesReportModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
@@ -26,10 +26,10 @@
         </tbody>
 				<tfoot>
                 <tr>
-                    <td></td>
+                    <td><strong>Total:</strong></td>
                     <td></td>
 										<td></td>
-										<td>@Model.Total</td>
+										<td><strong>@Model.Total</strong></td>
                 </tr>
 				</tfoot>
     </table>
