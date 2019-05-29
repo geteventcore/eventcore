@@ -74,11 +74,11 @@ sh listen_all_events.sh
 ```
 
 Ports used:
- - 2113 - Greg Young's Event Store Web Admin
- - 1113 - Greg Young's Event Store TCP
- - 5633 - SQL Server DB - Aggregate Root States
- - 5733 - SQL Server DB - Projections
- - 5501, 5502 - Service API
+ - localhost:2113 - Greg Young's Event Store Web Admin
+ - localhost:1113 - Greg Young's Event Store TCP
+ - localhost:5633 - SQL Server DB - Aggregate Root States
+ - localhost:5733 - SQL Server DB - Projections
+ - localhost:5501, 5502 - Service API
 
 
 ## EventCore Primary Classes

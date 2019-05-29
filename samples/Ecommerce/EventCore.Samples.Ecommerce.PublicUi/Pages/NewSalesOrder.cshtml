@@ -1,0 +1,18 @@
+﻿@page
+@model EventCore.Samples.Ecommerce.PublicUi.Pages.NewSalesOrderModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<html>
+<body>
+    <p>
+        <strong>Raise a new sales order...</strong>
+    </p>
+    <div asp-validation-summary="All"></div>
+    <form method="POST">
+        <div>Customer Name: <input asp-for="CustomerName" /></div>
+				<div>Customer Email: <input asp-for="CustomerEmail" /></div>
+				<div>Price: <input asp-for="TotalPrice" /></div>
+        <input type="submit" />
+    </form>
+</body>
+</html>
